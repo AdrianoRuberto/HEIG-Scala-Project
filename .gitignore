@@ -1,13 +1,7 @@
-# IntelliJ
 .idea/
-
-# SBT
 /project/project/
-/project/target/
 target/
-
-# Config
 application.conf.local
-
-# Trash
 /server/logs/
+shared/.js/
+shared/.jvm/

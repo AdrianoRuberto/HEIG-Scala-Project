@@ -1,11 +1,8 @@
-import sbt.Keys._
-import sbt.Project.projectToRef
-
 name := """HEIG-Scala-Project"""
-
 version := "1.0-SNAPSHOT"
-
 crossPaths := false
+
+val scalaV = "2.11.11"
 
 lazy val scalaOpts = Seq(
 	//"-Xlog-implicits",
@@ -19,20 +16,20 @@ lazy val scalaOpts = Seq(
 
 lazy val server = (project in file("server"))
 	.settings(
-		scalaVersion := "2.11.11",
+		scalaVersion := scalaV,
+		scalacOptions ++= scalaOpts,
 		scalaJSProjects := Seq(client),
 		pipelineStages in Assets := Seq(scalaJSPipeline),
 		pipelineStages := Seq(digest, gzip),
-		// triggers scalaJSPipeline when using compile or continuous compilation
 		compile in Compile := ((compile in Compile) dependsOn scalaJSPipeline).value,
 		libraryDependencies ++= Seq(
 			jdbc,
 			cache,
 			ws,
-			"com.vmunier" %% "play-scalajs-scripts" % "0.5.0",
+			filters,
+			"com.vmunier" %% "scalajs-scripts" % "1.1.0",
 			"me.chrons" %% "boopickle" % "1.2.5"
 		),
-		scalacOptions ++= scalaOpts,
 		includeFilter in gzip := "*.html" || "*.css" || "*.js" || "*.less"
 	)
 	.enablePlugins(PlayScala)
@@ -40,34 +37,30 @@ lazy val server = (project in file("server"))
 
 lazy val client = (project in file("client"))
 	.settings(
-		scalaVersion := "2.11.11",
-		scalaSource in Compile := baseDirectory.value / "src",
+		scalaVersion := scalaV,
+		scalacOptions ++= scalaOpts,
 		scalaJSUseMainModuleInitializer := true,
+		crossPaths := false,
 		libraryDependencies ++= Seq(
 			"org.scala-js" %%% "scalajs-dom" % "0.9.2",
 			"me.chrons" %%% "boopickle" % "1.2.5"
-		),
-		scalacOptions ++= scalaOpts
+		)
 	)
-	.enablePlugins(ScalaJSPlugin, ScalaJSPlay)
+	.enablePlugins(ScalaJSPlugin, ScalaJSWeb)
 	.dependsOn(sharedJs)
 
-lazy val shared = (crossProject.crossType(CustomCrossType) in file("shared"))
+lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared"))
 	.settings(
-		scalaVersion := "2.11.11",
+		scalaVersion := scalaV,
 		scalacOptions ++= scalaOpts,
 		crossPaths := false,
 		libraryDependencies ++= Seq(
 			"me.chrons" %%% "boopickle" % "1.2.5"
 		)
 	)
-	.jvmSettings(
-		scalaSource in Compile := baseDirectory.value / "src"
-	)
-	.jsSettings(
-		scalaSource in Compile := baseDirectory.value / "src"
-	)
-	.jsConfigure(_ enablePlugins ScalaJSPlay)
+	.jvmSettings()
+	.jsSettings()
+	.jsConfigure(_ enablePlugins ScalaJSWeb)
 
 lazy val sharedJvm = shared.jvm
 lazy val sharedJs = shared.js
@@ -75,6 +68,3 @@ lazy val sharedJs = shared.js
 sources in(Compile, doc) := Seq.empty
 
 publishArtifact in(Compile, packageDoc) := false
-
-// loads the Play project at sbt startup
-onLoad in Global := (Command.process("project server", _: State)) compose (onLoad in Global).value
