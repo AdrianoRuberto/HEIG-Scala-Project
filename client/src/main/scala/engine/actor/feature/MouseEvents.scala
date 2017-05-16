@@ -9,8 +9,8 @@ trait MouseEvents extends Actor {
 	}
 
 	private[engine] override def unregisterFrom(engine: Engine): Unit = {
-		engine.mouseEnabled -= this
 		super.unregisterFrom(engine)
+		engine.mouseEnabled -= this
 	}
 
 	def handleMouse(tpe: String, x: Double, y: Double, button: Int): Unit

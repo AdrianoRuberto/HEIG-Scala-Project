@@ -9,8 +9,8 @@ trait KeyboardEvents extends Actor {
 	}
 
 	private[engine] override def unregisterFrom(engine: Engine): Unit = {
-		engine.keyboardEnabled -= this
 		super.unregisterFrom(engine)
+		engine.keyboardEnabled -= this
 	}
 
 	def handleKeyboard(tpe: String): Unit

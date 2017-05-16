@@ -9,8 +9,8 @@ trait Updatable extends Actor {
 	}
 
 	private[engine] override def unregisterFrom(engine: Engine): Unit = {
-		engine.updatables -= this
 		super.unregisterFrom(engine)
+		engine.updatables -= this
 	}
 
 	def update(dt: Double): Unit
