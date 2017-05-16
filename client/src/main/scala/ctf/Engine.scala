@@ -22,7 +22,7 @@ class Engine(val canvas: Canvas) {
 
 	def update(timestamp: Double): Unit = {
 		// Compute delta time
-		val dt = if (lastTimestamp.isNaN) timestamp else timestamp - lastTimestamp
+		val dt = if (lastTimestamp.isNaN) 0 else timestamp - lastTimestamp
 		lastTimestamp = timestamp
 
 		// Update all actors

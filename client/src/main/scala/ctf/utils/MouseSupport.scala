@@ -6,7 +6,7 @@ trait MouseSupport extends Actor {
 	private[this] var mouseX: Double = 0
 	private[this] var mouseY: Double = 0
 
-	abstract override def handleMouse(tpe: String, x: Double, y: Double, button: Int): Unit = {
+	override def handleMouse(tpe: String, x: Double, y: Double, button: Int): Unit = {
 		mouseX = x
 		mouseY = y
 		super.handleMouse(tpe, x, y, button)

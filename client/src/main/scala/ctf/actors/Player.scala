@@ -1,9 +1,9 @@
 package ctf
 package actors
 
-import ctf.utils.{Layer, MouseSupport, Size}
+import ctf.utils.{Layer, Size}
 
-abstract class Player(sublayer: Int = 0) extends Actor(Layer.Players / sublayer) with MouseSupport {
+abstract class Player(sublayer: Int = 0) extends Actor(Layer.Players / sublayer) {
 	def size: Size
 	def facing: Double
 
