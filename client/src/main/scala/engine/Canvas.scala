@@ -1,4 +1,4 @@
-package ctf
+package engine
 
 import org.scalajs.dom
 import org.scalajs.dom.html

@@ -1,5 +1,5 @@
 import org.scalajs.dom
 
-package object ctf {
+package object engine {
 	type CanvasCtx = dom.CanvasRenderingContext2D
 }

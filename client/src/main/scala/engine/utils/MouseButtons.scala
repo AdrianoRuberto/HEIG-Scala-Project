@@ -1,4 +1,4 @@
-package ctf.utils
+package engine.utils
 
 object MouseButtons {
 	final val None = 0

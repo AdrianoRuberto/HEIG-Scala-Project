@@ -1,9 +1,13 @@
-package ctf
-package actors
+package game.actors
 
-import ctf.utils.{Layer, Size}
+import engine.CanvasCtx
+import engine.actor.Actor
+import engine.actor.feature.Drawable
+import engine.utils.{Layer, Size}
 
-abstract class Player(sublayer: Int = 0) extends Actor(Layer.Players / sublayer) {
+abstract class Player(sublayer: Int = 0) extends Actor with Drawable {
+	val layer: Layer = Layer.Players / sublayer
+
 	def size: Size
 	def facing: Double
 
@@ -12,6 +16,7 @@ abstract class Player(sublayer: Int = 0) extends Actor(Layer.Players / sublayer)
 
 		ctx.strokeStyle = "red"
 		ctx.fillStyle = "red"
+		ctx.lineWidth = 2
 
 		ctx.rotate(facing - Math.PI / 2)
 		ctx.translate(-width / 2, -height / 2)

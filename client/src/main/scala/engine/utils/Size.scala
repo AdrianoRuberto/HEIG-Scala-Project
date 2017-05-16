@@ -1,3 +1,3 @@
-package ctf.utils
+package engine.utils
 
 case class Size(width: Double, height: Double)

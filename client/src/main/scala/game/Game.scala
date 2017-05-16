@@ -1,7 +1,9 @@
-package ctf
+package game
 
-import ctf.actors.{MouseDebug, Player}
-import ctf.utils.{MouseButtons, MouseSupport, Point, Size}
+import engine.actor.feature.{MousePosition, Updatable}
+import engine.utils.{MouseButtons, Point, Size}
+import engine.{Canvas, Engine}
+import game.actors.{MouseDebug, Player}
 import scala.scalajs.js.JSApp
 
 object Game extends JSApp {
@@ -10,7 +12,7 @@ object Game extends JSApp {
 		val engine = new Engine(canvas)
 		engine.registerActor(new MouseDebug(5, 13))
 
-		engine.registerActor(new Player(1) with MouseSupport {
+		engine.registerActor(new Player(1) with MousePosition with Updatable {
 			val size: Size = Size(30, 30)
 
 			private def moveSpeed = 100 // pixels / seconds
