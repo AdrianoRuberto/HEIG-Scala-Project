@@ -1,9 +1,9 @@
 import org.scalajs.dom
 
 package object game {
-	implicit class EventListenerOps(private val element: dom.Element) extends AnyVal {
+	implicit class EventTargetOps(private val eventTarget: dom.EventTarget) extends AnyVal {
 		def on[T <: dom.Event](event: Event[T])(handler: T => Unit): Unit = {
-			element.addEventListener(event.name, handler)
+			eventTarget.addEventListener(event.name, handler)
 		}
 	}
 
@@ -15,5 +15,6 @@ package object game {
 		object Input extends Event[dom.Event]("input")
 		object KeyUp extends Event[dom.KeyboardEvent]("keyup")
 		object Blur extends Event[dom.FocusEvent]("blur")
+		object Load extends Event[dom.UIEvent]("load")
 	}
 }

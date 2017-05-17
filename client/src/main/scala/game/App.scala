@@ -10,7 +10,7 @@ object App extends JSApp {
 	/**
 	  * Application entry point.
 	  */
-	def main(): Unit = dom.window.onload = (e: dom.Event) => {
+	def main(): Unit = dom.window.on(Event.Load)(_ => {
 		loader.classList.add("fade-out")
 
 		loader.on(Event.TransitionEnd) { _ =>
@@ -23,5 +23,5 @@ object App extends JSApp {
 
 		Lobby.setup()
 		Login.setup()
-	}
+	})
 }
