@@ -1,6 +1,7 @@
 package game
 
 import org.scalajs.dom
+import org.scalajs.dom.html
 import scala.scalajs.js
 import scala.scalajs.js.JSApp
 
@@ -15,6 +16,7 @@ object Lobby extends JSApp {
 	// Lobby
 	private lazy val lobby = dom.document.querySelector("#lobby")
 	private lazy val lobbyName = dom.document.querySelector("#lobby #name")
+	private lazy val lobbyButton = dom.document.querySelector("#lobby button").asInstanceOf[html.Button]
 
 	/**
 	  * Application entry point, waits for the page to be fully loaded and
@@ -30,22 +32,27 @@ object Lobby extends JSApp {
 	  */
 	private def init(): Unit = {
 		loader.classList.add("fade-out")
-		loader.addEventListener("transitionend", (e: dom.TransitionEvent) => {
+
+		loader.on(Event.TransitionEnd) { _ =>
 			loader.parentNode.removeChild(loader)
 			dom.window.sessionStorage.getItem("username") match {
 				case null => Login.requestUsername()
 				case name => displayLobby(name)
 			}
-		})
+		}
 
-		lobbyName.addEventListener("click", (_: dom.MouseEvent) => {
+		lobbyName.on(Event.Click) { _ =>
 			lobby.classList.add("fade-out")
 			js.timers.setTimeout(500) {
 				lobby.classList.remove("visible")
 				lobby.classList.remove("fade-out")
 				Login.requestUsername()
 			}
-		})
+		}
+
+		lobbyButton.on(Event.Click) { _ =>
+			lobbyButton.textContent = "Cancel search"
+		}
 
 		Login.init()
 	}

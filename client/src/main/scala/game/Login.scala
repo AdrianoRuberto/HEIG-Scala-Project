@@ -16,13 +16,13 @@ object Login {
 
 	def init(): Unit = {
 		// Continuous username validation (+ tip display)
-		loginInput.addEventListener("input", (_: dom.Event) => {
+		loginInput.on(Event.Input) { _ =>
 			loginInput.value = validateUsername(loginInput.value)
 			triggerTipTimer()
-		})
+		}
 
 		// Handle [Enter] key press
-		loginInput.addEventListener("keyup", (e: dom.KeyboardEvent) => {
+		loginInput.on(Event.KeyUp) { e =>
 			if (e.keyCode == 13) {
 				val name = validateUsername(loginInput.value)
 				requestingUsername = false
@@ -35,14 +35,14 @@ object Login {
 					Lobby.displayLobby(name)
 				}
 			}
-		})
+		}
 
 		// Ensures that the focus stays on the input element
-		loginInput.addEventListener("blur", (_: dom.Event) => {
+		loginInput.on(Event.Blur) { _ =>
 			if (requestingUsername) {
 				loginInput.focus()
 			}
-		})
+		}
 	}
 
 	/**
