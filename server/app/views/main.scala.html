@@ -4,12 +4,24 @@
 <html lang="en">
 	<head>
 		<title>HEIG-Scala-Project</title>
-		<link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
+		<link rel="stylesheet" media="screen" href="@routes.Assets.versioned("../assets/stylesheets/main.css")">
 	</head>
 	<body>
+		<div id="loader">@for(_ <- 1 to 6) {<b></b>}</div>
+		<div id="login">
+			<h2>Hey there! <span class="delayed">What's your name?</span></h2>
+			<label>
+				<input type="text" spellcheck="false">
+			</label>
+			<p>Just press <span class="key">Enter</span> when you're ready!</p>
+		</div>
+		<div id="lobby">
+			<h2>Hello, <span id="name">player</span>!</h2>
+			<button>Search Game</button>
+		</div>
 		@scalajs.html.scripts(
 			"client",
-			routes.Assets.versioned(_).toString,
+			name => routes.Assets.versioned(name).toString,
 			name => getClass.getResource(s"/public/$name") != null
 		)
 	</body>

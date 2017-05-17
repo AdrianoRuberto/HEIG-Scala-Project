@@ -30,7 +30,7 @@ lazy val server = (project in file("server"))
 			"com.vmunier" %% "scalajs-scripts" % "1.0.0",
 			"me.chrons" %% "boopickle" % "1.2.5"
 		),
-		includeFilter in gzip := "*.html" || "*.css" || "*.js" || "*.less"
+		includeFilter in gzip := "*.css" || "*.js"
 	)
 	.enablePlugins(PlayScala)
 	.dependsOn(sharedJvm)

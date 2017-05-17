@@ -1,0 +1,55 @@
+#loader {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	margin: auto;
+	width: 400px;
+	height: 16px;
+	text-align: center;
+	line-height: 16px;
+
+	&.fade-out {
+		transition: all 0.75s ease-in;
+		opacity: 0;
+		transition-delay: 0.4s;
+	}
+
+	b {
+		display: inline-block;
+		background: #000;
+		width: 10px;
+		height: 10px;
+		border-radius: 20%;
+		margin: 0 4px;
+		position: relative;
+		animation: spinner 3s infinite;
+		animation-timing-function: cubic-bezier(0.030, 0.615, 0.995, 0.415);
+		animation-fill-mode: both;
+
+		&:nth-child(6) {
+			animation-delay: 0.0s;
+		}
+
+		&:nth-child(5) {
+			animation-delay: 0.15s;
+		}
+
+		&:nth-child(4) {
+			animation-delay: 0.30s;
+		}
+
+		&:nth-child(3) {
+			animation-delay: 0.45s;
+		}
+
+		&:nth-child(2) {
+			animation-delay: 0.60s;
+		}
+
+		&:nth-child(1) {
+			animation-delay: 0.75s;
+		}
+	}
+}

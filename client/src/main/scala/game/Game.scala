@@ -4,9 +4,8 @@ import engine.actor.feature.{MousePosition, Updatable}
 import engine.utils.{MouseButtons, Point, Size}
 import engine.{Canvas, Engine}
 import game.actors.{MouseDebug, Player}
-import scala.scalajs.js.JSApp
 
-object Game extends JSApp {
+object Game {
 	def main(): Unit = {
 		val canvas = Canvas("ctf-canvas", 1200, 800)
 		val engine = new Engine(canvas)

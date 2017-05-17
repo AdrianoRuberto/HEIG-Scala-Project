@@ -1,0 +1,58 @@
+#login {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	width: 500px;
+	height: 150px;
+	margin: auto;
+	text-align: center;
+
+	display: none;
+	animation: fade-in .5s ease-in-out both .5s;
+
+	&.visible {
+		display: block;
+	}
+
+	&.fade-out {
+		animation: fade-out .3s ease-in-out both 0s;
+	}
+
+	h2 {
+		font-weight: 400;
+		font-size: 18px;
+		margin-bottom: 25px;
+
+		& .delayed {
+			animation: fade-in .5s ease-in-out both 1.5s;
+		}
+	}
+
+	input[type="text"] {
+		display: block;
+		height: 56px;
+		width: 300px;
+		margin: auto;
+		padding: 10px;
+		text-align: center;
+		font: 500 24px "Roboto Mono";
+		background: #e7e7e7;
+		border: 1px solid #ccc;
+		border-bottom: 3px solid #666;
+		outline: none;
+		animation: fade-in .5s ease-in-out both 2.7s, slide-up .5s ease-in-out both 2.7s;
+	}
+
+	p {
+		margin-top: 25px;
+		font-weight: 300;
+		opacity: 0;
+		transition: opacity .2s ease-in-out;
+
+		&.visible {
+			opacity: 1;
+		}
+	}
+}

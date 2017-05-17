@@ -1,0 +1,40 @@
+@import (css) url("https://fonts.googleapis.com/css?family=Roboto+Mono:300,400,500");
+@import (css) url("https://fonts.googleapis.com/icon?family=Material+Icons");
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: inherit;
+}
+
+html {
+	box-sizing: border-box;
+	cursor: default;
+}
+
+html, body {
+	height: 100%;
+	width: 100%;
+}
+
+body {
+	background: #eee;
+	color: #111;
+	font: 400 14px "Roboto Mono";
+	user-select: none;
+}
+
+@import "loader";
+@import "login";
+@import "lobby";
+
+.key {
+	display: inline-block;
+	padding: 2px 4px;
+	background: #e7e7e7;
+	border: 1px solid #ccc;
+	box-shadow: 1px 1px 0 #ddd;
+	font-weight: 500;
+}
+
+@import "animations";
