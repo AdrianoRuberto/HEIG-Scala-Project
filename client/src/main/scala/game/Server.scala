@@ -12,7 +12,7 @@ object Server {
 	def searchGame(player: Player): Unit = {
 		socket = new WebSocket(s"ws://${dom.document.location.host}/socket")
 		socket.binaryType = "arraybuffer"
-		socket.on(Event.Open) { _ => send(ClientMessage.SearchGame(player)) }
+		socket.on(Event.Open) { _ => Server ! ClientMessage.SearchGame(player) }
 		socket.on(Event.Close)(socketClosed)
 		socket.on(Event.Error)(socketClosed)
 		socket.on(Event.Message) { msg =>
@@ -21,16 +21,15 @@ object Server {
 		}
 	}
 
-	def send(msg: ClientMessage): Unit = {
+	def ! (msg: ClientMessage): Unit = {
 		val buffer = Pickle.intoBytes(msg).toArrayBuffer
 		socket.send(buffer)
 	}
 
-	def socketClosed(e: dom.Event): Unit = {
-		println("Socket closed")
-	}
+	def socketClosed(e: dom.Event): Unit = ()
 
 	def handleMessage(msg: ServerMessage): Unit = msg match {
+		case ServerMessage.Error(e) => dom.console.error(e)
 		case ServerMessage.GameFound(_) => println("Game found !")
 	}
 
