@@ -13,7 +13,7 @@ object Login {
 	private var requestingUsername = false
 	private var tipTimer: SetTimeoutHandle = _
 
-	def init(): Unit = {
+	def setup(): Unit = {
 		// Continuous username validation (+ tip display)
 		loginInput.on(Event.Input) { _ =>
 			loginInput.value = validateUsername(loginInput.value)
