@@ -7,8 +7,7 @@ import scala.compat.Platform
 
 class Matchmaker extends Actor {
 	case class QueuedPlayer(actor: ActorRef, player: Player, since: Long)
-	private implicit val queuedPlayerOrdering: Ordering[QueuedPlayer] = Ordering.by(_.since)
-	private var queue = SortedSet.empty[QueuedPlayer]
+	private var queue = SortedSet.empty[QueuedPlayer](Ordering.by(_.since))
 
 	def receive: Receive = {
 		case Matchmaker.Register(player) =>
