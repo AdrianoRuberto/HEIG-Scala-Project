@@ -6,7 +6,10 @@ sealed trait ServerMessage
 
 object ServerMessage {
 	case class Error(error: String) extends ServerMessage
-	case class GameFound(players: Seq[Team]) extends ServerMessage
+
+	sealed trait LobbyMessage extends ServerMessage
+	case class QueueUpdate(count: Int) extends LobbyMessage
+	case class GameFound(players: Seq[Team]) extends LobbyMessage
 
 	implicit val pickler: Pickler[ServerMessage] = generatePickler[ServerMessage]
 }

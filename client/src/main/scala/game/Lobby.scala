@@ -56,4 +56,9 @@ object Lobby {
 		lobbyButton.textContent = SearchForGame
 		player = Player(name)
 	}
+
+	def message(lm: ServerMessage.LobbyMessage): Unit = lm match {
+		case ServerMessage.QueueUpdate(length) => println("queue length is", length)
+		case ServerMessage.GameFound(teams) => println("game found", teams)
+	}
 }
