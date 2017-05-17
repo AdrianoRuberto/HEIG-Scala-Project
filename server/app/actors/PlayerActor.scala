@@ -13,7 +13,10 @@ class PlayerActor @Inject() (@Assisted socket: ActorRef)
 	/** Fake actor for handling outgoing messages */
 	object out {
 		def ! (msg: ServerMessage): Unit = {
-			socket ! Pickle.intoBytes(msg).array()
+			val buffer = Pickle.intoBytes(msg)
+			val array = new Array[Byte](buffer.remaining)
+			buffer.get(array)
+			socket ! array
 		}
 	}
 

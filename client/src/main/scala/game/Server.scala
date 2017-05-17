@@ -4,7 +4,7 @@ import boopickle.DefaultBasic._
 import java.nio.ByteBuffer
 import org.scalajs.dom
 import org.scalajs.dom.raw.WebSocket
-import scala.scalajs.js.typedarray.{ArrayBuffer, TypedArrayBuffer, TypedArrayBufferOps}
+import scala.scalajs.js.typedarray._
 
 object Server {
 	private var socket: dom.WebSocket = _
@@ -34,6 +34,9 @@ object Server {
 	}
 
 	implicit class ByteBufferOps(private val buffer: ByteBuffer) extends AnyVal {
-		def toArrayBuffer: ArrayBuffer = TypedArrayBufferOps.byteBufferOps(buffer).arrayBuffer()
+		def toArrayBuffer: ArrayBuffer = {
+			val length = buffer.remaining()
+			TypedArrayBufferOps.byteBufferOps(buffer).arrayBuffer().slice(0, length)
+		}
 	}
 }
