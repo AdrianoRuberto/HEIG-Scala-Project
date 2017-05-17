@@ -6,7 +6,6 @@ import scala.scalajs.js
 import scala.scalajs.js.timers.SetTimeoutHandle
 
 object Login {
-	// Login
 	private lazy val login = dom.document.querySelector("#login")
 	private lazy val loginInput = dom.document.querySelector("#login input").asInstanceOf[html.Input]
 	private lazy val loginTip = dom.document.querySelector("#login p")

@@ -10,13 +10,16 @@ import scala.scalajs.js.JSApp
   * Also the entry point of the application.
   */
 object Lobby extends JSApp {
-	// Loader
 	private lazy val loader = dom.document.querySelector("#loader")
 
-	// Lobby
 	private lazy val lobby = dom.document.querySelector("#lobby")
 	private lazy val lobbyName = dom.document.querySelector("#lobby #name")
 	private lazy val lobbyButton = dom.document.querySelector("#lobby button").asInstanceOf[html.Button]
+
+	private var searching = false
+
+	private final val SearchForGame = "Search for game"
+	private final val CancelSearch = "Cancel search"
 
 	/**
 	  * Application entry point, waits for the page to be fully loaded and
@@ -51,7 +54,13 @@ object Lobby extends JSApp {
 		}
 
 		lobbyButton.on(Event.Click) { _ =>
-			lobbyButton.textContent = "Cancel search"
+			if (searching) {
+				lobbyButton.textContent = SearchForGame
+				searching = false
+			} else {
+				lobbyButton.textContent = CancelSearch
+				searching = true
+			}
 		}
 
 		Login.init()
@@ -65,5 +74,6 @@ object Lobby extends JSApp {
 	def displayLobby(name: String): Unit = {
 		lobby.classList.add("visible")
 		lobbyName.textContent = name
+		lobbyButton.textContent = SearchForGame
 	}
 }
