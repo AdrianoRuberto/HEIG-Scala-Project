@@ -24,14 +24,16 @@ object Login {
 		loginInput.on(Event.KeyUp) { e =>
 			if (e.keyCode == 13) {
 				val name = validateUsername(loginInput.value)
-				requestingUsername = false
-				loginInput.blur()
-				dom.window.sessionStorage.setItem("username", name)
-				login.classList.add("fade-out")
-				js.timers.setTimeout(500) {
-					login.classList.remove("visible")
-					login.classList.remove("fade-out")
-					Lobby.displayLobby(name)
+				if (name.nonEmpty) {
+					requestingUsername = false
+					loginInput.blur()
+					dom.window.sessionStorage.setItem("username", name)
+					login.classList.add("fade-out")
+					js.timers.setTimeout(500) {
+						login.classList.remove("visible")
+						login.classList.remove("fade-out")
+						Lobby.displayLobby(name)
+					}
 				}
 			}
 		}
