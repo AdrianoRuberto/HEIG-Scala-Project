@@ -27,7 +27,7 @@ lazy val server = (project in file("server"))
 			cache,
 			ws,
 			filters,
-			"com.vmunier" %% "scalajs-scripts" % "1.1.0",
+			"com.vmunier" %% "scalajs-scripts" % "1.0.0",
 			"me.chrons" %% "boopickle" % "1.2.5"
 		),
 		includeFilter in gzip := "*.html" || "*.css" || "*.js" || "*.less"
@@ -65,6 +65,5 @@ lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared"))
 lazy val sharedJvm = shared.jvm
 lazy val sharedJs = shared.js
 
-sources in(Compile, doc) := Seq.empty
-
-publishArtifact in(Compile, packageDoc) := false
+//sources in(Compile, doc) := Seq.empty
+//publishArtifact in(Compile, packageDoc) := false
