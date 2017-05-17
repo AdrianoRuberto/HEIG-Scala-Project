@@ -16,5 +16,9 @@ package object game {
 		object KeyUp extends Event[dom.KeyboardEvent]("keyup")
 		object Blur extends Event[dom.FocusEvent]("blur")
 		object Load extends Event[dom.UIEvent]("load")
+		object Open extends Event[dom.Event]("open")
+		object Close extends Event[dom.CloseEvent]("close")
+		object Error extends Event[dom.Event]("error")
+		object Message extends Event[dom.MessageEvent]("message")
 	}
 }

@@ -13,6 +13,7 @@ object Lobby {
 	private lazy val lobbyName = dom.document.querySelector("#lobby #name")
 	private lazy val lobbyButton = dom.document.querySelector("#lobby button").asInstanceOf[html.Button]
 
+	private var player: Player = _
 	private var searching = false
 
 	private final val SearchForGame = "Search for game"
@@ -39,6 +40,7 @@ object Lobby {
 			} else {
 				lobbyButton.textContent = CancelSearch
 				searching = true
+				Server.searchGame(player)
 			}
 		}
 	}
@@ -52,5 +54,6 @@ object Lobby {
 		lobby.classList.add("visible")
 		lobbyName.textContent = name
 		lobbyButton.textContent = SearchForGame
+		player = Player(name)
 	}
 }

@@ -3,7 +3,7 @@ package game
 import engine.actor.feature.{MousePosition, Updatable}
 import engine.utils.{MouseButtons, Point, Size}
 import engine.{Canvas, Engine}
-import game.actors.{MouseDebug, Player}
+import game.actors.{MouseDebug, Player => APlayer}
 
 object Game {
 	def main(): Unit = {
@@ -11,7 +11,7 @@ object Game {
 		val engine = new Engine(canvas)
 		engine.registerActor(new MouseDebug(5, 13))
 
-		engine.registerActor(new Player(1) with MousePosition with Updatable {
+		engine.registerActor(new APlayer(1) with MousePosition with Updatable {
 			val size: Size = Size(30, 30)
 
 			private def moveSpeed = 100 // pixels / seconds
