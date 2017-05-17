@@ -5,7 +5,7 @@
 	right: 0;
 	bottom: 0;
 	width: 500px;
-	height: 300px;
+	height: 240px;
 	margin: auto;
 	text-align: center;
 
@@ -23,11 +23,21 @@
 	h2 {
 		font-weight: 400;
 		font-size: 24px;
-		margin-bottom: 100px;
+		margin-bottom: 50px;
+
+		#name {
+			border-bottom: 2px solid #ccc;
+			transition: border-color .1s ease-out;
+
+			&:hover {
+				cursor: pointer;
+				border-bottom-color: #999;
+			}
+		}
 	}
 
 	button {
-		padding: 10px 30px;
+		padding: 20px 60px;
 		font: 400 21px "Roboto Mono";
 		background: #e7e7e7;
 		border: 1px solid #ccc;
