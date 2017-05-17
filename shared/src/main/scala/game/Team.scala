@@ -1,12 +1,12 @@
 package game
 
-import boopickle.DefaultBasic.{Pickler, PicklerGenerator}
+import boopickle.Default._
 
 /**
   * Created by Adriano on 17.05.2017.
   */
-class Team(player: Seq[Player])
+case class Team(player: Seq[Player])
 
 object Team {
-	implicit val pickler: Pickler[Team] = PicklerGenerator.generatePickler[Team]
+	implicit val pickler: Pickler[Team] = generatePickler[Team]
 }
