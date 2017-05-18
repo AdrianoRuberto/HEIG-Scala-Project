@@ -45,7 +45,14 @@
 		border-bottom: 3px solid #666;
 		outline: none;
 		transition: all .1s ease-out;
+		margin-bottom: 25px;
+	}
 
+	&.found button {
+		opacity: 0.5;
+	}
+
+	&:not(.found) button {
 		&:hover {
 			cursor: pointer;
 			background: #f1f1f1;
@@ -54,5 +61,19 @@
 		&:active {
 			background: #64b4ff;
 		}
+	}
+
+	p {
+		font-weight: 500;
+		display: none;
+	}
+
+	p#stats {
+		font-weight: 300;
+		margin-top: 5px;
+	}
+
+	&.searching .searching, &.found .found {
+		display: block;
 	}
 }

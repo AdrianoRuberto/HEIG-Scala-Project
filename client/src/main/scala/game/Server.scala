@@ -10,6 +10,7 @@ object Server {
 	private var socket: dom.WebSocket = _
 
 	def searchGame(player: Player): Unit = {
+		require(socket == null, "Attempted to search for game while socket is still open")
 		socket = new WebSocket(s"ws://${dom.document.location.host}/socket")
 		socket.binaryType = "arraybuffer"
 		socket.on(Event.Open) { _ => Server ! ClientMessage.SearchGame(player) }
@@ -21,7 +22,14 @@ object Server {
 		}
 	}
 
+	def disconnect(): Unit = {
+		require(socket != null, "Attempted to disconnect from server while not connected")
+		socket.close()
+		socket = null
+	}
+
 	def ! (msg: ClientMessage): Unit = {
+		//require(socket != null, "Attempted to send message to server while not connected")
 		val buffer = Pickle.intoBytes(msg).toArrayBuffer
 		socket.send(buffer)
 	}

@@ -3,62 +3,114 @@ package game
 import org.scalajs.dom
 import org.scalajs.dom.html
 import scala.scalajs.js
+import scala.scalajs.js.timers.SetIntervalHandle
 
 /**
   * Implementation of the lobby behavior.
-  * Also the entry point of the application.
   */
 object Lobby {
 	private lazy val lobby = dom.document.querySelector("#lobby")
-	private lazy val lobbyName = dom.document.querySelector("#lobby #name")
-	private lazy val lobbyButton = dom.document.querySelector("#lobby button").asInstanceOf[html.Button]
+	private lazy val playerName = dom.document.querySelector("#lobby #name")
+	private lazy val button = dom.document.querySelector("#lobby button").asInstanceOf[html.Button]
+	private lazy val dots = dom.document.querySelector("#lobby #dots")
+	private lazy val stats = dom.document.querySelector("#lobby #stats")
 
-	private var player: Player = _
+	private var player: Player = null
 	private var searching = false
+	private var found = false
+
+	private var statsInterval: SetIntervalHandle = null
+	private var searchStart: Double = 0.0
+	private var playersInQueue: Int = 0
 
 	private final val SearchForGame = "Search for game"
 	private final val CancelSearch = "Cancel search"
 
-	/**
-	  * Called once the application is fully loaded, removes the loaded and
-	  * then either display the lobby or ask the user for their name.
-	  */
+	/** Setups lobby events handlers */
 	def setup(): Unit = {
-		lobbyName.on(Event.Click) { _ =>
-			lobby.classList.add("fade-out")
-			js.timers.setTimeout(500) {
-				lobby.classList.remove("visible")
-				lobby.classList.remove("fade-out")
-				Login.requestUsername()
+		playerName.on(Event.Click) { _ =>
+			if (!found) {
+				if (searching) stopSearch()
+				lobby.classList.add("fade-out")
+				js.timers.setTimeout(500) {
+					lobby.classList.remove("visible")
+					lobby.classList.remove("fade-out")
+					Login.requestUsername()
+				}
 			}
 		}
 
-		lobbyButton.on(Event.Click) { _ =>
-			if (searching) {
-				lobbyButton.textContent = SearchForGame
-				searching = false
-			} else {
-				lobbyButton.textContent = CancelSearch
-				searching = true
-				Server.searchGame(player)
+		button.on(Event.Click) { _ =>
+			if (!found) {
+				if (searching) stopSearch()
+				else startSearch()
 			}
 		}
 	}
 
-	/**
-	  * Displays the lobby page.
-	  *
-	  * @param name the current user's name
-	  */
+	/** Displays the lobby page */
 	def displayLobby(name: String): Unit = {
 		lobby.classList.add("visible")
-		lobbyName.textContent = name
-		lobbyButton.textContent = SearchForGame
+		playerName.textContent = name
+		button.textContent = SearchForGame
 		player = Player(name)
 	}
 
+	/** Starts searching for a game */
+	private def startSearch(): Unit = {
+		button.textContent = CancelSearch
+		searching = true
+		lobby.classList.add("searching")
+		Server.searchGame(player)
+		setupSearchStats()
+	}
+
+	/** Stops searching for a game */
+	private def stopSearch(): Unit = {
+		button.textContent = SearchForGame
+		searching = false
+		lobby.classList.remove("searching")
+		js.timers.clearInterval(statsInterval)
+		statsInterval = null
+		Server.disconnect()
+	}
+
+	/** Setups the search stats display */
+	private def setupSearchStats(): Unit = {
+		searchStart = js.Date.now()
+		playersInQueue = 0
+		statsInterval = js.timers.setInterval(1000) { updateSearchStats() }
+		updateSearchStats()
+	}
+
+	/** Updates the search stats display with current values */
+	private def updateSearchStats(): Unit = {
+		val time = (js.Date.now() - searchStart).toInt / 1000
+		// Dots
+		val dotsCounts = time % 3 + 1
+		dots.innerHTML = "." * dotsCounts + "&nbsp;" * (3 - dotsCounts)
+		// Clock
+		def pad(value: Int): String = if (value < 10) s"0$value" else s"$value"
+		val clock = s"${pad(time / 60)}:${pad(time % 60)}"
+		// Queue length
+		val players = if (playersInQueue == 1) "player" else "players"
+		stats.innerHTML = s"$clock &ndash; $playersInQueue $players in queue"
+	}
+
+	/** A game was found */
+	private def gameFound(): Unit = {
+		js.timers.clearInterval(statsInterval)
+		statsInterval = null
+		lobby.classList.remove("searching")
+		lobby.classList.add("found")
+		found = true
+	}
+
+	/** Handle lobby messages from server */
 	def message(lm: ServerMessage.LobbyMessage): Unit = lm match {
-		case ServerMessage.QueueUpdate(length) => println("queue length is", length)
-		case ServerMessage.GameFound(teams) => println("game found", teams)
+		case ServerMessage.QueueUpdate(length) => playersInQueue = length
+		case ServerMessage.GameFound(teams) =>
+			println(teams)
+			gameFound()
 	}
 }
