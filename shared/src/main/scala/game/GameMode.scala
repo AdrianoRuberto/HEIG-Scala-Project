@@ -16,4 +16,9 @@ object GameMode {
 		"King of the Hill",
 		"Take control of the objective and defend it against the enemy team"
 	)
+
+	object TwistingNether extends GameMode(
+		"Twisting Nether",
+		"In space no one can hear you scream..."
+	)
 }

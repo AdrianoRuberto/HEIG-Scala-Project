@@ -3,7 +3,9 @@ package actors
 import actors.Matchmaker.QueuedPlayer
 import akka.actor.{Actor, ActorRef, Terminated}
 import game.{PlayerInfo, ServerMessage, UID}
+import modes.twistingnether.TwistingNether
 import modes.{GameBuilder, GamePlayer}
+import scala.annotation.tailrec
 import scala.collection.immutable.TreeSet
 import scala.concurrent.duration._
 import utils.NameGenerator
@@ -21,7 +23,7 @@ class Matchmaker extends Actor {
 
 	def receive: Receive = {
 		case Matchmaker.Register(player, true) =>
-			val mode = GameBuilder.random
+			val mode = TwistingNether
 			val spots = mode.playerSpots(1)
 			build(mode, Seq(GamePlayer(sender, player)) ++ buildBots(mode, spots - 1))
 
@@ -55,7 +57,7 @@ class Matchmaker extends Actor {
 			}
 
 			// Perform the tick if appropriate
-			if (queue.nonEmpty) maybeTick()
+			if (queue.nonEmpty) tick()
 
 			// Schedule the next tick if there is still player waiting
 			if (queue.nonEmpty) system.scheduler.scheduleOnce(1.seconds, self, Matchmaker.Tick)
@@ -68,33 +70,34 @@ class Matchmaker extends Actor {
 			}
 	}
 
-	private def maybeTick(): Unit = {
+	@tailrec
+	private def tick(): Unit = {
 		// The queue is stable for 5 sec or more and the warmup time is expired
 		val stableQueue = queue.head.warmupTime.isOverdue() && queueStabilityIndex >= 5
 		// The queue is lengthy, no point in waiting for more players
 		val lengthyQueue = queue.size > 20
-		if (stableQueue || lengthyQueue) tick()
-	}
 
-	private def tick(): Unit = {
-		val builder = GameBuilder.random
-		val spots = builder.playerSpots(queue.size)
-		if (queue.size >= spots || queue.head.meltingTime.isOverdue()) {
-			val players = pickAndFill(builder, spots)
-			build(builder, players)
-			maxQueueSize = queue.size
-			queueStabilityIndex -= 1
-			if (queue.nonEmpty) maybeTick()
+		if (stableQueue || lengthyQueue) {
+			val builder = GameBuilder.random
+			val spots = builder.playerSpots(queue.size)
+			if (queue.size >= spots || queue.head.meltingTime.isOverdue()) {
+				val players = pickAndFill(builder, spots)
+				build(builder, players)
+				maxQueueSize = queue.size
+				queueStabilityIndex -= 1
+				if (queue.nonEmpty) tick()
+			}
 		}
 	}
 
 	private def build(builder: GameBuilder, players: Seq[GamePlayer]): Unit = {
 		val teams = builder.composeTeams(players)
+		val warmup = builder.warmup(players.size)
 		for (player <- players) {
-			player.actor ! ServerMessage.GameFound(builder.mode, teams.map(_.info), player.info.uid, warmup = 10)
+			player.actor ! ServerMessage.GameFound(builder.mode, teams.map(_.info), player.info.uid, warmup)
 		}
 		val game = builder.instantiate(teams)
-		system.scheduler.scheduleOnce(10.seconds) {
+		system.scheduler.scheduleOnce(warmup.seconds) {
 			for (player <- players) player.actor ! ServerMessage.GameStart
 			game ! Matchmaker.Start
 		}

@@ -1,6 +1,6 @@
 package modes
 
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.{ActorRef, ActorSystem, Props}
 import game.{GameMode, TeamInfo, UID}
 import modes.ctf.CaptureTheFlag
 import modes.koth.KingOfTheHill
@@ -8,6 +8,8 @@ import scala.util.Random
 
 abstract class GameBuilder(val mode: GameMode) {
 	def playerSpots(queueSize: Int): Int
+	def warmup(players: Int): Int
+
 	def composeTeams(players: Seq[GamePlayer]): Seq[GameTeam]
 	def instantiate(players: Seq[GameTeam])(implicit as: ActorSystem): ActorRef
 	def spawnBot()(implicit as: ActorSystem): ActorRef
@@ -27,4 +29,15 @@ abstract class GameBuilder(val mode: GameMode) {
 object GameBuilder {
 	val modes: Vector[GameBuilder] = Vector(CaptureTheFlag, KingOfTheHill)
 	def random: GameBuilder = modes(Random.nextInt(modes.size))
+
+	abstract class Standard (mode: GameMode, spots: (Int) => Int,
+	                         game: (Seq[GameTeam]) => Props, bot: Props,
+	                         warmupTime: (Int) => Int = _ => 10,
+	                         teams: (Int) => Int = _ => 2) extends GameBuilder(mode) {
+		def playerSpots(queueSize: Int): Int = spots(queueSize)
+		def warmup(players: Int): Int = warmupTime(players)
+		def composeTeams(players: Seq[GamePlayer]): Seq[GameTeam] = randomTeams(players, teams(players.size))
+		def instantiate(teams: Seq[GameTeam])(implicit as: ActorSystem): ActorRef = as.actorOf(game(teams))
+		def spawnBot()(implicit as: ActorSystem): ActorRef = as.actorOf(bot)
+	}
 }
