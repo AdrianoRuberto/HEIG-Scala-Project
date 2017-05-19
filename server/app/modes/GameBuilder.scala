@@ -9,7 +9,6 @@ abstract class GameBuilder(val mode: GameMode, val players: Int) {
 	def composeTeams(players: Seq[GamePlayer]): Seq[GameTeam]
 	def instantiate(players: Seq[GameTeam])(implicit as: ActorSystem): ActorRef
 	def spawnBot()(implicit as: ActorSystem): ActorRef
-	def canSpawnBots: Boolean = true
 
 	protected def randomTeams(players: Seq[GamePlayer], teams: Int): Seq[GameTeam] = {
 		val total = players.length

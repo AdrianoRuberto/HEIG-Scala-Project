@@ -39,10 +39,10 @@ object Lobby {
 			}
 		}
 
-		button.on(Event.Click) { _ =>
+		button.on(Event.Click) { e =>
 			if (!found) {
 				if (searching) stopSearch()
-				else startSearch()
+				else startSearch(e.shiftKey)
 			}
 		}
 	}
@@ -55,11 +55,11 @@ object Lobby {
 	}
 
 	/** Starts searching for a game */
-	private def startSearch(): Unit = {
+	private def startSearch(fast: Boolean): Unit = {
 		button.textContent = CancelSearch
 		searching = true
 		lobby.classList.add("searching")
-		Server.searchGame(playerName.textContent)
+		Server.searchGame(playerName.textContent, fast)
 		setupSearchStats()
 	}
 

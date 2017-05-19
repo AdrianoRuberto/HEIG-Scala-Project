@@ -17,10 +17,14 @@ class Matchmaker extends Actor {
 	private var lastQueueSize = 0
 
 	def receive: Receive = {
-		case Matchmaker.Register(player) =>
-			val qplayer = QueuedPlayer(sender, player.copy(), Deadline.now)
-			queue += qplayer
-			players += (sender -> qplayer)
+		case Matchmaker.Register(player, true) =>
+			val mode = GameBuilder.random
+			build(mode, Seq(GamePlayer(sender, player)) ++ buildBots(mode, mode.players - 1))
+
+		case Matchmaker.Register(player, false) =>
+			val queued = QueuedPlayer(sender, player, Deadline.now)
+			queue += queued
+			players += (sender -> queued)
 			context.watch(sender)
 			sender ! ServerMessage.QueueUpdate(lastQueueSize)
 			if (queue.size == 1) system.scheduler.scheduleOnce(500.millis, self, Matchmaker.Tick)
@@ -43,15 +47,22 @@ class Matchmaker extends Actor {
 	@tailrec
 	private def tick(): Unit = {
 		val builder = GameBuilder.random
-		def shouldFillWithBots: Boolean = builder.canSpawnBots && queue.head.waitBound.isOverdue()
-		if (queue.size >= builder.players || shouldFillWithBots) {
+		if (queue.size >= builder.players || queue.head.waitBound.isOverdue()) {
 			val players = pickAndFill(builder, builder.players)
-			val teams = builder.composeTeams(players)
-			for (player <- players) {
-				player.actor ! ServerMessage.GameFound(builder.mode, teams.map(_.info), player.info.uid)
-			}
-			builder.instantiate(teams)
+			build(builder, players)
 			if (queue.nonEmpty) tick()
+		}
+	}
+
+	private def build(builder: GameBuilder, players: Seq[GamePlayer]): Unit = {
+		val teams = builder.composeTeams(players)
+		for (player <- players) {
+			player.actor ! ServerMessage.GameFound(builder.mode, teams.map(_.info), player.info.uid)
+		}
+		val game = builder.instantiate(teams)
+		system.scheduler.scheduleOnce(5.seconds) {
+			for (player <- players) player.actor ! ServerMessage.GameStart
+			game ! Matchmaker.Start
 		}
 	}
 
@@ -61,8 +72,8 @@ class Matchmaker extends Actor {
 		else humans
 	}
 
-	private def pick(n: Int): Seq[GamePlayer] = {
-		queue.splitAt(n) match {
+	private def pick(count: Int): Seq[GamePlayer] = {
+		queue.splitAt(count) match {
 			case (picked, rest) =>
 				queue = rest
 				picked.map {
@@ -79,8 +90,9 @@ class Matchmaker extends Actor {
 }
 
 object Matchmaker {
-	case class Register(player: PlayerInfo)
+	case class Register(player: PlayerInfo, fast: Boolean)
 	case object Tick
+	case object Start
 
 	/** A queued player with some metadata */
 	case class QueuedPlayer(actor: ActorRef, player: PlayerInfo, since: Deadline) {
