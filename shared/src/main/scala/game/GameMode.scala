@@ -11,4 +11,9 @@ object GameMode {
 		"Capture the Flag",
 		"Capture the enemy team's flag while defending yours"
 	)
+
+	object KingOfTheHill extends GameMode(
+		"King of the Hill",
+		"Take control of the objective and defend it against the enemy team"
+	)
 }

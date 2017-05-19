@@ -3,9 +3,11 @@ package modes
 import akka.actor.{ActorRef, ActorSystem}
 import game.{GameMode, TeamInfo, UID}
 import modes.ctf.CaptureTheFlag
+import modes.koth.KingOfTheHill
 import scala.util.Random
 
-abstract class GameBuilder(val mode: GameMode, val players: Int) {
+abstract class GameBuilder(val mode: GameMode) {
+	def playerSpots(queueSize: Int): Int
 	def composeTeams(players: Seq[GamePlayer]): Seq[GameTeam]
 	def instantiate(players: Seq[GameTeam])(implicit as: ActorSystem): ActorRef
 	def spawnBot()(implicit as: ActorSystem): ActorRef
@@ -23,6 +25,6 @@ abstract class GameBuilder(val mode: GameMode, val players: Int) {
 }
 
 object GameBuilder {
-	val modes: Vector[GameBuilder] = Vector(CaptureTheFlag)
+	val modes: Vector[GameBuilder] = Vector(CaptureTheFlag, KingOfTheHill)
 	def random: GameBuilder = modes(Random.nextInt(modes.size))
 }

@@ -96,19 +96,22 @@ object Lobby {
 	}
 
 	/** A game was found */
-	private def gameFound(): Unit = {
+	def gameFound(mode: GameMode, teams: Seq[TeamInfo], me: UID): Unit = {
 		js.timers.clearInterval(statsInterval)
 		statsInterval = null
+		found = true
 		lobby.classList.remove("searching")
 		lobby.classList.add("found")
-		found = true
+		js.timers.setTimeout(2000) {
+			lobby.classList.remove("found")
+			lobby.classList.remove("visible")
+			Intro.display(mode, teams, me)
+		}
 	}
 
 	/** Handle lobby messages from server */
 	def message(lm: ServerMessage.LobbyMessage): Unit = lm match {
 		case ServerMessage.QueueUpdate(length) => playersInQueue = length
-		case ServerMessage.GameFound(mode, teams, me) =>
-			println(mode, teams, me)
-			gameFound()
+		case ServerMessage.GameFound(mode, teams, me) => gameFound(mode, teams, me)
 	}
 }
