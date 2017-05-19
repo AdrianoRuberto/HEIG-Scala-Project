@@ -91,10 +91,10 @@ class Matchmaker extends Actor {
 	private def build(builder: GameBuilder, players: Seq[GamePlayer]): Unit = {
 		val teams = builder.composeTeams(players)
 		for (player <- players) {
-			player.actor ! ServerMessage.GameFound(builder.mode, teams.map(_.info), player.info.uid)
+			player.actor ! ServerMessage.GameFound(builder.mode, teams.map(_.info), player.info.uid, warmup = 10)
 		}
 		val game = builder.instantiate(teams)
-		system.scheduler.scheduleOnce(5.seconds) {
+		system.scheduler.scheduleOnce(10.seconds) {
 			for (player <- players) player.actor ! ServerMessage.GameStart
 			game ! Matchmaker.Start
 		}
