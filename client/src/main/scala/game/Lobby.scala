@@ -109,8 +109,8 @@ object Lobby {
 	/** Handle lobby messages from server */
 	def message(lm: ServerMessage.LobbyMessage): Unit = lm match {
 		case ServerMessage.QueueUpdate(length) => playersInQueue = length
-		case ServerMessage.GameFound(teams) =>
-			println(teams)
+		case ServerMessage.GameFound(teams, me) =>
+			println(teams, me)
 			gameFound()
 	}
 }
