@@ -1,17 +1,25 @@
 package modes
 
-import game.{GameMode, Player, Team}
+import akka.actor.{ActorRef, ActorSystem}
+import game.{GameMode, TeamInfo, UID}
 import modes.ctf.CaptureTheFlag
 import scala.util.Random
 
-abstract class GameBuilder(val mode: GameMode, val players: Int, val bot: Option[Any]) {
-	def compose(players: Seq[Player]): Seq[Team]
+abstract class GameBuilder(val mode: GameMode, val players: Int) {
+	def composeTeams(players: Seq[GamePlayer]): Seq[GameTeam]
+	def instantiate(players: Seq[GameTeam])(implicit as: ActorSystem): ActorRef
+	def spawnBot()(implicit as: ActorSystem): ActorRef
+	def canSpawnBots: Boolean = true
 
-	protected def randomTeams(players: Seq[Player], teams: Int): Seq[Team] = {
+	protected def randomTeams(players: Seq[GamePlayer], teams: Int): Seq[GameTeam] = {
 		val total = players.length
 		require(total % teams == 0, s"Impossible to split $total players between $teams teams")
-		Random.shuffle(players).grouped(total / teams).toSeq.zip('1' to '9')
-				.map { case (plyrs, nb) => Team(s"Team $nb", plyrs) }
+		Random.shuffle(players).grouped(total / teams).toSeq.zip(1 to 9)
+				.map {
+					case (members, nb) =>
+						val team = TeamInfo(UID.next, s"Team $nb", members.map(_.info))
+						GameTeam(team, members)
+				}
 	}
 }
 

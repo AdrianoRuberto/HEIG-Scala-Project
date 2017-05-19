@@ -2,8 +2,8 @@ package actors
 
 import actors.Matchmaker.QueuedPlayer
 import akka.actor.{Actor, ActorRef, Terminated}
-import game.{Player, ServerMessage, UID}
-import modes.GameBuilder
+import game.{PlayerInfo, ServerMessage, UID}
+import modes.{GameBuilder, GamePlayer}
 import scala.annotation.tailrec
 import scala.collection.immutable.TreeSet
 import scala.concurrent.duration._
@@ -40,41 +40,50 @@ class Matchmaker extends Actor {
 			}
 	}
 
-	private def pick(n: Int): Vector[QueuedPlayer] = {
-		queue.splitAt(n) match {
-			case (picked, rest) =>
-				queue = rest
-				picked.toVector
-		}
-	}
-
 	@tailrec
 	private def tick(): Unit = {
 		val builder = GameBuilder.random
-		def shouldFillWithBots: Boolean = builder.bot.isDefined && queue.head.waitBound.isOverdue()
+		def shouldFillWithBots: Boolean = builder.canSpawnBots && queue.head.waitBound.isOverdue()
 		if (queue.size >= builder.players || shouldFillWithBots) {
-			var players = pick(builder.players)
-			if (players.size < builder.players) {
-				players ++= Vector.fill(builder.players - players.size) {
-					val botPlayer = Player(NameGenerator.generate, UID.next, bot = true)
-					QueuedPlayer(system.deadLetters, botPlayer, Deadline.now)
-				}
+			val players = pickAndFill(builder, builder.players)
+			val teams = builder.composeTeams(players)
+			for (player <- players) {
+				player.actor ! ServerMessage.GameFound(builder.mode, teams.map(_.info), player.info.uid)
 			}
-			val teams = builder.compose(players.map(_.player))
-			for (QueuedPlayer(actor, Player(_, uid, bot), _) <- players if !bot) {
-				actor ! ServerMessage.GameFound(builder.mode, teams, uid)
-			}
+			builder.instantiate(teams)
 			if (queue.nonEmpty) tick()
+		}
+	}
+
+	private def pickAndFill(builder: GameBuilder, count: Int): Seq[GamePlayer] = {
+		val humans = pick(count)
+		if (humans.size < count) humans ++ buildBots(builder, count - humans.size)
+		else humans
+	}
+
+	private def pick(n: Int): Seq[GamePlayer] = {
+		queue.splitAt(n) match {
+			case (picked, rest) =>
+				queue = rest
+				picked.map {
+					case QueuedPlayer(actor, info, _) => GamePlayer(actor, info)
+				}.toSeq
+		}
+	}
+
+	private def buildBots(builder: GameBuilder, count: Int): Seq[GamePlayer] = {
+		Seq.fill(count) {
+			GamePlayer(builder.spawnBot(), PlayerInfo(UID.next, NameGenerator.generate, bot = true))
 		}
 	}
 }
 
 object Matchmaker {
-	case class Register(player: Player)
+	case class Register(player: PlayerInfo)
 	case object Tick
 
 	/** A queued player with some metadata */
-	case class QueuedPlayer(actor: ActorRef, player: Player, since: Deadline) {
+	case class QueuedPlayer(actor: ActorRef, player: PlayerInfo, since: Deadline) {
 		val waitBound: Deadline = since + 15.seconds
 	}
 }

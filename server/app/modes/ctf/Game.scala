@@ -3,7 +3,7 @@ package ctf
 
 import akka.actor.Actor
 
-class Game extends Actor {
+class Game (teams: Seq[GameTeam]) extends Actor {
 	def receive: Receive = {
 		case _ =>
 	}
