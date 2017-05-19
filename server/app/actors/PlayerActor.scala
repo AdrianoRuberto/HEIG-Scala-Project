@@ -5,7 +5,7 @@ import boopickle.DefaultBasic._
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
 import com.google.inject.name.Named
-import game.{ClientMessage, ServerMessage}
+import game.{ClientMessage, Player, ServerMessage, UID}
 import java.nio.ByteBuffer
 
 class PlayerActor @Inject() (@Assisted socket: ActorRef)
@@ -31,7 +31,9 @@ class PlayerActor @Inject() (@Assisted socket: ActorRef)
 	}
 
 	def handleMessage(msg: ClientMessage): Unit = msg match {
-		case ClientMessage.SearchGame(player) => mm ! Matchmaker.Register(player)
+		case ClientMessage.SearchGame(name) =>
+			val player = Player(name, UID.next, bot = false)
+			mm ! Matchmaker.Register(player)
 	}
 }
 

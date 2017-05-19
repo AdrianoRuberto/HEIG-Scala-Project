@@ -1,9 +1,9 @@
 package game
 
-import boopickle.Default._
+import boopickle.DefaultBasic._
 
-case class Team(player: Seq[Player])
+case class Team(name: String, player: Seq[Player])
 
 object Team {
-	implicit val pickler: Pickler[Team] = generatePickler[Team]
+	implicit val pickler: Pickler[Team] = PicklerGenerator.generatePickler[Team]
 }

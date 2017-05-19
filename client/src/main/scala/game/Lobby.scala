@@ -15,7 +15,6 @@ object Lobby {
 	private lazy val dots = dom.document.querySelector("#lobby #dots")
 	private lazy val stats = dom.document.querySelector("#lobby #stats")
 
-	private var player: Player = null
 	private var searching = false
 	private var found = false
 
@@ -53,7 +52,6 @@ object Lobby {
 		lobby.classList.add("visible")
 		playerName.textContent = name
 		button.textContent = SearchForGame
-		player = Player(name)
 	}
 
 	/** Starts searching for a game */
@@ -61,7 +59,7 @@ object Lobby {
 		button.textContent = CancelSearch
 		searching = true
 		lobby.classList.add("searching")
-		Server.searchGame(player)
+		Server.searchGame(playerName.textContent)
 		setupSearchStats()
 	}
 
@@ -109,8 +107,8 @@ object Lobby {
 	/** Handle lobby messages from server */
 	def message(lm: ServerMessage.LobbyMessage): Unit = lm match {
 		case ServerMessage.QueueUpdate(length) => playersInQueue = length
-		case ServerMessage.GameFound(teams, me) =>
-			println(teams, me)
+		case ServerMessage.GameFound(mode, teams, me) =>
+			println(mode, teams, me)
 			gameFound()
 	}
 }

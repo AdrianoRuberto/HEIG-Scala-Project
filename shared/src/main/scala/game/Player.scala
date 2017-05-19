@@ -1,9 +1,9 @@
 package game
 
-import boopickle.Default._
+import boopickle.DefaultBasic._
 
-case class Player(name: String, bot: Boolean = false, uid: Long = -1)
+case class Player(name: String, uid: UID, bot: Boolean)
 
 object Player {
-	implicit val pickler: Pickler[Player] = generatePickler[Player]
+	implicit val pickler: Pickler[Player] = PicklerGenerator.generatePickler[Player]
 }

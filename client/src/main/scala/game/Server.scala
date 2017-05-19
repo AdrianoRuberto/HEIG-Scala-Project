@@ -9,11 +9,11 @@ import scala.scalajs.js.typedarray._
 object Server {
 	private var socket: dom.WebSocket = _
 
-	def searchGame(player: Player): Unit = {
+	def searchGame(name: String): Unit = {
 		require(socket == null, "Attempted to search for game while socket is still open")
 		socket = new WebSocket(s"ws://${dom.document.location.host}/socket")
 		socket.binaryType = "arraybuffer"
-		socket.on(Event.Open) { _ => Server ! ClientMessage.SearchGame(player) }
+		socket.on(Event.Open) { _ => Server ! ClientMessage.SearchGame(name) }
 		socket.on(Event.Close)(socketClosed)
 		socket.on(Event.Error)(socketClosed)
 		socket.on(Event.Message) { msg =>

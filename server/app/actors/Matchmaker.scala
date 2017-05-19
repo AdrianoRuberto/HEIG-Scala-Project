@@ -1,24 +1,24 @@
 package actors
 
-import actors.Matchmaker.{GameMode, QueuedPlayer}
+import actors.Matchmaker.QueuedPlayer
 import akka.actor.{Actor, ActorRef, Terminated}
-import game.{Player, ServerMessage, Team}
+import game.{Player, ServerMessage, UID}
+import modes.GameBuilder
 import scala.annotation.tailrec
-import scala.collection.SortedSet
+import scala.collection.immutable.TreeSet
 import scala.concurrent.duration._
-import scala.util.Random
 import utils.NameGenerator
 
 class Matchmaker extends Actor {
 	import context._
 
-	private var queue = SortedSet.empty[QueuedPlayer](Ordering.by(_.since))
+	private var queue = TreeSet.empty[QueuedPlayer](Ordering.by(_.since))
 	private var players = Map.empty[ActorRef, QueuedPlayer]
 	private var lastQueueSize = 0
 
 	def receive: Receive = {
 		case Matchmaker.Register(player) =>
-			val qplayer = QueuedPlayer(sender, player.copy(uid = Matchmaker.nextPlayerUID), Deadline.now)
+			val qplayer = QueuedPlayer(sender, player.copy(), Deadline.now)
 			queue += qplayer
 			players += (sender -> qplayer)
 			context.watch(sender)
@@ -40,54 +40,41 @@ class Matchmaker extends Actor {
 			}
 	}
 
+	private def pick(n: Int): Vector[QueuedPlayer] = {
+		queue.splitAt(n) match {
+			case (picked, rest) =>
+				queue = rest
+				picked.toVector
+		}
+	}
+
 	@tailrec
 	private def tick(): Unit = {
-		val mode = GameMode.random
-		def shouldFillWithBots: Boolean = mode.bot.isDefined && queue.head.unacceptableWait
-		if (queue.size >= mode.players || shouldFillWithBots) {
-			var players = queue.splitAt(mode.players) match {
-				case (plys, rest) => queue = rest; plys.toVector
-			}
-			if (players.size < mode.players) {
-				players ++= Vector.fill(mode.players - players.size) {
-					val botPlayer = Player(NameGenerator.generate, bot = true, Matchmaker.nextPlayerUID)
+		val builder = GameBuilder.random
+		def shouldFillWithBots: Boolean = builder.bot.isDefined && queue.head.waitBound.isOverdue()
+		if (queue.size >= builder.players || shouldFillWithBots) {
+			var players = pick(builder.players)
+			if (players.size < builder.players) {
+				players ++= Vector.fill(builder.players - players.size) {
+					val botPlayer = Player(NameGenerator.generate, UID.next, bot = true)
 					QueuedPlayer(system.deadLetters, botPlayer, Deadline.now)
 				}
 			}
-			val teams = mode.build(players.map(_.player))
-			for (QueuedPlayer(actor, Player(_, bot, uid), _) <- players if !bot) {
-				actor ! ServerMessage.GameFound(teams, uid)
+			val teams = builder.compose(players.map(_.player))
+			for (QueuedPlayer(actor, Player(_, uid, bot), _) <- players if !bot) {
+				actor ! ServerMessage.GameFound(builder.mode, teams, uid)
 			}
-			tick()
+			if (queue.nonEmpty) tick()
 		}
 	}
 }
 
 object Matchmaker {
-	private var lastPlayerUID: Long = 0
-
-	def nextPlayerUID: Long = {
-		lastPlayerUID += 1
-		lastPlayerUID
-	}
-
 	case class Register(player: Player)
 	case object Tick
 
+	/** A queued player with some metadata */
 	case class QueuedPlayer(actor: ActorRef, player: Player, since: Deadline) {
-		def unacceptableWait: Boolean = (since + 15.seconds).isOverdue()
-	}
-
-	abstract class GameMode(val players: Int, val bot: Option[Any]) {
-		def build(players: Seq[Player]): Seq[Team]
-	}
-
-	object GameMode {
-		val modes = Vector(Foobar)
-		def random: GameMode = modes(Random.nextInt(modes.size))
-	}
-
-	object Foobar extends GameMode(6, Some(null)) {
-		def build(players: Seq[Player]): Seq[Team] = Random.shuffle(players).grouped(3).map(Team.apply).toSeq
+		val waitBound: Deadline = since + 15.seconds
 	}
 }
