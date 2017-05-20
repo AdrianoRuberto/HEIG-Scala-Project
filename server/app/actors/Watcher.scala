@@ -14,7 +14,7 @@ import utils.Debug
   *
   * @param actors the human actors in this game
   */
-class Watcher private (private var actors: Seq[ActorRef]) extends Actor {
+class Watcher private (private var actors: Seq[ActorRef]) extends Actor with Stash {
 	/** Number of connected human players */
 	private var connected: Int = actors.size
 
@@ -27,6 +27,10 @@ class Watcher private (private var actors: Seq[ActorRef]) extends Actor {
 		case Watcher.Ready =>
 			actors.foreach(context.watch)
 			context.become(ready)
+			unstashAll()
+
+		// Stash everything else
+		case _ => stash()
 	}
 
 	/** Monitor game status */
