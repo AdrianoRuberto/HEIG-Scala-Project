@@ -24,7 +24,7 @@ object Intro {
 		teamsList.innerHTML = ""
 		dom.window.requestAnimationFrame(updateTimer(js.Date.now(), warmup) _)
 		intro.classList.add("visible")
-		js.timers.setTimeout(warmup * 1000 - 300) {
+		App.timeout(warmup * 1000 - 300) {
 			intro.classList.add("fade-out")
 		}
 		for (team <- teams) {

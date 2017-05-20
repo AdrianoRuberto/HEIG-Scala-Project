@@ -2,18 +2,22 @@ package game
 
 import game.Lobby.displayLobby
 import org.scalajs.dom
+import org.scalajs.dom.ext._
+import org.scalajs.dom.html
 import scala.scalajs.js
 import scala.scalajs.js.JSApp
+import scala.scalajs.js.timers.SetTimeoutHandle
 
 object App extends JSApp {
 	private lazy val loader = dom.document.querySelector("#loader")
+	private var timers = Set.empty[SetTimeoutHandle]
 
 	/**
 	  * Application entry point.
 	  */
 	def main(): Unit = dom.window.on(Event.Load)(_ => {
 		loader.classList.add("fade-out")
-		js.timers.setTimeout(1250) {
+		App.timeout(1250) {
 			loader.parentNode.removeChild(loader)
 			boot()
 		}
@@ -30,8 +34,29 @@ object App extends JSApp {
 		}
 	}
 
+	def timeout(duration: Double)(body: => Unit): Unit = {
+		var handle: SetTimeoutHandle = null
+		handle = js.timers.setTimeout(duration) {
+			timers -= handle
+			body
+		}
+		timers += handle
+	}
+
 	def reboot(): Unit = {
+		timers.foreach(js.timers.clearTimeout)
+		timers = timers.empty
+		hidePanels()
+		Server.disconnect(true)
 		Toast.show("Your game was shut down due to an unexpected server error")
 		boot()
+	}
+
+	def hidePanels(): Unit = {
+		for (node <- dom.document.querySelectorAll(".visible, .fade-out"); elem = node.asInstanceOf[html.Element]) {
+			elem.classList.remove("visible")
+			elem.classList.remove("fade-out")
+		}
+		Lobby.reset()
 	}
 }

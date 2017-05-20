@@ -105,6 +105,7 @@ class Matchmaker extends Actor {
 			player.actor ! ServerMessage.GameFound(builder.mode, teams.map(_.info), player.info.uid, warmup)
 		}
 		for (game <- watcher instantiate builder.gameProps(teams)) {
+			watcher ! Watcher.Ready
 			system.scheduler.scheduleOnce(warmup.seconds) {
 				for (player <- players) player.actor ! ServerMessage.GameStart
 				game ! Matchmaker.Start

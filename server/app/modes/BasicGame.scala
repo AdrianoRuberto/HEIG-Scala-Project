@@ -1,8 +1,8 @@
 package modes
 
-import actors.Matchmaker
+import actors.{Matchmaker, Watcher}
 import akka.actor.Actor
-import game.{ServerMessage, UID}
+import game.UID
 
 abstract class BasicGame(roster: Seq[GameTeam]) extends Actor {
 	val teams: Map[UID, GameTeam] = roster.map(t => (t.info.uid, t)).toMap
@@ -12,13 +12,11 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends Actor {
 		case Matchmaker.Start => start()
 	}: Receive) orElse message
 
+	init()
+
 	def init(): Unit
 	def start(): Unit
-
 	def message: Receive
 
-	def terminate(): Unit = {
-		for (player <- players.values) player.actor ! ServerMessage.GameEnd
-		context.stop(self)
-	}
+	def terminate(): Unit = context.parent ! Watcher.Terminate
 }

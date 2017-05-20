@@ -29,7 +29,7 @@ object Login {
 					loginInput.blur()
 					dom.window.sessionStorage.setItem("username", name)
 					login.classList.add("fade-out")
-					js.timers.setTimeout(500) {
+					App.timeout(500) {
 						login.classList.remove("visible")
 						login.classList.remove("fade-out")
 						Lobby.displayLobby(name)

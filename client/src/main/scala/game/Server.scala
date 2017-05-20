@@ -23,10 +23,12 @@ object Server {
 		}
 	}
 
-	def disconnect(): Unit = {
-		require(socket != null, "Attempted to disconnect from server while not connected")
-		socket.close()
-		socket = null
+	def disconnect(silent: Boolean = false): Unit = {
+		require(silent || socket != null, "Attempted to disconnect from server while not connected")
+		if (socket != null) {
+			socket.close()
+			socket = null
+		}
 	}
 
 	def ! (msg: ClientMessage): Unit = {
