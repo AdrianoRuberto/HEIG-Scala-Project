@@ -53,7 +53,7 @@ class Watcher private (private var actors: Seq[ActorRef]) extends Actor {
 	def broadcast(msg: Any): Unit = actors.foreach(_ ! msg)
 
 	/** In case of failure, the watcher will terminate everything related to this game */
-	override def supervisorStrategy: SupervisorStrategy = AllForOneStrategy() {
+	override def supervisorStrategy: SupervisorStrategy = AllForOneStrategy(loggingEnabled = false) {
 		case e: Throwable =>
 			val msg = Debug.error(e)
 			val notice = Debug.warn("An unexpected error has occurred, the game will shut down")
