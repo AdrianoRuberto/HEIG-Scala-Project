@@ -7,28 +7,31 @@
 		<link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
 	</head>
 	<body>
+		<canvas id="canvas"></canvas>
+		<div id="cover" class="visible"></div>
 		<div id="loader">@for(_ <- 1 to 6) {<b></b>}</div>
-		<div id="login">
+		<div id="login" class="panel">
 			<h2>Hey there! <span class="delayed">What's your name?</span></h2>
 			<label>
 				<input type="text" spellcheck="false">
 			</label>
 			<p>Just press <span class="key">Enter</span> when you're ready!</p>
 		</div>
-		<div id="lobby">
+		<div id="lobby" class="panel">
 			<h2>Hello, <span id="name">player</span>!</h2>
 			<button>¯\_(ツ)_/¯</button>
 			<p class="found">Game found!</p>
 			<p class="searching">Searching for game<span id="dots">...</span></p>
 			<p class="searching" id="stats">00:00</p>
 		</div>
-		<div id="intro">
+		<div id="intro" class="panel">
 			<h3>Playing</h3>
 			<h2>Game mode</h2>
 			<p>Description</p>
 			<div id="teams"></div>
 			<div id="load"><div id="inner"></div></div>
 		</div>
+		<div id="toast" class="panel"></div>
 		@scalajs.html.scripts(
 			"client",
 			name => routes.Assets.versioned(name).toString,

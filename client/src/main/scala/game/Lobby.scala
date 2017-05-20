@@ -1,6 +1,7 @@
 package game
 
 import org.scalajs.dom
+import org.scalajs.dom.ext._
 import org.scalajs.dom.html
 import scala.scalajs.js
 import scala.scalajs.js.timers.SetIntervalHandle
@@ -105,6 +106,8 @@ object Lobby {
 		js.timers.setTimeout(2000) {
 			lobby.classList.remove("found")
 			lobby.classList.remove("visible")
+			found = false
+			searching = false
 			Intro.display(mode, teams, me, warmup - 2)
 		}
 	}
@@ -113,5 +116,13 @@ object Lobby {
 	def message(lm: ServerMessage.LobbyMessage): Unit = lm match {
 		case ServerMessage.QueueUpdate(length) => playersInQueue = length
 		case ServerMessage.GameFound(mode, teams, me, warmup) => gameFound(mode, teams, me, warmup)
+		case ServerMessage.GameStart =>
+			for (node <- dom.document.querySelectorAll(".visible"); elem = node.asInstanceOf[html.Element]) {
+				elem.classList.remove("visible")
+				elem.classList.remove("fade-out")
+			}
+		case ServerMessage.GameEnd =>
+			Server.disconnect()
+			displayLobby(playerName.textContent)
 	}
 }

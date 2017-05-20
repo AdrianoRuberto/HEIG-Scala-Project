@@ -4,6 +4,7 @@ import boopickle.DefaultBasic._
 import java.nio.ByteBuffer
 import org.scalajs.dom
 import org.scalajs.dom.raw.WebSocket
+import scala.scalajs.js
 import scala.scalajs.js.typedarray._
 
 object Server {
@@ -34,10 +35,14 @@ object Server {
 		socket.send(buffer)
 	}
 
-	def socketClosed(e: dom.Event): Unit = ()
+	def socketClosed(e: dom.Event): Unit = {
+		socket = null
+	}
 
 	def handleMessage(msg: ServerMessage): Unit = msg match {
 		case ServerMessage.Error(e) => dom.console.error(e)
+		case ServerMessage.JsonError(e) => dom.console.error(js.JSON.parse(e))
+		case ServerMessage.ServerError => App.reboot()
 		case lm: ServerMessage.LobbyMessage => Lobby.message(lm)
 	}
 

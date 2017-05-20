@@ -1,12 +1,15 @@
 package actors
 
-import actors.Matchmaker.QueuedPlayer
-import akka.actor.{Actor, ActorRef, Terminated}
+import actors.Matchmaker.{QueuedPlayer, WatcherOps}
+import akka.actor.{Actor, ActorRef, Props, Terminated}
+import akka.pattern.ask
+import akka.util.Timeout
 import game.{PlayerInfo, ServerMessage, UID}
 import modes.twistingnether.TwistingNether
 import modes.{GameBuilder, GamePlayer}
 import scala.annotation.tailrec
 import scala.collection.immutable.TreeSet
+import scala.concurrent.Future
 import scala.concurrent.duration._
 import utils.NameGenerator
 
@@ -24,8 +27,10 @@ class Matchmaker extends Actor {
 	def receive: Receive = {
 		case Matchmaker.Register(player, true) =>
 			val mode = TwistingNether
-			val spots = mode.playerSpots(1)
-			build(mode, Seq(GamePlayer(sender, player)) ++ buildBots(mode, spots - 1))
+			val watcher = Watcher.reportingTo(sender)
+			for (players <- fill(mode, watcher, Seq(GamePlayer(sender, player)), mode.playerSpots(1))) {
+				build(mode, watcher, players)
+			}
 
 		case Matchmaker.Register(player, false) =>
 			val queued = QueuedPlayer(sender, player, Deadline.now)
@@ -81,8 +86,11 @@ class Matchmaker extends Actor {
 			val builder = GameBuilder.random
 			val spots = builder.playerSpots(queue.size)
 			if (queue.size >= spots || queue.head.meltingTime.isOverdue()) {
-				val players = pickAndFill(builder, spots)
-				build(builder, players)
+				val humans = pick(spots)
+				val watcher = Watcher.reportingTo(humans.map(_.actor))
+				for (players <- fill(builder, watcher, humans, spots)) {
+					build(builder, watcher, players)
+				}
 				maxQueueSize = queue.size
 				queueStabilityIndex -= 1
 				if (queue.nonEmpty) tick()
@@ -90,23 +98,18 @@ class Matchmaker extends Actor {
 		}
 	}
 
-	private def build(builder: GameBuilder, players: Seq[GamePlayer]): Unit = {
+	private def build(builder: GameBuilder, watcher: ActorRef, players: Seq[GamePlayer]): Unit = {
 		val teams = builder.composeTeams(players)
 		val warmup = builder.warmup(players.size)
 		for (player <- players) {
 			player.actor ! ServerMessage.GameFound(builder.mode, teams.map(_.info), player.info.uid, warmup)
 		}
-		val game = builder.instantiate(teams)
-		system.scheduler.scheduleOnce(warmup.seconds) {
-			for (player <- players) player.actor ! ServerMessage.GameStart
-			game ! Matchmaker.Start
+		for (game <- watcher instantiate builder.gameProps(teams)) {
+			system.scheduler.scheduleOnce(warmup.seconds) {
+				for (player <- players) player.actor ! ServerMessage.GameStart
+				game ! Matchmaker.Start
+			}
 		}
-	}
-
-	private def pickAndFill(builder: GameBuilder, spots: Int): Seq[GamePlayer] = {
-		val humans = pick(spots)
-		if (humans.size < spots) humans ++ buildBots(builder, spots - humans.size)
-		else humans
 	}
 
 	private def pick(spots: Int): Seq[GamePlayer] = {
@@ -119,10 +122,17 @@ class Matchmaker extends Actor {
 		}
 	}
 
-	private def buildBots(builder: GameBuilder, spots: Int): Seq[GamePlayer] = {
-		Seq.fill(spots) {
-			GamePlayer(builder.spawnBot(), PlayerInfo(UID.next, NameGenerator.generate, bot = true))
-		}
+	private def fill(builder: GameBuilder, watcher: ActorRef, humans: Seq[GamePlayer], spots: Int): Future[Seq[GamePlayer]] = {
+		if (humans.size < spots) for (bots <- buildBots(builder, watcher, spots - humans.size)) yield humans ++ bots
+		else Future.successful(humans)
+	}
+
+	private def buildBots(builder: GameBuilder, watcher: ActorRef, spots: Int): Future[Seq[GamePlayer]] = {
+		Future.sequence(Seq.fill(spots) {
+			for (bot <- watcher instantiate builder.botProps()) yield {
+				GamePlayer(bot, PlayerInfo(UID.next, NameGenerator.generate, bot = true))
+			}
+		})
 	}
 }
 
@@ -135,5 +145,12 @@ object Matchmaker {
 	case class QueuedPlayer(actor: ActorRef, player: PlayerInfo, since: Deadline) {
 		val warmupTime: Deadline = since + 5.seconds
 		val meltingTime: Deadline = since + 15.seconds
+	}
+
+	implicit class WatcherOps(private val w: ActorRef) extends AnyVal {
+		def instantiate(props: Props): Future[ActorRef] = {
+			implicit val timeout = Timeout(60.seconds)
+			(w ? Watcher.Instantiate(props)).mapTo[ActorRef]
+		}
 	}
 }

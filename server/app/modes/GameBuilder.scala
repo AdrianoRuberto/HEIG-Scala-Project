@@ -1,6 +1,6 @@
 package modes
 
-import akka.actor.{ActorRef, ActorSystem, Props}
+import akka.actor.Props
 import game.{GameMode, TeamInfo, UID}
 import modes.ctf.CaptureTheFlag
 import modes.koth.KingOfTheHill
@@ -11,8 +11,8 @@ abstract class GameBuilder(val mode: GameMode) {
 	def warmup(players: Int): Int
 
 	def composeTeams(players: Seq[GamePlayer]): Seq[GameTeam]
-	def instantiate(players: Seq[GameTeam])(implicit as: ActorSystem): ActorRef
-	def spawnBot()(implicit as: ActorSystem): ActorRef
+	def gameProps(players: Seq[GameTeam]): Props
+	def botProps(): Props
 
 	protected def randomTeams(players: Seq[GamePlayer], teams: Int): Seq[GameTeam] = {
 		val total = players.length
@@ -37,7 +37,7 @@ object GameBuilder {
 		def playerSpots(queueSize: Int): Int = spots(queueSize)
 		def warmup(players: Int): Int = warmupTime(players)
 		def composeTeams(players: Seq[GamePlayer]): Seq[GameTeam] = randomTeams(players, teams(players.size))
-		def instantiate(teams: Seq[GameTeam])(implicit as: ActorSystem): ActorRef = as.actorOf(game(teams))
-		def spawnBot()(implicit as: ActorSystem): ActorRef = as.actorOf(bot)
+		def gameProps(teams: Seq[GameTeam]): Props = game(teams)
+		def botProps(): Props = bot
 	}
 }

@@ -1,8 +1,8 @@
-package modes.twistingnether
+package modes
+package twistingnether
 
 import akka.actor.Props
 import game.GameMode
-import modes.GameBuilder
 
 object TwistingNether extends GameBuilder.Standard(
 	mode = GameMode.TwistingNether,

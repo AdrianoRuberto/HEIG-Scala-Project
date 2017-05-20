@@ -1,13 +1,23 @@
 package game
 
-import engine.actor.feature.{MousePosition, Updatable}
-import engine.utils.{MouseButtons, Point, Size}
-import engine.{Canvas, Engine}
-import game.actors.{MouseDebug, Player => APlayer}
+import org.scalajs.dom
+import org.scalajs.dom.html
 
 object Game {
+	private lazy val canvas = dom.document.querySelector("#canvas").asInstanceOf[html.Canvas]
+
+	def setup(): Unit = {
+		dom.window.on(Event.Resize) { _ => resizeCanvas() }
+		resizeCanvas()
+	}
+
+	def resizeCanvas(): Unit = {
+		canvas.width = dom.window.innerWidth.toInt
+		canvas.height = dom.window.innerHeight.toInt
+	}
+
 	def main(): Unit = {
-		val canvas = Canvas("ctf-canvas", 1200, 800)
+		/*val canvas = Canvas("ctf-canvas", 1200, 800)
 		val engine = new Engine(canvas)
 		engine.registerActor(new MouseDebug(5, 13))
 
@@ -43,6 +53,6 @@ object Game {
 			}
 		})
 
-		engine.start()
+		engine.start()*/
 	}
 }

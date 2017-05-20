@@ -1,9 +1,11 @@
-package modes.twistingnether
+package modes
+package twistingnether
 
-import akka.actor.Actor
+import akka.actor.{Actor, PoisonPill}
+import game.ServerMessage
 
 class Bot extends Actor {
 	def receive: Receive = {
-		case _ =>
+		case ServerMessage.GameEnd => self ! PoisonPill
 	}
 }

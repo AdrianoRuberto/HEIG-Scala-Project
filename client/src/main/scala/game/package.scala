@@ -19,6 +19,7 @@ package object game {
 		object Load extends Event[dom.UIEvent]("load")
 		object Message extends Event[dom.MessageEvent]("message")
 		object Open extends Event[dom.Event]("open")
+		object Resize extends Event[dom.UIEvent]("resize")
 		object TransitionEnd extends Event[dom.TransitionEvent]("transitionend")
 	}
 }

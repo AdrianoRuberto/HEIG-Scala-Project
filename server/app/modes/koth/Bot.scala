@@ -1,4 +1,5 @@
-package modes.koth
+package modes
+package koth
 
 import akka.actor.Actor
 

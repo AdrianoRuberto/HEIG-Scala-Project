@@ -1,8 +1,8 @@
-package modes.koth
+package modes
+package koth
 
 import akka.actor.Props
 import game.GameMode
-import modes.GameBuilder
 
 object KingOfTheHill extends GameBuilder.Standard(
 	mode = GameMode.KingOfTheHill,

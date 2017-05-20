@@ -1,12 +1,12 @@
-package modes.twistingnether
+package modes
+package twistingnether
 
-import actors.Matchmaker
-import akka.actor.Actor
-import modes.GameTeam
+class Game (roster: Seq[GameTeam]) extends BasicGame(roster) {
 
-class Game (teams: Seq[GameTeam]) extends Actor {
-	def receive: Receive = {
-		case Matchmaker.Start =>
+	def init(): Unit = ???
+	def start(): Unit = ???
+
+	def message: Receive = {
 		case _ =>
 	}
 }
