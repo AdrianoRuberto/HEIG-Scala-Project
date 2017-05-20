@@ -51,6 +51,7 @@ object App extends JSApp {
 		timers = timers.empty
 		hidePanels()
 		Server.disconnect(true)
+		Game.lock()
 		Game.stop()
 		if (failure) {
 			Toast.show("Your game was shut down due to an unexpected server error")

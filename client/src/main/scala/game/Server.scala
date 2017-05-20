@@ -56,10 +56,15 @@ object Server {
 		val parsed = args.map { arg =>
 			Try(js.JSON.parse(arg).asInstanceOf[js.Any]).getOrElse(arg.asInstanceOf[js.Any])
 		}
-		severity match {
-			case ServerMessage.Severity.Log => dom.console.log(parsed.head, parsed.tail: _*)
-			case ServerMessage.Severity.Warn => dom.console.warn(parsed.head, parsed.tail: _*)
-			case ServerMessage.Severity.Error => dom.console.error(parsed.head, parsed.tail: _*)
+		val console = dom.console.asInstanceOf[js.Dynamic]
+		val handler = severity match {
+			case ServerMessage.Severity.Verbose => console.debug
+			case ServerMessage.Severity.Info => console.log
+			case ServerMessage.Severity.Warn => console.warn
+			case ServerMessage.Severity.Error => console.error
+		}
+		for (f <- handler.asInstanceOf[js.UndefOr[js.Function]]) {
+			f.call(console, parsed: _*)
 		}
 	}
 

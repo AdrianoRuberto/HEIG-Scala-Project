@@ -12,7 +12,7 @@ abstract class GameBuilder(val mode: GameMode) {
 
 	def composeTeams(players: Seq[GamePlayer]): Seq[GameTeam]
 	def gameProps(players: Seq[GameTeam]): Props
-	def botProps(): Props
+	def botProps(name: String): Props
 
 	protected def randomTeams(players: Seq[GamePlayer], teams: Int): Seq[GameTeam] = {
 		val total = players.length
@@ -31,13 +31,13 @@ object GameBuilder {
 	def random: GameBuilder = modes(Random.nextInt(modes.size))
 
 	abstract class Standard (mode: GameMode, spots: (Int) => Int,
-	                         game: (Seq[GameTeam]) => Props, bot: Props,
+	                         game: (Seq[GameTeam]) => Props, bot: (String) => Props,
 	                         warmupTime: (Int) => Int = _ => 10,
 	                         teams: (Int) => Int = _ => 2) extends GameBuilder(mode) {
 		def playerSpots(queueSize: Int): Int = spots(queueSize)
 		def warmup(players: Int): Int = warmupTime(players)
 		def composeTeams(players: Seq[GamePlayer]): Seq[GameTeam] = randomTeams(players, teams(players.size))
 		def gameProps(teams: Seq[GameTeam]): Props = game(teams)
-		def botProps(): Props = bot
+		def botProps(name: String): Props = bot(name)
 	}
 }

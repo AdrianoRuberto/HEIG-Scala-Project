@@ -23,7 +23,8 @@ object ServerMessage {
 	// Debug message
 	sealed trait Severity
 	object Severity {
-		case object Log extends Severity
+		case object Verbose extends Severity
+		case object Info extends Severity
 		case object Warn extends Severity
 		case object Error extends Severity
 		implicit val pickler: Pickler[Severity] = generatePickler[Severity]

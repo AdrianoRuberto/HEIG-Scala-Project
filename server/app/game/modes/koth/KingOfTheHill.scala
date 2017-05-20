@@ -9,5 +9,5 @@ object KingOfTheHill extends GameBuilder.Standard(
 	mode = GameMode.KingOfTheHill,
 	spots = _ => 8,
 	game = teams => Props(new DummyGame(teams)),
-	bot = Props[DummyBot]
+	bot = name => Props(new DummyBot(name))
 )

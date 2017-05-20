@@ -106,7 +106,6 @@ object Lobby {
 		lobby.classList.add("found")
 		App.timeout(2000) {
 			Game.start()
-			Game.lock()
 			Intro.display(mode, teams, me, warmup - 2)
 		}
 	}

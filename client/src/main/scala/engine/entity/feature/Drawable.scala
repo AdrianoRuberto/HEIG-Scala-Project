@@ -20,5 +20,5 @@ trait Drawable extends Entity with Positioned {
 }
 
 object Drawable {
-	implicit val drawableOrdering: Ordering[Drawable] = Ordering.by(_.layer.strata)
+	implicit val drawableOrdering: Ordering[Drawable] = Ordering.by(entity => (entity.layer.strata, entity.entityId))
 }

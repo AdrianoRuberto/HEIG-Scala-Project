@@ -1,7 +1,7 @@
 package game.modes
 package dummy
 
-class DummyBot extends BasicBot {
+class DummyBot(name: String) extends BasicBot(name) {
 	def init(): Unit = ()
 	def start(): Unit = ()
 	def message: Receive = {

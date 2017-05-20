@@ -32,7 +32,8 @@ object Debug {
 		def extract(s: Serializable): JsValue = s.value
 	}
 
-	def log(args: Serializable*): ServerMessage.Debug = ServerMessage.Debug(Severity.Log, args.map(stringify))
+	def verbose(args: Serializable*): ServerMessage.Debug = ServerMessage.Debug(Severity.Verbose, args.map(stringify))
+	def info(args: Serializable*): ServerMessage.Debug = ServerMessage.Debug(Severity.Info, args.map(stringify))
 	def warn(args: Serializable*): ServerMessage.Debug = ServerMessage.Debug(Severity.Warn, args.map(stringify))
 	def error(args: Serializable*): ServerMessage.Debug = ServerMessage.Debug(Severity.Error, args.map(stringify))
 

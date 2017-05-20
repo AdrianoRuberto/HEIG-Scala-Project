@@ -1,7 +1,7 @@
 package game.modes
 package twistingnether
 
-class TwistingNetherBot extends BasicBot {
+class TwistingNetherBot(name: String) extends BasicBot(name: String) {
 	def init(): Unit = ()
 	def start(): Unit = ()
 	def message: Receive = {

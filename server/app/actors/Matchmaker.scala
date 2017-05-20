@@ -130,8 +130,9 @@ class Matchmaker extends Actor {
 
 	private def buildBots(builder: GameBuilder, watcher: ActorRef, spots: Int): Future[Seq[GamePlayer]] = {
 		Future.sequence(Seq.fill(spots) {
-			for (bot <- watcher instantiate builder.botProps()) yield {
-				GamePlayer(bot, PlayerInfo(UID.next, NameGenerator.generate, bot = true))
+			val name = NameGenerator.generate
+			for (bot <- watcher instantiate builder.botProps(name)) yield {
+				GamePlayer(bot, PlayerInfo(UID.next, name, bot = true))
 			}
 		})
 	}

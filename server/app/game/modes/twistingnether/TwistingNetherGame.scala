@@ -13,9 +13,8 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) {
 
 	def start(): Unit = {
 		log("Game start")
-		warn("There is no game impl, game will shut down in 5 sec")
+		warn("FIXME: Game will shutdown in 5 seconds")
 		context.system.scheduler.scheduleOnce(5.seconds, parent, Watcher.Terminate)
-		???
 	}
 
 	def message: Receive = {

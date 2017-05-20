@@ -8,6 +8,6 @@ object TwistingNether extends GameBuilder.Standard(
 	mode = GameMode.TwistingNether,
 	spots = _ => 2,
 	game = teams => Props(new TwistingNetherGame(teams)),
-	bot = Props[TwistingNetherBot],
+	bot = name => Props(new TwistingNetherBot(name)),
 	warmupTime = _ => 4
 )

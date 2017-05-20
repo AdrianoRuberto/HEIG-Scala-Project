@@ -15,10 +15,13 @@ class Engine(val canvas: html.Canvas) {
 	def isRunning: Boolean = running
 	def isLocked: Boolean = locked
 
+	private[engine] val entityIdsAllocator = new Entity.IdAllocator
 	private[engine] val updatables = mutable.Set.empty[Entity with feature.Updatable]
 	private[engine] val drawables = mutable.SortedSet.empty[Entity with feature.Drawable]
 	private[engine] val mouseEnabled = mutable.Set.empty[Entity with feature.MouseEvents]
 	private[engine] val keyboardEnabled = mutable.Set.empty[Entity with feature.KeyboardEvents]
+
+	private var lastUpdateTimestamp: Double = Double.NaN
 
 	def setup(): Unit = {
 		dom.document.addEventListener("mousedown", mouseHandler _)
@@ -43,12 +46,10 @@ class Engine(val canvas: html.Canvas) {
 		}
 	}
 
-	private var lastTimestamp: Double = Double.NaN
-
 	def loop(timestamp: Double): Unit = if (running) {
 		// Compute delta time
-		val dt = if (lastTimestamp.isNaN) 0 else timestamp - lastTimestamp
-		lastTimestamp = timestamp
+		val dt = if (lastUpdateTimestamp.isNaN) 0 else timestamp - lastUpdateTimestamp
+		lastUpdateTimestamp = timestamp
 
 		// Update all actors
 		for (actor <- updatables) {
@@ -71,6 +72,7 @@ class Engine(val canvas: html.Canvas) {
 
 	def start(): Unit = {
 		running = true
+		lastUpdateTimestamp = Double.NaN
 		dom.window.requestAnimationFrame(loop _)
 	}
 

@@ -1,15 +1,22 @@
 package game.modes
 
 import akka.actor.{Actor, ActorRef}
+import game.protocol.ServerMessage
 import utils.Debug
 
-abstract class BasicActor extends Actor {
+abstract class BasicActor(name: String) extends Actor {
 	import context._
 
 	/** The ActorRef to the watcher actor */
 	val watcher: ActorRef = parent
 
-	def log(args: Debug.Serializable*): Unit = watcher ! Debug.log(args: _*)
-	def warn(args: Debug.Serializable*): Unit = watcher ! Debug.warn(args: _*)
-	def error(args: Debug.Serializable*): Unit = watcher ! Debug.error(args: _*)
+	// Debug
+	private val debugPrefix: Debug.Serializable = s"[$name]"
+	private def console(fn: (Seq[Debug.Serializable]) => ServerMessage.Debug, args: Seq[Debug.Serializable]): Unit = {
+		watcher ! fn(debugPrefix +: args)
+	}
+	def debug(args: Debug.Serializable*): Unit = console(Debug.verbose, args)
+	def log(args: Debug.Serializable*): Unit = console(Debug.info, args)
+	def warn(args: Debug.Serializable*): Unit = console(Debug.warn, args)
+	def error(args: Debug.Serializable*): Unit = console(Debug.error, args)
 }
