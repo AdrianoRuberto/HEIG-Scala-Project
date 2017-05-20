@@ -1,11 +1,11 @@
 package game.actors
 
 import engine.CanvasCtx
-import engine.actor.Actor
-import engine.actor.feature.Drawable
+import engine.entity.Entity
+import engine.entity.feature.Drawable
 import engine.utils.{Layer, Size}
 
-abstract class Player(sublayer: Int = 0) extends Actor with Drawable {
+abstract class Player(sublayer: Int = 0) extends Entity with Drawable {
 	val layer: Layer = Layer.Players / sublayer
 
 	def size: Size

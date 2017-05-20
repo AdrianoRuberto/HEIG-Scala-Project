@@ -5,8 +5,10 @@ import boopickle.DefaultBasic._
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
 import com.google.inject.name.Named
-import game.{ClientMessage, PlayerInfo, ServerMessage, UID}
+import game.protocol.{ClientMessage, ServerMessage}
+import game.shared.{PlayerInfo, UID}
 import java.nio.ByteBuffer
+import utils.Debug
 
 class PlayerActor @Inject() (@Assisted socket: ActorRef)
                             (@Named("matchmaker") mm: ActorRef) extends Actor {
@@ -27,7 +29,7 @@ class PlayerActor @Inject() (@Assisted socket: ActorRef)
 		case msg: ServerMessage =>
 			out ! msg
 		case unknown =>
-			out ! ServerMessage.Error(s"Unknown message: $unknown")
+			out ! Debug.error(s"Unknown message: $unknown")
 	}
 
 	def handleMessage(msg: ClientMessage): Unit = msg match {

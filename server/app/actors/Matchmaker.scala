@@ -4,9 +4,10 @@ import actors.Matchmaker.{QueuedPlayer, WatcherOps}
 import akka.actor.{Actor, ActorRef, Props, Terminated}
 import akka.pattern.ask
 import akka.util.Timeout
-import game.{PlayerInfo, ServerMessage, UID}
-import modes.twistingnether.TwistingNether
-import modes.{GameBuilder, GamePlayer}
+import game.modes.twistingnether.TwistingNether
+import game.modes.{GameBuilder, GamePlayer}
+import game.protocol.ServerMessage
+import game.shared.{PlayerInfo, UID}
 import scala.annotation.tailrec
 import scala.collection.immutable.TreeSet
 import scala.concurrent.Future
@@ -26,10 +27,10 @@ class Matchmaker extends Actor {
 
 	def receive: Receive = {
 		case Matchmaker.Register(player, true) =>
-			val mode = TwistingNether
+			val builder = TwistingNether
 			val watcher = Watcher.boundTo(sender)
-			for (players <- fill(mode, watcher, Seq(GamePlayer(sender, player)), mode.playerSpots(1))) {
-				build(mode, watcher, players)
+			for (players <- fill(builder, watcher, Seq(GamePlayer(sender, player)), builder.playerSpots(1))) {
+				build(builder, watcher, players)
 			}
 
 		case Matchmaker.Register(player, false) =>

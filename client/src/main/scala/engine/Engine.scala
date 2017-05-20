@@ -1,6 +1,6 @@
 package engine
 
-import engine.actor.{Actor, feature}
+import engine.entity.{Entity, feature}
 import engine.utils.Point
 import org.scalajs.dom
 import org.scalajs.dom.html
@@ -12,10 +12,13 @@ class Engine(val canvas: html.Canvas) {
 	private var running = false
 	private var locked = true
 
-	private[engine] val updatables = mutable.Set.empty[Actor with feature.Updatable]
-	private[engine] val drawables = mutable.SortedSet.empty[Actor with feature.Drawable]
-	private[engine] val mouseEnabled = mutable.Set.empty[Actor with feature.MouseEvents]
-	private[engine] val keyboardEnabled = mutable.Set.empty[Actor with feature.KeyboardEvents]
+	def isRunning: Boolean = running
+	def isLocked: Boolean = locked
+
+	private[engine] val updatables = mutable.Set.empty[Entity with feature.Updatable]
+	private[engine] val drawables = mutable.SortedSet.empty[Entity with feature.Drawable]
+	private[engine] val mouseEnabled = mutable.Set.empty[Entity with feature.MouseEvents]
+	private[engine] val keyboardEnabled = mutable.Set.empty[Entity with feature.KeyboardEvents]
 
 	def setup(): Unit = {
 		dom.document.addEventListener("mousedown", mouseHandler _)
@@ -24,10 +27,10 @@ class Engine(val canvas: html.Canvas) {
 		dom.document.addEventListener("click", mouseHandler _)
 	}
 
-	def registerActor(actor: Actor): Unit = {
+	def registerActor(actor: Entity): Unit = {
 		actor.registerWith(this)
 	}
-	def unregisterActor(actor: Actor): Unit = {
+	def unregisterActor(actor: Entity): Unit = {
 		actor.unregisterFrom(this)
 	}
 

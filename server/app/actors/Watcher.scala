@@ -1,8 +1,8 @@
 package actors
 
 import akka.actor._
-import game.ServerMessage
-import play.api.libs.json._
+import game.protocol.ServerMessage
+import utils.Debug
 
 /**
   * A Watcher is an actor supervising every actors from a instance of a game.
@@ -14,7 +14,7 @@ import play.api.libs.json._
   *
   * @param actors the human actors in this game
   */
-class Watcher private (actors: Seq[ActorRef]) extends Actor {
+class Watcher private (private var actors: Seq[ActorRef]) extends Actor {
 	/** Number of connected human players */
 	private var connected: Int = actors.size
 
@@ -31,9 +31,13 @@ class Watcher private (actors: Seq[ActorRef]) extends Actor {
 
 	/** Monitor game status */
 	def ready: Receive = {
+		// Broadcast any received server message to every actors
+		case msg: ServerMessage => actors.foreach(_ ! msg)
+
 		// Track human player disconnects; if no more humans are connected, shutdown the game
-		case Terminated(_) =>
+		case Terminated(actor) =>
 			connected -= 1
+			actors = actors.filter(_ != actor)
 			if (connected == 0) context.stop(self)
 
 		// Gracefully terminates game
@@ -45,28 +49,22 @@ class Watcher private (actors: Seq[ActorRef]) extends Actor {
 			context.stop(self)
 	}
 
+	/** Sends a message to every actors */
+	def broadcast(msg: Any): Unit = actors.foreach(_ ! msg)
+
 	/** In case of failure, the watcher will terminate everything related to this game */
 	override def supervisorStrategy: SupervisorStrategy = AllForOneStrategy() {
 		case e: Throwable =>
-			val msg = ServerMessage.JsonError(encode(e).toString())
+			val msg = Debug.error(e)
+			val notice = Debug.warn("An unexpected error has occurred, the game will shut down")
 			for (actor <- actors) {
 				actor ! msg
+				actor ! notice
 				actor ! ServerMessage.ServerError
 				actor ! PoisonPill
 			}
 			context.stop(self)
 			SupervisorStrategy.Stop
-	}
-
-	/** Encodes an error as JSON */
-	def encode(throwable: Throwable): JsValue = {
-		if (throwable == null) JsNull
-		else Json.obj(
-			"1-class" -> throwable.getClass.getName,
-			"2-message" -> throwable.getMessage,
-			"3-stack" -> JsArray(throwable.getStackTrace.map(_.toString).map(JsString.apply)),
-			"4-cause" -> encode(throwable.getCause)
-		)
 	}
 }
 

@@ -1,9 +1,10 @@
 package game
 
 import engine.Engine
-import engine.actor.feature.{MousePosition, Updatable}
+import engine.entity.feature.{MousePosition, Updatable}
 import engine.utils.{MouseButtons, Point, Size}
 import game.actors.{MouseDebug, Player}
+import game.protocol.ServerMessage
 import org.scalajs.dom
 import org.scalajs.dom.html
 
@@ -62,4 +63,8 @@ object Game {
 	def unlock(): Unit = engine.unlock()
 	def lock(): Unit = engine.lock()
 	def stop(): Unit = engine.stop()
+
+	def message(gm: ServerMessage.GameMessage): Unit = if (engine.isRunning) gm match {
+		case _ =>
+	}
 }

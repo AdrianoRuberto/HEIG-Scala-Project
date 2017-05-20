@@ -1,11 +1,14 @@
 package game
 
 import boopickle.DefaultBasic._
+import game.protocol.ServerMessage.Severity
+import game.protocol.{ClientMessage, ServerMessage}
 import java.nio.ByteBuffer
 import org.scalajs.dom
 import org.scalajs.dom.raw.WebSocket
 import scala.scalajs.js
 import scala.scalajs.js.typedarray._
+import scala.util.Try
 
 object Server {
 	private var socket: dom.WebSocket = _
@@ -42,11 +45,22 @@ object Server {
 	}
 
 	def handleMessage(msg: ServerMessage): Unit = msg match {
-		case ServerMessage.Error(e) => dom.console.error(e)
-		case ServerMessage.JsonError(e) => dom.console.error(js.JSON.parse(e))
+		case ServerMessage.Debug(severity, args) => debugOutput(severity, args)
 		case ServerMessage.ServerError => App.reboot(true)
 		case ServerMessage.GameEnd => App.reboot()
 		case lm: ServerMessage.LobbyMessage => Lobby.message(lm)
+		case gm: ServerMessage.GameMessage => Game.message(gm)
+	}
+
+	private def debugOutput(severity: Severity, args: Seq[String]): Unit = if (args.nonEmpty) {
+		val parsed = args.map { arg =>
+			Try(js.JSON.parse(arg).asInstanceOf[js.Any]).getOrElse(arg.asInstanceOf[js.Any])
+		}
+		severity match {
+			case ServerMessage.Severity.Log => dom.console.log(parsed.head, parsed.tail: _*)
+			case ServerMessage.Severity.Warn => dom.console.warn(parsed.head, parsed.tail: _*)
+			case ServerMessage.Severity.Error => dom.console.error(parsed.head, parsed.tail: _*)
+		}
 	}
 
 	implicit class ByteBufferOps(private val buffer: ByteBuffer) extends AnyVal {
