@@ -1,6 +1,5 @@
 package actors
 
-import akka.actor.SupervisorStrategy.Resume
 import akka.actor._
 import game.ServerMessage
 import play.api.libs.json._
@@ -56,7 +55,7 @@ class Watcher private (actors: Seq[ActorRef]) extends Actor {
 				actor ! PoisonPill
 			}
 			context.stop(self)
-			Resume
+			SupervisorStrategy.Stop
 	}
 
 	/** Encodes an error as JSON */
@@ -76,8 +75,8 @@ object Watcher {
 	case object Terminate
 	case object Ready
 
-	def reportingTo(actor: ActorRef)(implicit as: ActorSystem): ActorRef = reportingTo(Seq(actor))
-	def reportingTo(actors: Seq[ActorRef])(implicit as: ActorSystem): ActorRef = {
+	def boundTo(actor: ActorRef)(implicit as: ActorSystem): ActorRef = boundTo(Seq(actor))
+	def boundTo(actors: Seq[ActorRef])(implicit as: ActorSystem): ActorRef = {
 		as.actorOf(Props(new Watcher(actors)))
 	}
 }

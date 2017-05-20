@@ -44,7 +44,8 @@ object Server {
 	def handleMessage(msg: ServerMessage): Unit = msg match {
 		case ServerMessage.Error(e) => dom.console.error(e)
 		case ServerMessage.JsonError(e) => dom.console.error(js.JSON.parse(e))
-		case ServerMessage.ServerError => App.reboot()
+		case ServerMessage.ServerError => App.reboot(true)
+		case ServerMessage.GameEnd => App.reboot()
 		case lm: ServerMessage.LobbyMessage => Lobby.message(lm)
 	}
 

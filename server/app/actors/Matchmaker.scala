@@ -27,7 +27,7 @@ class Matchmaker extends Actor {
 	def receive: Receive = {
 		case Matchmaker.Register(player, true) =>
 			val mode = TwistingNether
-			val watcher = Watcher.reportingTo(sender)
+			val watcher = Watcher.boundTo(sender)
 			for (players <- fill(mode, watcher, Seq(GamePlayer(sender, player)), mode.playerSpots(1))) {
 				build(mode, watcher, players)
 			}
@@ -87,7 +87,7 @@ class Matchmaker extends Actor {
 			val spots = builder.playerSpots(queue.size)
 			if (queue.size >= spots || queue.head.meltingTime.isOverdue()) {
 				val humans = pick(spots)
-				val watcher = Watcher.reportingTo(humans.map(_.actor))
+				val watcher = Watcher.boundTo(humans.map(_.actor))
 				for (players <- fill(builder, watcher, humans, spots)) {
 					build(builder, watcher, players)
 				}
@@ -124,8 +124,7 @@ class Matchmaker extends Actor {
 	}
 
 	private def fill(builder: GameBuilder, watcher: ActorRef, humans: Seq[GamePlayer], spots: Int): Future[Seq[GamePlayer]] = {
-		if (humans.size < spots) for (bots <- buildBots(builder, watcher, spots - humans.size)) yield humans ++ bots
-		else Future.successful(humans)
+		for (bots <- buildBots(builder, watcher, spots - humans.size)) yield humans ++ bots
 	}
 
 	private def buildBots(builder: GameBuilder, watcher: ActorRef, spots: Int): Future[Seq[GamePlayer]] = {

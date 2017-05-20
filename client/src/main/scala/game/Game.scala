@@ -1,14 +1,20 @@
 package game
 
+import engine.Engine
+import engine.actor.feature.{MousePosition, Updatable}
+import engine.utils.{MouseButtons, Point, Size}
+import game.actors.{MouseDebug, Player}
 import org.scalajs.dom
 import org.scalajs.dom.html
 
 object Game {
 	private lazy val canvas = dom.document.querySelector("#canvas").asInstanceOf[html.Canvas]
+	private lazy val engine = new Engine(canvas)
 
 	def setup(): Unit = {
 		dom.window.on(Event.Resize) { _ => resizeCanvas() }
 		resizeCanvas()
+		engine.setup()
 	}
 
 	def resizeCanvas(): Unit = {
@@ -16,12 +22,11 @@ object Game {
 		canvas.height = dom.window.innerHeight.toInt
 	}
 
-	def main(): Unit = {
-		/*val canvas = Canvas("ctf-canvas", 1200, 800)
-		val engine = new Engine(canvas)
-		engine.registerActor(new MouseDebug(5, 13))
+	def start(): Unit = {
+		engine.start()
 
-		engine.registerActor(new APlayer(1) with MousePosition with Updatable {
+		engine.registerActor(new MouseDebug(5, 13))
+		engine.registerActor(new Player(1) with MousePosition with Updatable {
 			val size: Size = Size(30, 30)
 
 			private def moveSpeed = 100 // pixels / seconds
@@ -52,7 +57,9 @@ object Game {
 				}
 			}
 		})
-
-		engine.start()*/
 	}
+
+	def unlock(): Unit = engine.unlock()
+	def lock(): Unit = engine.lock()
+	def stop(): Unit = engine.stop()
 }

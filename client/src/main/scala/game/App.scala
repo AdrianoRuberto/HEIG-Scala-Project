@@ -10,6 +10,8 @@ import scala.scalajs.js.timers.SetTimeoutHandle
 
 object App extends JSApp {
 	private lazy val loader = dom.document.querySelector("#loader")
+	private lazy val cover = dom.document.querySelector("#cover")
+
 	private var timers = Set.empty[SetTimeoutHandle]
 
 	/**
@@ -28,6 +30,7 @@ object App extends JSApp {
 	})
 
 	def boot(): Unit = {
+		cover.classList.add("visible")
 		dom.window.sessionStorage.getItem("username") match {
 			case null => Login.requestUsername()
 			case name => displayLobby(name)
@@ -43,12 +46,15 @@ object App extends JSApp {
 		timers += handle
 	}
 
-	def reboot(): Unit = {
+	def reboot(failure: Boolean = false): Unit = {
 		timers.foreach(js.timers.clearTimeout)
 		timers = timers.empty
 		hidePanels()
 		Server.disconnect(true)
-		Toast.show("Your game was shut down due to an unexpected server error")
+		Game.stop()
+		if (failure) {
+			Toast.show("Your game was shut down due to an unexpected server error")
+		}
 		boot()
 	}
 

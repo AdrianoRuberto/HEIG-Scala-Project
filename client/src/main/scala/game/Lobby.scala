@@ -103,6 +103,8 @@ object Lobby {
 		lobby.classList.remove("searching")
 		lobby.classList.add("found")
 		App.timeout(2000) {
+			Game.start()
+			Game.lock()
 			Intro.display(mode, teams, me, warmup - 2)
 		}
 	}
@@ -113,9 +115,7 @@ object Lobby {
 		case ServerMessage.GameFound(mode, teams, me, warmup) => gameFound(mode, teams, me, warmup)
 		case ServerMessage.GameStart =>
 			App.hidePanels()
-		case ServerMessage.GameEnd =>
-			Server.disconnect()
-			displayLobby(playerName.textContent)
+			Game.unlock()
 	}
 
 	/** Resets the lobby state */
