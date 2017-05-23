@@ -1,5 +1,6 @@
 package game.actors
 
+import engine.CanvasCtx
 import engine.entity.Entity
 import engine.entity.feature.{Drawable, MousePosition}
 import engine.geometry.Point
