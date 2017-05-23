@@ -1,5 +1,7 @@
 package engine.geometry
 
+import boopickle.DefaultBasic._
+
 case class Rectangle(corner: Point, size: Size) extends Shape {
 	@inline def topLeft: Point = corner
 	@inline def topRight: Point = Point(corner.x + size.width, corner.y)
@@ -32,4 +34,9 @@ case class Rectangle(corner: Point, size: Size) extends Shape {
 			else if (this contains c) true
 			else c.cardinals.forall(contains)
 	}
+}
+
+object Rectangle {
+	def apply(x: Double, y: Double, w: Double, h: Double): Rectangle = apply(Point(x, y), Size(w, h))
+	implicit val pickler: Pickler[Rectangle] = PicklerGenerator.generatePickler[Rectangle]
 }

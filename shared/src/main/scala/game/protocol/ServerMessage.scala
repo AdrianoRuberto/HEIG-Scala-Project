@@ -1,6 +1,7 @@
 package game.protocol
 
 import boopickle.Default._
+import game.maps.GameMap
 import game.shared.{GameMode, TeamInfo, UID}
 
 sealed trait ServerMessage
@@ -18,7 +19,7 @@ object ServerMessage {
 
 	// Game messages
 	sealed trait GameMessage extends ServerMessage
-	case class SpawnPlayer(uid: UID, x: Double, y: Double) extends GameMessage
+	case class SetGameMap(map: GameMap) extends GameMessage
 
 	// Debug message
 	sealed trait Severity
@@ -32,5 +33,7 @@ object ServerMessage {
 	case class Debug(severity: Severity, args: Seq[String]) extends ServerMessage
 
 	private implicit val UIDPicker = UID.pickler
+	private implicit val GameModePickler = GameMode.pickler
+	private implicit val GameMapPickler = GameMap.pickler
 	implicit val pickler: Pickler[ServerMessage] = generatePickler[ServerMessage]
 }

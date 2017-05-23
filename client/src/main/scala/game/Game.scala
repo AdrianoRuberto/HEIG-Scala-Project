@@ -66,6 +66,7 @@ object Game {
 	def stop(): Unit = engine.stop()
 
 	def message(gm: ServerMessage.GameMessage): Unit = if (engine.isRunning) gm match {
-		case _ =>
+		case ServerMessage.SetGameMap(map) => println(map.shapes)
+		case anything => println(anything)
 	}
 }

@@ -104,8 +104,8 @@ object Lobby {
 		found = true
 		lobby.classList.remove("searching")
 		lobby.classList.add("found")
+		Game.start()
 		App.timeout(2000) {
-			Game.start()
 			Intro.display(mode, teams, me, warmup - 2)
 		}
 	}

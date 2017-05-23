@@ -1,24 +1,27 @@
 package game.shared
 
-import boopickle.DefaultBasic._
+import boopickle.Default._
 
-case class GameMode(name: String, desc: String)
+sealed trait GameMode {
+	val name: String
+	val desc: String
+}
 
 object GameMode {
-	implicit val pickler: Pickler[GameMode] = PicklerGenerator.generatePickler[GameMode]
+	case object CaptureTheFlag extends GameMode {
+		val name = "Capture the Flag"
+		val desc = "Capture the enemy team's flag while defending yours"
+	}
 
-	object CaptureTheFlag extends GameMode(
-		"Capture the Flag",
-		"Capture the enemy team's flag while defending yours"
-	)
+	case object KingOfTheHill extends GameMode {
+		val name = "King of the Hill"
+		val desc = "Take control of the objective and defend it against the enemy team"
+	}
 
-	object KingOfTheHill extends GameMode(
-		"King of the Hill",
-		"Take control of the objective and defend it against the enemy team"
-	)
+	case object TwistingNether extends GameMode {
+		val name = "Twisting Nether"
+		val desc = "In space no one can hear you scream..."
+	}
 
-	object TwistingNether extends GameMode(
-		"Twisting Nether",
-		"In space no one can hear you scream..."
-	)
+	implicit val pickler: Pickler[GameMode] = generatePickler[GameMode]
 }
