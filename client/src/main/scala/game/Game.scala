@@ -2,7 +2,8 @@ package game
 
 import engine.Engine
 import engine.entity.feature.{MousePosition, Updatable}
-import engine.utils.{MouseButtons, Point, Size}
+import engine.geometry.{Point, Size}
+import engine.utils.MouseButtons
 import game.actors.{MouseDebug, Player}
 import game.protocol.ServerMessage
 import org.scalajs.dom

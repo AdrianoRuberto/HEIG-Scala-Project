@@ -1,9 +1,9 @@
 package game.actors
 
-import engine.CanvasCtx
 import engine.entity.Entity
 import engine.entity.feature.{Drawable, MousePosition}
-import engine.utils.{Layer, Point}
+import engine.geometry.Point
+import engine.utils.Layer
 
 class MouseDebug(x: Double, y: Double) extends Entity with MousePosition with Drawable {
 	val position: Point = Point(x, y)

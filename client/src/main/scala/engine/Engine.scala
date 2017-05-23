@@ -1,7 +1,7 @@
 package engine
 
 import engine.entity.{Entity, feature}
-import engine.utils.Point
+import engine.geometry.Point
 import org.scalajs.dom
 import org.scalajs.dom.html
 import scala.collection.mutable

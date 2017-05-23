@@ -3,7 +3,7 @@ package entity
 package feature
 
 import engine.entity.generics.GenericMouseHandler
-import engine.utils.Point
+import engine.geometry.Point
 
 /**
   * An actor feature adding mouse position tracking to the actor
