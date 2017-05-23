@@ -1,7 +1,5 @@
 package engine.geometry
 
-import boopickle.DefaultBasic._
-
 case class Circle(center: Point, radius: Double) extends Shape {
 	@inline def north: Point = Point(center.x, center.y - radius)
 	@inline def south: Point = Point(center.x, center.y + radius)
@@ -25,6 +23,3 @@ case class Circle(center: Point, radius: Double) extends Shape {
 	}
 }
 
-object Circle {
-	implicit val pickler: Pickler[Circle] = PicklerGenerator.generatePickler[Circle]
-}
