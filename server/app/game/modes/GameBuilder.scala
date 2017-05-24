@@ -17,7 +17,7 @@ abstract class GameBuilder(val mode: GameMode) {
 	protected def randomTeams(players: Seq[GamePlayer], teams: Int): Seq[GameTeam] = {
 		val total = players.length
 		require(total % teams == 0, s"Impossible to split $total players between $teams teams")
-		Random.shuffle(players).grouped(total / teams).toSeq.zip(1 to 9)
+		Random.shuffle(players).grouped(total / teams).toVector.zip(1 to 9)
 				.map {
 					case (members, nb) =>
 						val team = TeamInfo(UID.next, s"Team $nb", members.map(_.info))

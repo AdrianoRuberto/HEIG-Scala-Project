@@ -1,39 +1,24 @@
 package engine.geometry
 
-case class Rectangle(corner: Point, size: Size) extends Shape {
-	@inline def topLeft: Point = corner
-	@inline def topRight: Point = Point(corner.x + size.width, corner.y)
-	@inline def bottomLeft: Point = Point(corner.x, corner.y + size.height)
-	@inline def bottomRight: Point = Point(corner.x + size.width, corner.y + size.height)
+case class Rectangle (x: Double, y: Double, width: Double, height: Double) extends Shape {
+	@inline def size: Size = Size(width, height)
 
-	lazy val corners: Seq[Point] = Seq(topLeft, topRight, bottomLeft, bottomRight)
+	@inline def left: Double = x
+	@inline def right: Double = x + width
+	@inline def top: Double = y
+	@inline def bottom: Double = y + height
 
-	def boundingBox: Rectangle = this
+	@inline def boundingBox: Rectangle = this
 
-	def contains(point: Point): Boolean = {
-		if (point.x < topLeft.x || point.x > bottomRight.x) false
-		if (point.y < topLeft.y || point.y > bottomRight.y) false
-		else true
-	}
+	@inline def contains(x: Double, y: Double): Boolean = !(x < left || x > right || y < top || y > bottom)
 
-	def contains(shape: Shape): Boolean = shape match {
-		case r: Rectangle => (this contains r.topLeft) && (this contains r.bottomRight)
-		case c: Circle => this contains c.boundingBox
-	}
+	@inline def contains(r: Rectangle): Boolean = !(left > r.left || right < r.right || top > r.top || bottom < r.bottom)
+	@inline def contains(c: Circle): Boolean = contains(c.boundingBox)
 
-	def intersect(shape: Shape): Boolean = shape match {
-		case r: Rectangle =>
-			if (topLeft.x > r.bottomRight.x || r.topLeft.x > bottomRight.x) false
-			else if (topLeft.y > r.bottomRight.y || r.topLeft.y > bottomRight.y) false
-			else true
-
-		case c: Circle =>
-			if (this disjoint c.boundingBox) false
-			else if (this contains c) true
-			else c.cardinals.forall(contains)
-	}
+	@inline def intersect(r: Rectangle): Boolean = g.intersect(this, r)
+	@inline def intersect(c: Circle): Boolean = g.intersect(this, c)
 }
 
 object Rectangle {
-	def apply(x: Double, y: Double, w: Double, h: Double): Rectangle = apply(Point(x, y), Size(w, h))
+	@inline def apply(corner: Point, size: Size): Rectangle = apply(corner.x, corner.y, size.width, size.height)
 }

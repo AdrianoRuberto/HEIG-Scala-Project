@@ -1,25 +1,28 @@
 package engine.geometry
 
-case class Circle(center: Point, radius: Double) extends Shape {
-	@inline def north: Point = Point(center.x, center.y - radius)
-	@inline def south: Point = Point(center.x, center.y + radius)
-	@inline def west: Point = Point(center.x - radius, center.y)
-	@inline def east: Point = Point(center.x + radius, center.y)
+case class Circle(x: Double, y: Double, radius: Double) extends Shape {
+	@inline def center: Point = Point(x, y)
 
-	lazy val cardinals = Seq(north, west, south, east)
+	lazy val squaredRadius: Double = radius * radius
+	lazy val boundingBox: Rectangle = Rectangle(x - radius, y - radius, radius * 2, radius * 2)
 
-	def boundingBox: Rectangle = Rectangle(Point(center.x - radius, center.y - radius), Size(radius * 2, radius * 2))
+	/** A circle contains a point if the distance of this point from its center is smaller than the radius */
+	@inline def contains(u: Double, v: Double): Boolean = g.squaredDistance(x, y, u, v) <= squaredRadius
 
-	def contains(point: Point): Boolean = (center distance point) <= radius
+	/** A circle contains a rectangle if every corner of this rectangle are contained in the circle */
+	@inline def contains(r: Rectangle): Boolean = contains(r.left, r.top) && contains(r.right, r.bottom) &&
+	                                              contains(r.right, r.top) && contains(r.left, r.bottom)
 
-	def contains(shape: Shape): Boolean = shape match {
-		case r: Rectangle => r.corners.forall(contains)
-		case c: Circle => c.cardinals.forall(contains)
-	}
+	/**
+	  * A circle contains another circle if the distance of its center
+	  * plus its radius is lower than the radius of the former circle
+	  */
+	@inline def contains(c: Circle): Boolean = g.squaredDistance(x, y, c.x, c.y) + c.squaredRadius <= squaredRadius
 
-	def intersect(shape: Shape): Boolean = shape match {
-		case r: Rectangle => r intersect this
-		case c: Circle => (center distance c.center) <= (radius + c.radius)
-	}
+	@inline def intersect(r: Rectangle): Boolean = g.intersect(r, this)
+	@inline def intersect(c: Circle): Boolean = g.intersect(this, c)
 }
 
+object Circle {
+	@inline def apply(center: Point, r: Double): Circle = Circle(center.x, center.y, r)
+}
