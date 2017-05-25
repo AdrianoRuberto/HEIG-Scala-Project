@@ -2,6 +2,7 @@ package engine
 
 import engine.entity.Entity
 import engine.entity.feature.Position
+import engine.geometry.Point
 import org.scalajs.dom
 
 final class Mouse private[engine] (engine: Engine) {
@@ -10,6 +11,8 @@ final class Mouse private[engine] (engine: Engine) {
 
 	def x: Double = rawX + engine.camera.left
 	def y: Double = rawY + engine.camera.top
+
+	def point: Point = Point(x, y)
 
 	object relative {
 		def x(implicit to: Entity with Position): Double = {
@@ -21,9 +24,11 @@ final class Mouse private[engine] (engine: Engine) {
 			val box = to.boundingBox
 			Mouse.this.y - (box.top + box.height / 2)
 		}
+
+		def point(implicit to: Entity with Position): Point = Point(x, y)
 	}
 
-	def handler(event: dom.MouseEvent): Unit = {
+	private[engine] def handler(event: dom.MouseEvent): Unit = {
 		val rect = engine.canvas.getClientRects()(0)
 		rawX = event.clientX - rect.left
 		rawY = event.clientY - rect.top

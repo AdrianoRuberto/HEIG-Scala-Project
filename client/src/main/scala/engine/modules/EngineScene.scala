@@ -58,7 +58,6 @@ trait EngineScene {
 
 		// Camera view box
 		val view = camera.box
-		println(view)
 
 		val visibles = drawableEntities.filter { case (_, box) => view intersect box }.toBuffer
 		val absolutes = absoluteDrawableEntities.view.map { e => (e, e.boundingBox) }
