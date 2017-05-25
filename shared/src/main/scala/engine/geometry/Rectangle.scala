@@ -12,11 +12,12 @@ case class Rectangle (x: Double, y: Double, width: Double, height: Double) exten
 
 	@inline def contains(x: Double, y: Double): Boolean = !(x < left || x > right || y < top || y > bottom)
 
-	@inline def contains(r: Rectangle): Boolean = !(left > r.left || right < r.right || top > r.top || bottom < r.bottom)
+	@inline override def contains(r: Rectangle): Boolean = !(left > r.left || right < r.right || top > r.top || bottom < r.bottom)
 	@inline def contains(c: Circle): Boolean = contains(c.boundingBox)
 
 	@inline def intersect(r: Rectangle): Boolean = g.intersect(this, r)
 	@inline def intersect(c: Circle): Boolean = g.intersect(this, c)
+	@inline def intersect(t: Triangle): Boolean = g.intersect(t, this)
 }
 
 object Rectangle {
