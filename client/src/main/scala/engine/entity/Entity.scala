@@ -2,29 +2,32 @@ package engine
 package entity
 
 import scala.collection.mutable
+import scala.scalajs.js
 
 abstract class Entity {
-	private[this] var owner: Option[Engine] = None
+	protected implicit val self: this.type = this
+	private[this] var owner: js.UndefOr[Engine] = js.undefined
 	private[this] var id: Int = -1
 
 	private[engine] def registerWith(engine: Engine): Unit = {
 		require(owner.isEmpty, "Attempt to register an already registered entity")
-		owner = Some(engine)
+		owner = engine
 		id = engine.entityIdsAllocator.alloc()
 	}
 
 	private[engine] def unregisterFrom(engine: Engine): Unit = {
 		require(engine == owner.orNull, "Attempt to unregister from foreign engine")
-		owner = None
+		owner = js.undefined
 		engine.entityIdsAllocator.free(id)
 		id = -1
 	}
 
-	def unregister(): Unit = owner match {
-		case Some(engine) => unregisterFrom(engine)
-		case None => throw new IllegalStateException("Cannot unregister an entity that is not registered")
+	def unregister(): Unit = owner.orNull match {
+		case null => throw new IllegalStateException("Cannot unregister an entity that is not registered")
+		case engine => unregisterFrom(engine)
 	}
 
+	def engine: Engine = owner.orNull
 	def entityId: Int = id
 }
 

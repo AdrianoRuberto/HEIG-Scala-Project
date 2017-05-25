@@ -13,20 +13,26 @@ object App extends JSApp {
 	private lazy val cover = dom.document.querySelector("#cover")
 
 	private var timers = Set.empty[SetTimeoutHandle]
+	private var debug = true
 
 	/**
 	  * Application entry point.
 	  */
 	def main(): Unit = dom.window.on(Event.Load)(_ => {
-		loader.classList.add("fade-out")
-		App.timeout(1250) {
-			loader.parentNode.removeChild(loader)
-			boot()
-		}
-
 		Game.setup()
 		Lobby.setup()
 		Login.setup()
+
+		if (debug) {
+			loader.parentNode.removeChild(loader)
+			debugBoot()
+		} else {
+			loader.classList.add("fade-out")
+			js.timers.setTimeout(1250) {
+				loader.parentNode.removeChild(loader)
+				boot()
+			}
+		}
 	})
 
 	def boot(): Unit = {
@@ -65,5 +71,10 @@ object App extends JSApp {
 			elem.classList.remove("fade-out")
 		}
 		Lobby.reset()
+	}
+
+	def debugBoot(): Unit = {
+		Game.start()
+		Game.unlock()
 	}
 }

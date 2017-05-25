@@ -11,4 +11,8 @@ case class Layer(strata: Double) extends AnyVal {
 object Layer {
 	final val Players = Layer(5)
 	final val Interface = Layer(10)
+
+	implicit object LayerIsOrdered extends Ordering[Layer] {
+		def compare(x: Layer, y: Layer): Int = x.strata compareTo y.strata
+	}
 }

@@ -1,6 +1,6 @@
 package engine.geometry
 
-import engine.geometry.QuadTree.Bounded
+import engine.quadtree.{Bounded, BoundingBox}
 
 trait Shape {
 	def boundingBox: Rectangle
@@ -34,6 +34,6 @@ trait Shape {
 
 object Shape {
 	implicit object ShapeIsBounded extends Bounded[Shape] {
-		def boundingBox(shape: Shape): Rectangle = shape.boundingBox
+		def boundingBox(shape: Shape): BoundingBox = shape.boundingBox
 	}
 }

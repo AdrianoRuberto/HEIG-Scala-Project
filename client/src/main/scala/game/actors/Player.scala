@@ -19,6 +19,7 @@ abstract class Player(sublayer: Int = 0) extends Entity with Drawable {
 		ctx.fillStyle = "red"
 		ctx.lineWidth = 2
 
+		ctx.translate(width / 2, height / 2)
 		ctx.rotate(facing - Math.PI / 2)
 		ctx.translate(-width / 2, -height / 2)
 

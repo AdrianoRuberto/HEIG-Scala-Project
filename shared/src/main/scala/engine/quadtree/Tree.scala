@@ -1,30 +1,34 @@
-package engine.geometry
+package engine.quadtree
 
-import engine.geometry.QuadTree.{Bounded, BoundedOps}
+import engine.geometry.{Point, Rectangle}
 
-class QuadTree[T: Bounded] private (x: Double, y: Double, width: Double, height: Double, limit: Int = 10) {
+private[quadtree] class Tree[T: Bounded] (val x: Double, val y: Double, val width: Double, val height: Double)
+		extends QuadTree[T] {
 
 	private val midX = x + (width / 2)
 	private val midY = y + (height / 2)
 
 	private var objects: Set[T] = Set.empty
 	private var split: Boolean = false
-	private var children: Array[QuadTree[T]] = null
+	private var children: Array[Tree[T]] = null
 
 	private def collapsible: Boolean = !split && objects.isEmpty
 
-	def insert(obj: T): Unit = {
-		lazy val q = quadrant(obj.boundingBox)
+	def insert(obj: T)(implicit bb: BoundingBox): Unit = {
+		val box = bb.rect
+		require(box.left >= x && box.top >= y && box.right <= x + width && box.bottom <= height,
+			"Attempting to insert an object whose bounding box is not contained in the quadtree area")
+		lazy val q = quadrant(box)
 		if (split && q >= 0) {
 			children(q).insert(obj)
 		} else {
 			objects += obj
-			if (!split && objects.size > limit) splitNode()
+			if (!split && objects.size > NodeCapacity) splitNode()
 		}
 	}
 
-	def remove(obj: T): Unit = {
-		lazy val q = quadrant(obj.boundingBox)
+	def remove(obj: T)(implicit bb: BoundingBox): Unit = {
+		lazy val q = quadrant(bb.rect)
 		if (split && q >= 0) {
 			children(q).remove(obj)
 			if (children.forall(_.collapsible)) {
@@ -36,20 +40,25 @@ class QuadTree[T: Bounded] private (x: Double, y: Double, width: Double, height:
 		}
 	}
 
-	def query(point: Point): Set[T] = {
+	def query(point: Point): Iterator[T] = {
 		lazy val q = quadrant(point)
-		val matching = objects.filter(o => o.boundingBox contains point)
+		val matching = objects.iterator.filter(o => o.boundingBox.rect contains point)
 		if (split && q >= 0) matching ++ children(q).query(point)
 		else if (split) children.foldLeft(matching)(_ ++ _.query(point))
 		else matching
 	}
 
-	def query(box: Rectangle): Set[T] = {
+	def query(box: Rectangle): Iterator[T] = {
 		lazy val q = quadrant(box)
-		val matching = objects.filter(o => o.boundingBox intersect box)
+		val matching = objects.iterator.filter(o => o.boundingBox.rect intersect box)
 		if (split && q >= 0) matching ++ children(q).query(box)
 		else if (split) children.foldLeft(matching)(_ ++ _.query(box))
 		else matching
+	}
+
+	def iterator: Iterator[T] = {
+		if (split) children.foldLeft(objects.iterator)(_ ++ _.iterator)
+		else objects.iterator
 	}
 
 	def clear(): Unit = {
@@ -83,32 +92,14 @@ class QuadTree[T: Bounded] private (x: Double, y: Double, width: Double, height:
 		val w_2 = width / 2
 		val h_2 = height / 2
 		children = Array(
-			QuadTree[T](x, y, w_2, h_2, limit), QuadTree[T](x + w_2, y, w_2, h_2, limit),
-			QuadTree[T](x, y + h_2, w_2, h_2, limit), QuadTree[T](x + w_2, y + h_2, w_2, h_2, limit)
+			new Tree[T](x, y, w_2, h_2), new Tree[T](x + w_2, y, w_2, h_2),
+			new Tree[T](x, y + h_2, w_2, h_2), new Tree[T](x + w_2, y + h_2, w_2, h_2)
 		)
-		for (obj <- objects) quadrant(obj.boundingBox) match {
+		for (obj <- objects) quadrant(obj.boundingBox.rect) match {
 			case -1 => keptObjects += obj
 			case q => children(q).insert(obj)
 		}
 		split = true
 		objects = keptObjects
-	}
-}
-
-object QuadTree {
-	@inline def apply[T: Bounded](x: Double, y: Double, width: Double, height: Double, limit: Int = 10): QuadTree[T] = {
-		new QuadTree[T](x, y, width, height, limit)
-	}
-
-	@inline def fromRect[T: Bounded](r: Rectangle, limit: Int = 10): QuadTree[T] = {
-		apply(r.x, r.y, r.width, r.height, limit)
-	}
-
-	trait Bounded[-T] {
-		def boundingBox(obj: T): Rectangle
-	}
-
-	implicit final class BoundedOps[T](private val obj: T) extends AnyVal {
-		@inline def boundingBox(implicit bounded: Bounded[T]): Rectangle = bounded.boundingBox(obj)
 	}
 }

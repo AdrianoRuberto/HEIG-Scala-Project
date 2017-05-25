@@ -1,10 +1,10 @@
 package game
 
 import engine.Engine
-import engine.entity.feature.{MousePosition, Updatable}
-import engine.geometry.{Point, Size}
+import engine.entity.feature.Updatable
+import engine.geometry.{Point, Rectangle, Size}
 import engine.utils.MouseButtons
-import game.actors.{MouseDebug, Player}
+import game.actors.{DebugStats, Player}
 import game.protocol.ServerMessage
 import org.scalajs.dom
 import org.scalajs.dom.html
@@ -26,16 +26,26 @@ object Game {
 
 	def start(): Unit = {
 		engine.start()
+		engine.setWorldSize(2000, 2000)
 
-		engine.registerActor(new MouseDebug(5, 13))
-		engine.registerActor(new Player(1) with MousePosition with Updatable {
+		engine.registerEntity(new DebugStats(5, 5))
+
+		val enemy = new Player(0) {
+			val size: Size = Size(30, 30)
+			val facing: Double = 0
+			val boundingBox: Rectangle = Rectangle(Point(200, 200), size)
+		}
+		engine.registerEntity(enemy)
+
+		val player = new Player(1) with Updatable {
 			val size: Size = Size(30, 30)
 
 			private def moveSpeed = 100 // pixels / seconds
 			private var current = Point(canvas.width / 2, canvas.height / 2)
 			private var destination = Point(canvas.width / 2, canvas.height / 2)
+			private var lastFacing = 0.0
 
-			def position: Point = current
+			def boundingBox: Rectangle = Rectangle(Point(current.x - size.width / 2, current.y - size.height / 2), size)
 
 			override def update(dt: Double): Unit = if (current != destination) {
 				val Point(cx, cy) = current
@@ -48,17 +58,28 @@ object Game {
 				current = Point(cx + (mx / s * z), cy + (my / s * z))
 			}
 
+			def relativeMousePosition: Point = Point(engine.mouse.relative.x, engine.mouse.relative.y)
+			def mousePosition: Point = Point(engine.mouse.x, engine.mouse.y)
+
 			def facing: Double = relativeMousePosition match {
-				case Point(a, b) => Math.atan2(b, a)
+				case Point(a, b) if mousePosition != current =>
+					val angle = Math.atan2(b, a)
+					val delta = Math.atan2(Math.sin(angle - lastFacing), Math.cos(angle - lastFacing))
+					lastFacing += (delta / 3)
+					lastFacing
+				case _ => lastFacing
 			}
 
-			override def handleMouse(tpe: String, x: Double, y: Double, button: Int): Unit = {
-				super.handleMouse(tpe, x, y, button)
+			def handleMouse(tpe: String, x: Double, y: Double, button: Int): Unit = {
+				//super.handleMouse(tpe, x, y, button)
 				if ((button & MouseButtons.Left) != 0) {
 					destination = Point(x, y)
 				}
 			}
-		})
+		}
+
+		engine.registerEntity(player)
+		engine.camera.follow(player)
 	}
 
 	def unlock(): Unit = engine.unlock()
