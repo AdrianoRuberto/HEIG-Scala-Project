@@ -12,9 +12,17 @@ class DebugStats(x: Double, y: Double, width: Int = 500, height: Int = 14) exten
 	val boundingBox: Rectangle = Rectangle(x, y, width, height)
 	val layer: Layer = Layer.Interface
 
-	private var fps: Double = 0
 	private var frames: Int = 0
-	private var dts: Double = 0
+	private var dts: Double = 0.0
+	private var fps: Double = 0.0
+	private var cpu: Double = 0.0
+	private var draw: Double = 0.0
+
+	private var statFPS: String = "FPS: 0".padTo(10, ' ')
+	private var statCPU: String = "CPU: 0%".padTo(10, ' ')
+	private var statDRW: String = "DRW: 0%".padTo(10, ' ')
+
+	private var text: String = ""
 
 	def update(dt: Double): Unit = {
 		frames += 1
@@ -23,8 +31,29 @@ class DebugStats(x: Double, y: Double, width: Int = 500, height: Int = 14) exten
 			fps = (frames * 1000 / dts).round
 			frames = 0
 			dts = 0
+
+			cpu = (fps * engine.cpuTime / 10).floor
+			draw = (engine.drawTime / nz(engine.cpuTime) * 100).floor
+
+			statFPS = s"FPS: $fps".padTo(10, ' ')
+			statCPU = s"CPU: $cpu%".padTo(10, ' ')
+			statDRW = s"DRW: $draw%".padTo(10, ' ')
 		}
+
+		// Camera
+		val camBox = engine.camera.box
+		val camX = (camBox.x + camBox.width / 2).floor
+		val camY = (camBox.y + camBox.height / 2).floor
+		val statCAM = s"Cam: $camX, $camY".padTo(20, ' ')
+
+		// Mouse
+		val statMOUSE = s"Mouse: ${engine.mouse.x.floor}, ${engine.mouse.y.floor}".padTo(20, ' ')
+
+		// Whole text
+		text = s"$statFPS $statCPU $statDRW $statCAM $statMOUSE"
 	}
+
+	@inline private def nz(value: Double): Double = value + Double.MinPositiveValue
 
 	def draw(ctx: CanvasCtx): Unit = {
 		// Background
@@ -35,12 +64,6 @@ class DebugStats(x: Double, y: Double, width: Int = 500, height: Int = 14) exten
 		ctx.fillStyle = "black"
 		ctx.font = "400 10px 'Roboto Mono'"
 		ctx.textBaseline = "hanging"
-
-		val cameraBox = engine.camera.box
-		val camera = s"Cam: ${(cameraBox.x + cameraBox.width / 2).round}, " +
-		             s"${(cameraBox.y + cameraBox.height / 2).round}".padTo(20, ' ')
-
-		val mouse = s"Mouse: ${engine.mouse.x.round}, ${engine.mouse.y.round}".padTo(20, ' ')
-		ctx.fillText(s"$camera $mouse FPS: $fps", 3, 3)
+		ctx.fillText(text, 3, 3)
 	}
 }
