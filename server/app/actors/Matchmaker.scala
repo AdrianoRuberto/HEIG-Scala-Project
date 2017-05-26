@@ -101,16 +101,15 @@ class Matchmaker extends Actor {
 
 	private def build(builder: GameBuilder, watcher: ActorRef, players: Seq[GamePlayer]): Unit = {
 		val teams = builder.composeTeams(players)
-		val warmup = builder.warmup(players.size)
-		for (player <- players) {
-			player.actor ! ServerMessage.GameFound(builder.mode, teams.map(_.info), player.info.uid, warmup)
-		}
 		for (game <- watcher instantiate builder.gameProps(teams)) {
+			val warmup = builder.warmup(players.size)
+			val teamsInfo = teams.map(_.info)
 			watcher ! Watcher.Ready
-			system.scheduler.scheduleOnce(warmup.seconds) {
-				for (player <- players) player.actor ! ServerMessage.GameStart
-				game ! Matchmaker.Start
+			for (player <- players) {
+				player.actor ! Matchmaker.Bind(game)
+				player.actor ! ServerMessage.GameFound(builder.mode, teamsInfo, player.info.uid, warmup)
 			}
+			system.scheduler.scheduleOnce(warmup.seconds, game, Matchmaker.Start)
 		}
 	}
 
@@ -141,6 +140,7 @@ class Matchmaker extends Actor {
 object Matchmaker {
 	case class Register(player: PlayerInfo, fast: Boolean)
 	case object Tick
+	case class Bind(game: ActorRef)
 	case object Start
 
 	/** A queued player with some metadata */

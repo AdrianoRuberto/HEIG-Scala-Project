@@ -12,8 +12,11 @@ import utils.Debug
 
 class PlayerActor @Inject() (@Assisted socket: ActorRef)
                             (@Named("matchmaker") mm: ActorRef) extends Actor {
+	/** The game actor */
+	private var game: ActorRef = context.system.deadLetters
+
 	/** Fake actor for handling outgoing messages */
-	object out {
+	private object out {
 		def ! (msg: ServerMessage): Unit = {
 			val buffer = Pickle.intoBytes(msg)
 			val array = new Array[Byte](buffer.remaining)
@@ -28,16 +31,20 @@ class PlayerActor @Inject() (@Assisted socket: ActorRef)
 			handleMessage(msg)
 		case msg: ServerMessage =>
 			out ! msg
+		case Matchmaker.Bind(ref) =>
+			game = ref
 		case unknown =>
 			out ! Debug.error(s"Unknown message: $unknown")
 	}
 
-	def handleMessage(msg: ClientMessage): Unit = msg match {
+	private def handleMessage(msg: ClientMessage): Unit = msg match {
 		case ClientMessage.Ping(payload) =>
 			out ! ServerMessage.Ping(payload)
 		case ClientMessage.SearchGame(name, fast) =>
 			val player = PlayerInfo(UID.next, name, bot = false)
 			mm ! Matchmaker.Register(player, fast)
+		case msg: ClientMessage.GameMessage =>
+			game ! msg
 	}
 }
 

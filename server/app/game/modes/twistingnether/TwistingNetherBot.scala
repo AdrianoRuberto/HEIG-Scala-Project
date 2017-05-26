@@ -5,6 +5,8 @@ class TwistingNetherBot(name: String) extends BasicBot(name: String) {
 	def init(): Unit = ()
 	def start(): Unit = ()
 	def message: Receive = {
-		case _ =>
+		case msg =>
+			println(msg)
+			debug(msg.toString)
 	}
 }

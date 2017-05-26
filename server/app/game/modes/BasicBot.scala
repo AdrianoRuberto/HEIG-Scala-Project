@@ -1,13 +1,13 @@
 package game.modes
 
 import actors.Watcher
-import game.protocol.ServerMessage
 
 abstract class BasicBot(name: String) extends BasicActor(name) {
 	final def receive: Receive = ({
-		case ServerMessage.GameFound(mode, team, me, warmup) =>
+		/*case ServerMessage.GameFound(mode, team, me, warmup) =>
 		case ServerMessage.GameStart => start()
-		case ServerMessage.GameEnd =>
+		case ServerMessage.GameEnd =>*/
+		case true =>
 	}: Receive) orElse message
 
 	init()

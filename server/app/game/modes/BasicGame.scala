@@ -1,14 +1,20 @@
 package game.modes
 
 import actors.{Matchmaker, Watcher}
+import game.protocol.ServerMessage
 import game.shared.UID
+import utils.ActorGroup
 
 abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") {
 	val teams: Map[UID, GameTeam] = roster.map(t => (t.info.uid, t)).toMap
 	val players: Map[UID, GamePlayer] = roster.flatMap(_.players).map(p => (p.info.uid, p)).toMap
 
+	val broadcast = ActorGroup(players.values.map(_.actor))
+
 	final def receive: Receive = ({
-		case Matchmaker.Start => start()
+		case Matchmaker.Start =>
+			broadcast ! ServerMessage.GameStart
+			start()
 	}: Receive) orElse message
 
 	init()
