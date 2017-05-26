@@ -6,10 +6,10 @@ import engine.entity.feature.{AbsolutePosition, Drawable, Updatable}
 import engine.geometry.Rectangle
 import engine.utils.Layer
 
-class DebugStats(x: Double, y: Double, width: Int = 500, height: Int = 14) extends Entity
+class DebugStats(x: Double, y: Double) extends Entity
 		with Drawable with AbsolutePosition with Updatable {
 
-	val boundingBox: Rectangle = Rectangle(x, y, width, height)
+	val boundingBox: Rectangle = Rectangle(x, y, 500, 15)
 	val layer: Layer = Layer.Interface
 
 	private var frames: Int = 0
@@ -58,7 +58,7 @@ class DebugStats(x: Double, y: Double, width: Int = 500, height: Int = 14) exten
 	def draw(ctx: CanvasCtx): Unit = {
 		// Background
 		ctx.fillStyle = "rgba(17, 17, 17, 0.1)"
-		ctx.fillRect(0, 0, 500, 14)
+		ctx.fillRect(0, 0, 500, 15)
 
 		// Text
 		ctx.fillStyle = "black"

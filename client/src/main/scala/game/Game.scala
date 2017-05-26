@@ -1,7 +1,7 @@
 package game
 
 import engine.Engine
-import game.entities.{Character, DebugStats, Player}
+import game.entities.{Character, DebugStats, Player, PlayerFrame}
 import game.protocol.ServerMessage
 import org.scalajs.dom
 import org.scalajs.dom.html
@@ -35,6 +35,8 @@ object Game {
 		val player = new Player
 		engine.registerEntity(player)
 		engine.camera.follow(player)
+
+		engine.registerEntity(new PlayerFrame(85, -80, player))
 	}
 
 	def unlock(): Unit = engine.unlock()

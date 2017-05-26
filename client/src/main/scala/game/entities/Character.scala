@@ -13,25 +13,25 @@ abstract class Character(sublayer: Int = 0) extends Entity
 	val layer: Layer = Layer.Players / sublayer
 
 	// Health
-	protected var health: Double = 75
-	protected var healthMax: Double = 100
-	protected var healthColor: String = "#f55"
+	var health: Double = 100
+	var healthMax: Double = 100
+	var healthColor: String = "#f55"
 
 	// Characteristics
-	protected var size: Double = 30
-	protected var color: String = "black"
-	protected var skin: Int = 2
-	protected var speed: Double = 100
+	var size: Double = 30
+	var color: String = "black"
+	var skin: Int = 1
+	var speed: Double = 100
 
 	// Current position
-	protected var x: Double = 50.0
-	protected var y: Double = 50.0
-	protected var f: Double = 0.0
+	var x: Double = 50.0
+	var y: Double = 50.0
+	var f: Double = 0.0
 
 	// Target position
-	protected var tx: Double = 50.0
-	protected var ty: Double = 50.0
-	protected var tf: Double = 0.0
+	var tx: Double = 50.0
+	var ty: Double = 50.0
+	var tf: Double = 0.0
 
 	// Bounding box of this character
 	def boundingBox = Rectangle(x - size / 2, y - size / 2, size, size)
@@ -51,7 +51,7 @@ abstract class Character(sublayer: Int = 0) extends Entity
 		// Update facing
 		if (tf != f) {
 			val df = Math.atan2(Math.sin(tf - f), Math.cos(tf - f))
-			if (df < 0.1) f = tf
+			if (Math.abs(df) < 0.1) f = tf
 			else f += (df / 3)
 		}
 	}
@@ -70,16 +70,13 @@ abstract class Character(sublayer: Int = 0) extends Entity
 	}
 
 	def draw(ctx: CanvasCtx): Unit = {
-
 		val size_2 = size / 2
 		ctx.translate(size_2, size_2)
 		ctx.rotate(f - Math.PI / 2)
 		ctx.translate(-size_2, -size_2)
 
-
 		ctx.fillStyle = healthColor
 		ctx.fillRect(0, size, size, - size * (health / healthMax))
-
 
 		ctx.lineWidth = skin
 		ctx.strokeStyle = color

@@ -8,6 +8,8 @@ import engine.geometry.Point
 class Player extends Character(1) {
 	color = "black"
 	healthColor = "#5a5"
+	health = 133
+	healthMax = 200
 
 	override def update(dt: Double): Unit = {
 		val Point(rx, ry) = engine.mouse.relative.point

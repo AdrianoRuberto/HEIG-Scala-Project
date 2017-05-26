@@ -2,6 +2,7 @@ package engine
 package modules
 
 import engine.entity.feature.Drawable
+import engine.geometry.Rectangle
 import engine.quadtree.QuadTree
 import scala.util.Sorting
 
@@ -13,6 +14,8 @@ trait EngineScene {
 
 	/** The set of every absolute-positioned drawable entities */
 	private[engine] var absoluteDrawableEntities = Set.empty[Drawable]
+
+	var drawBoundingBoxes: Boolean = false
 
 	/**
 	  * Resize the world QuadTree.
@@ -66,14 +69,26 @@ trait EngineScene {
 		Sorting.quickSort(entities)
 
 		// Draw actors
-		ctx.setTransform(1, 0, 0, 1, 0, 0)
+		ctx.setTransform(1, 0, 0, 1, 0.5, 0.5)
 		ctx.clearRect(0, 0, canvas.width, canvas.height)
 		for ((entity, box) <- entities) {
 			ctx.save()
-			if (entity.positionIsAbsolute) ctx.translate(box.left, box.top)
-			else ctx.translate(box.left - view.left, box.top - view.top)
+			if (entity.positionIsAbsolute) translateAbsolute(ctx, box)
+			else ctx.translate((box.left - view.left).floor, (box.top - view.top).floor)
+			if (drawBoundingBoxes) {
+				ctx.strokeStyle = "red"
+				ctx.strokeRect(0, 0, box.width, box.height)
+				ctx.strokeStyle = "black"
+			}
 			entity.draw(ctx)
 			ctx.restore()
 		}
+	}
+
+	@inline	private def translateAbsolute(ctx: CanvasCtx, box: Rectangle): Unit = {
+		ctx.translate(
+			if (box.left < 0) box.left + ctx.canvas.width - box.width else box.left,
+			if (box.top < 0) box.top + ctx.canvas.height - box.height else box.top
+		)
 	}
 }
