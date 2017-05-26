@@ -5,6 +5,7 @@ import engine.entity.Entity
 import engine.entity.feature.{AbsolutePosition, Drawable, Updatable}
 import engine.geometry.Rectangle
 import engine.utils.Layer
+import game.Server
 
 class DebugStats(x: Double, y: Double) extends Entity
 		with Drawable with AbsolutePosition with Updatable {
@@ -21,6 +22,7 @@ class DebugStats(x: Double, y: Double) extends Entity
 	private var statFPS: String = "FPS: 0".padTo(10, ' ')
 	private var statCPU: String = "CPU: 0%".padTo(10, ' ')
 	private var statDRW: String = "DRW: 0%".padTo(10, ' ')
+	private var statLAT: String = "LAT: 0".padTo(10, ' ')
 
 	private var text: String = ""
 
@@ -38,6 +40,7 @@ class DebugStats(x: Double, y: Double) extends Entity
 			statFPS = s"FPS: $fps".padTo(10, ' ')
 			statCPU = s"CPU: $cpu%".padTo(10, ' ')
 			statDRW = s"DRW: $draw%".padTo(10, ' ')
+			statLAT = s"LAT: ${Server.latency.floor}".padTo(10, ' ')
 		}
 
 		// Camera
@@ -50,7 +53,7 @@ class DebugStats(x: Double, y: Double) extends Entity
 		val statMOUSE = s"Mouse: ${engine.mouse.x.floor}, ${engine.mouse.y.floor}".padTo(20, ' ')
 
 		// Whole text
-		text = s"$statFPS $statCPU $statDRW $statCAM $statMOUSE"
+		text = s"$statFPS $statCPU $statDRW $statLAT $statCAM $statMOUSE"
 	}
 
 	@inline private def nz(value: Double): Double = value + Double.MinPositiveValue

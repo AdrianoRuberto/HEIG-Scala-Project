@@ -10,6 +10,7 @@ object ServerMessage {
 	// Core messages
 	case object ServerError extends ServerMessage
 	case object GameEnd extends ServerMessage
+	case class Ping(payload: Double) extends ServerMessage
 
 	// Lobby messages
 	sealed trait LobbyMessage extends ServerMessage

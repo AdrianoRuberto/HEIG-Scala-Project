@@ -33,6 +33,8 @@ class PlayerActor @Inject() (@Assisted socket: ActorRef)
 	}
 
 	def handleMessage(msg: ClientMessage): Unit = msg match {
+		case ClientMessage.Ping(payload) =>
+			out ! ServerMessage.Ping(payload)
 		case ClientMessage.SearchGame(name, fast) =>
 			val player = PlayerInfo(UID.next, name, bot = false)
 			mm ! Matchmaker.Register(player, fast)
