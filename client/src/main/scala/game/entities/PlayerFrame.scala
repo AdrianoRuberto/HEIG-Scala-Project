@@ -16,13 +16,13 @@ class PlayerFrame (x: Double, y: Double, player: Player) extends Entity
 
 		ctx.font = "500 24px 'Roboto Mono'"
 		ctx.textAlign = "right"
-		ctx.fillText(player.health.ceil.toString, 45, 30)
+		ctx.fillText(player.health.smoothValue.ceil.toString, 45, 30)
 
 		ctx.font = "400 14px 'Roboto Mono'"
 		ctx.textAlign = "left"
-		ctx.fillText("/ " + player.healthMax.ceil, 52, 30)
+		ctx.fillText("/ " + player.health.max.ceil, 52, 30)
 
-		val splits = (player.healthMax / 25).round.toInt
+		val splits = (player.health.max / 25).round.toInt
 		val blanks = (splits - 1) * 5
 		val width = (200.0 - blanks) / splits
 
@@ -39,7 +39,7 @@ class PlayerFrame (x: Double, y: Double, player: Player) extends Entity
 		ctx.fillStyle = "rgba(216, 216, 216, 0.9)"
 		ctx.fillRect(0, 45, 200, 25)
 		ctx.fillStyle = player.healthColor
-		ctx.fillRect(0, 45, 200 * (player.health / player.healthMax), 25)
+		ctx.fillRect(0, 45, 200 * player.health.smoothPercent, 25)
 		ctx.restore()
 
 		drawSegments()
@@ -51,7 +51,7 @@ class PlayerFrame (x: Double, y: Double, player: Player) extends Entity
 		ctx.fillRect(0, 80, 200, 10)
 
 		ctx.fillStyle = "#fc2"
-		ctx.fillRect(0, 80, 200 * (player.energy / player.energyMax), 10)
+		ctx.fillRect(0, 80, 200 * player.energy.smoothPercent, 10)
 
 		ctx.strokeRect(0, 80, 200, 10)
 	}

@@ -9,11 +9,15 @@ final class Engine (val canvas: html.Canvas) extends EngineLoop with EngineScene
 
 	val camera = new Camera(this)
 	val mouse = new Mouse(this)
+	val keyboard = new Keyboard(this)
 
 	def setup(): Unit = {
 		dom.document.addEventListener("mousemove", mouse.handler _)
 		dom.document.addEventListener("mousedown", mouse.handler _)
 		dom.document.addEventListener("mouseup", mouse.handler _)
+
+		dom.document.addEventListener("keydown", keyboard.handler _)
+		dom.document.addEventListener("keyup", keyboard.handler _)
 	}
 }
 

@@ -4,8 +4,8 @@ package modules
 import org.scalajs.dom
 
 trait EngineLoop { this: Engine =>
-	private var running = false
-	private var locked = true
+	private[engine] var running = false
+	private[engine] var locked = true
 
 	def isRunning: Boolean = running
 	def isLocked: Boolean = locked
@@ -25,7 +25,9 @@ trait EngineLoop { this: Engine =>
 		timestamp = now
 
 		// Update everything
-		for (entity <- updatableEntities) entity.update(dt)
+		if (!locked) {
+			for (entity <- updatableEntities) entity.update(dt)
+		}
 		camera.update(dt)
 
 		// Draw

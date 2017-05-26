@@ -28,7 +28,7 @@ object Game {
 		engine.registerEntity(new DebugStats(5, 5))
 
 		val enemy = new Character(0) {
-			setPosition(300, 300)
+			setPosition(500, 500)
 		}
 		engine.registerEntity(enemy)
 

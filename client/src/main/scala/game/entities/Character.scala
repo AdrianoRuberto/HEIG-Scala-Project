@@ -12,9 +12,16 @@ abstract class Character(sublayer: Int = 0) extends Entity
 	// Drawing layer
 	val layer: Layer = Layer.Players / sublayer
 
+	// Resources
+	private var resources: List[Resource] = Nil
+	protected def createResource(value: Double, max: Double,
+	                             regen: Double = 0, smoothing: Boolean = false): Resource = {
+		resources = new Resource(value, max, regen, smoothing) :: resources
+		resources.head
+	}
+
 	// Health
-	var health: Double = 100
-	var healthMax: Double = 100
+	val health: Resource = createResource(100, 100, smoothing = true)
 	var healthColor: String = "#f55"
 
 	// Characteristics
@@ -54,6 +61,9 @@ abstract class Character(sublayer: Int = 0) extends Entity
 			if (Math.abs(df) < 0.1) f = tf
 			else f += (df / 3)
 		}
+
+		// Update resources
+		for (resource <- resources) resource.update(dt)
 	}
 
 	def setFacing(a: Double): Unit = tf = f
@@ -75,8 +85,11 @@ abstract class Character(sublayer: Int = 0) extends Entity
 		ctx.rotate(f - Math.PI / 2)
 		ctx.translate(-size_2, -size_2)
 
+		ctx.fillStyle = "#eee"
+		ctx.fillRect(0, 0, size, size)
+
 		ctx.fillStyle = healthColor
-		ctx.fillRect(0, size, size, - size * (health / healthMax))
+		ctx.fillRect(0, size, size, - size * health.smoothPercent)
 
 		ctx.lineWidth = skin
 		ctx.strokeStyle = color

@@ -10,8 +10,8 @@ final class Mouse private[engine] (engine: Engine) {
 	private var rawX: Double = 0
 	private var rawY: Double = 0
 
-	def x: Double = rawX + engine.camera.left
-	def y: Double = rawY + engine.camera.top
+	def x: Double = (rawX + engine.camera.left + 0.5).floor
+	def y: Double = (rawY + engine.camera.top + 0.5).floor
 
 	def point: Point = Point(x, y)
 
@@ -20,12 +20,12 @@ final class Mouse private[engine] (engine: Engine) {
 	object relative {
 		def x(implicit to: Entity with Position): Double = {
 			val box = to.boundingBox
-			Mouse.this.x - (box.left + box.width / 2)
+			Mouse.this.x - (box.left + box.width / 2 + 0.5).floor
 		}
 
 		def y(implicit to: Entity with Position): Double = {
 			val box = to.boundingBox
-			Mouse.this.y - (box.top + box.height / 2)
+			Mouse.this.y - (box.top + box.height / 2 + 0.5).floor
 		}
 
 		def point(implicit to: Entity with Position): Point = Point(x, y)

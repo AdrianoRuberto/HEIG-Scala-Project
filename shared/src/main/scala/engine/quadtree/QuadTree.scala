@@ -4,6 +4,12 @@ import engine.geometry.{Point, Rectangle}
 import scala.language.implicitConversions
 
 abstract class QuadTree[T: Bounded] {
+	// Properties
+	val x: Double
+	val y: Double
+	val width: Double
+	val height: Double
+
 	/** Inserts an object in the tree */
 	def insert(obj: T)(implicit bb: BoundingBox = obj.boundingBox): Unit
 

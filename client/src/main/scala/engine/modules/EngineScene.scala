@@ -16,6 +16,7 @@ trait EngineScene {
 	private[engine] var absoluteDrawableEntities = Set.empty[Drawable]
 
 	var drawBoundingBoxes: Boolean = false
+	var drawWorldBoundingBox: Boolean = true
 
 	/**
 	  * Resize the world QuadTree.
@@ -70,11 +71,19 @@ trait EngineScene {
 
 		// Draw actors
 		ctx.setTransform(1, 0, 0, 1, 0.5, 0.5)
-		ctx.clearRect(0, 0, canvas.width, canvas.height)
+		ctx.clearRect(-1, -1, canvas.width + 2, canvas.height + 2)
+
+		if (drawWorldBoundingBox) {
+			ctx.strokeStyle = "blue"
+			ctx.strokeRect(drawableEntities.x - view.left, drawableEntities.y - view.top,
+				drawableEntities.width, drawableEntities.height)
+			ctx.strokeStyle = "black"
+		}
+
 		for ((entity, box) <- entities) {
 			ctx.save()
 			if (entity.positionIsAbsolute) translateAbsolute(ctx, box)
-			else ctx.translate((box.left - view.left).floor, (box.top - view.top).floor)
+			else ctx.translate(box.left - view.left, box.top - view.top)
 			if (drawBoundingBoxes) {
 				ctx.strokeStyle = "red"
 				ctx.strokeRect(0, 0, box.width, box.height)
