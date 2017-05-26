@@ -1,11 +1,15 @@
 package game.entities
 
+import engine.Keyboard
 import engine.geometry.Point
 
 /**
   * Created by galedric on 26.05.2017.
   */
 class Player extends Character(1) {
+	// Keyboard monitor for edge detection in key presses
+	protected implicit val keyboardMonitor = new Keyboard.Monitor
+
 	// Energy
 	val energy: Resource = createResource(100, 100, 15, smoothing = true)
 	var sprinting = false
@@ -25,7 +29,7 @@ class Player extends Character(1) {
 			speed /= 2
 			energy.stopDrain(50)
 		}
-		else if (!sprinting && engine.keyboard.shift && energy.value > 20 && moving) {
+		else if (!sprinting && engine.keyboard.down("Shift") && energy.value > 1 && moving) {
 			sprinting = true
 			speed *= 2
 			energy.startDrain(50)
