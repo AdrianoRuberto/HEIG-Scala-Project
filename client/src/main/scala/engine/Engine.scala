@@ -12,6 +12,8 @@ final class Engine (val canvas: html.Canvas) extends EngineLoop with EngineScene
 
 	def setup(): Unit = {
 		dom.document.addEventListener("mousemove", mouse.handler _)
+		dom.document.addEventListener("mousedown", mouse.handler _)
+		dom.document.addEventListener("mouseup", mouse.handler _)
 	}
 }
 

@@ -6,9 +6,9 @@ import engine.entity.feature.{AbsolutePosition, Drawable}
 import engine.geometry.Rectangle
 import engine.utils.Layer
 
-class PlayerFrame (x: Double, y: Double, player: Character) extends Entity
+class PlayerFrame (x: Double, y: Double, player: Player) extends Entity
 		with Drawable with AbsolutePosition {
-	val boundingBox: Rectangle = Rectangle(x, y, 200, 80)
+	val boundingBox: Rectangle = Rectangle(x, y, 200, 90)
 	val layer: Layer = Layer.Interface
 
 	def draw(ctx: CanvasCtx): Unit = {
@@ -36,7 +36,7 @@ class PlayerFrame (x: Double, y: Double, player: Character) extends Entity
 		ctx.save()
 		drawSegments()
 		ctx.clip()
-		ctx.fillStyle = "rgba(17, 17, 17, 0.1)"
+		ctx.fillStyle = "rgba(216, 216, 216, 0.9)"
 		ctx.fillRect(0, 45, 200, 25)
 		ctx.fillStyle = player.healthColor
 		ctx.fillRect(0, 45, 200 * (player.health / player.healthMax), 25)
@@ -45,5 +45,14 @@ class PlayerFrame (x: Double, y: Double, player: Character) extends Entity
 		drawSegments()
 		ctx.strokeStyle = "#444"
 		ctx.stroke()
+
+		// Energy
+		ctx.fillStyle = "rgba(216, 216, 216, 0.7)"
+		ctx.fillRect(0, 80, 200, 10)
+
+		ctx.fillStyle = "#fc2"
+		ctx.fillRect(0, 80, 200 * (player.energy / player.energyMax), 10)
+
+		ctx.strokeRect(0, 80, 200, 10)
 	}
 }

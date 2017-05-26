@@ -3,6 +3,7 @@ package engine
 import engine.entity.Entity
 import engine.entity.feature.Position
 import engine.geometry.Point
+import engine.utils.MouseButtons
 import org.scalajs.dom
 
 final class Mouse private[engine] (engine: Engine) {
@@ -13,6 +14,8 @@ final class Mouse private[engine] (engine: Engine) {
 	def y: Double = rawY + engine.camera.top
 
 	def point: Point = Point(x, y)
+
+	var left: Boolean = false
 
 	object relative {
 		def x(implicit to: Entity with Position): Double = {
@@ -32,5 +35,6 @@ final class Mouse private[engine] (engine: Engine) {
 		val rect = engine.canvas.getClientRects()(0)
 		rawX = event.clientX - rect.left
 		rawY = event.clientY - rect.top
+		left = (event.buttons & MouseButtons.Left) != 0
 	}
 }
