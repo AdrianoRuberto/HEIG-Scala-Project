@@ -3,10 +3,7 @@ package game.entities
 import engine.Keyboard
 import engine.geometry.Point
 
-/**
-  * Created by galedric on 26.05.2017.
-  */
-class Player extends Character(1) {
+class Player (name: String) extends Character(name, 1) {
 	// Keyboard monitor for edge detection in key presses
 	protected implicit val keyboardMonitor = new Keyboard.Monitor
 

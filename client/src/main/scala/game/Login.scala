@@ -59,12 +59,12 @@ object Login {
 
 	/**
 	  * Ensures that the given username is a valid one.
-	  * A legal username is formed from no more than 15 letters and digits.
+	  * A legal username is formed from no more than 10 letters and digits.
 	  *
 	  * @param name the username to validate
 	  * @return the username with illegal characters removed
 	  */
-	private def validateUsername(name: String): String = name.replaceAll("[^a-zA-Z0-9]", "").take(15)
+	private def validateUsername(name: String): String = name.replaceAll("[^a-zA-Z0-9]", "").take(10)
 
 	/**
 	  * Schedules the login tip to be displayed in 1.5 sec.

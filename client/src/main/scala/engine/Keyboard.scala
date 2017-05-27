@@ -5,6 +5,8 @@ import org.scalajs.dom
 import scala.collection.mutable
 
 class Keyboard private[engine] (engine: Engine) {
+	private var commands = Map.empty[String, () => Unit]
+
 	var shift: Boolean = false
 	var ctrl: Boolean = false
 	var alt: Boolean = false
@@ -31,11 +33,28 @@ class Keyboard private[engine] (engine: Engine) {
 		}
 	}
 
+	def registerCommandKey(key: String)(cmd: => Unit): Unit = {
+		commands += (key -> (() => cmd))
+	}
+
 	private[engine] def handler(event: dom.KeyboardEvent): Unit = if (!event.repeat) {
 		shift = event.shiftKey
 		ctrl = event.ctrlKey
 		alt = event.altKey
-		states.update(event.key, event.`type` == "keydown")
+		val state = event.`type` == "keydown"
+		states.update(event.key, state)
+		if (state && ctrl) {
+			event.key match {
+				case "d" => engine.drawWorldBoundingBox = !engine.drawWorldBoundingBox
+				case "f" => engine.drawBoundingBoxes = !engine.drawBoundingBoxes
+				case key =>
+					commands.get(key) match {
+						case Some(fn) => fn()
+						case None => return
+					}
+			}
+			if (engine.isRunning) event.preventDefault()
+		}
 	}
 }
 

@@ -16,7 +16,7 @@ trait EngineScene {
 	private[engine] var absoluteDrawableEntities = Set.empty[Drawable]
 
 	var drawBoundingBoxes: Boolean = false
-	var drawWorldBoundingBox: Boolean = true
+	var drawWorldBoundingBox: Boolean = false
 
 	/**
 	  * Resize the world QuadTree.

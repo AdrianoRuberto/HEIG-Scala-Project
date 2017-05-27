@@ -6,8 +6,10 @@ import engine.entity.feature.{Drawable, Updatable}
 import engine.geometry.Rectangle
 import engine.utils.Layer
 
-abstract class Character(sublayer: Int = 0) extends Entity
+abstract class Character(val name: String, sublayer: Int = 0) extends Entity
 		with Drawable with Updatable {
+
+	children += new Nameplate(this)
 
 	// Drawing layer
 	val layer: Layer = Layer.Players / sublayer
@@ -31,13 +33,13 @@ abstract class Character(sublayer: Int = 0) extends Entity
 	var speed: Double = 100
 
 	// Current position
-	var x: Double = 50.0
-	var y: Double = 50.0
+	var x: Double = 250.0
+	var y: Double = 250.0
 	var f: Double = 0.0
 
 	// Target position
-	var tx: Double = 50.0
-	var ty: Double = 50.0
+	var tx: Double = 250.0
+	var ty: Double = 250.0
 	var tf: Double = 0.0
 
 	// Bounding box of this character
