@@ -17,6 +17,9 @@ trait EngineLoop { this: Engine =>
 	var drawTime: Double = 0.0
 
 	def loop(now: Double): Unit = if (running) {
+		// Schedule next tick
+		dom.window.requestAnimationFrame(loop _)
+
 		// Capture current time at the beginning of the frame
 		val startTime = dom.window.performance.now()
 
@@ -38,9 +41,6 @@ trait EngineLoop { this: Engine =>
 		val endTime = dom.window.performance.now()
 		cpuTime = (cpuTime + endTime - startTime) / 2
 		drawTime = (drawTime + endTime - drawStartTime) / 2
-
-		// Request a new animation frame
-		dom.window.requestAnimationFrame(loop _)
 	}
 
 	def start(): Unit = {
