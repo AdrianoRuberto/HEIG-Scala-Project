@@ -1,5 +1,5 @@
-import actors.{Matchmaker, PlayerActor}
 import com.google.inject.AbstractModule
+import game.server.actors.{Matchmaker, PlayerActor}
 import play.api.libs.concurrent.AkkaGuiceSupport
 
 class Module extends AbstractModule with AkkaGuiceSupport {

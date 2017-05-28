@@ -1,8 +1,8 @@
 package controllers
 
-import actors.PlayerActor
 import akka.actor.{ActorSystem, Props}
 import akka.stream.Materializer
+import game.server.actors.PlayerActor
 import javax.inject._
 import play.api.libs.streams.ActorFlow
 import play.api.mvc._
