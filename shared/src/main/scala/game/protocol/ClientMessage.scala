@@ -1,7 +1,7 @@
 package game.protocol
 
 import boopickle.Default._
-import game.shared.UID
+import game.UID
 
 sealed trait ClientMessage
 

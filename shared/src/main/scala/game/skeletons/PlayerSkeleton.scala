@@ -1,6 +1,6 @@
 package game.skeletons
 
-import game.shared.UID
+import game.UID
 
 class PlayerSkeleton (val uid: UID) {
 

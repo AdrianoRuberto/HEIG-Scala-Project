@@ -7,7 +7,7 @@ import game.protocol.ServerMessage
 import game.server.actors.Matchmaker.{QueuedPlayer, WatcherOps}
 import game.server.modes.twistingnether.TwistingNetherBuilder
 import game.server.{GameBuilder, GamePlayer}
-import game.shared.{PlayerInfo, UID}
+import game.{PlayerInfo, UID}
 import scala.annotation.tailrec
 import scala.collection.immutable.TreeSet
 import scala.concurrent.Future

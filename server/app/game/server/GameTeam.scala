@@ -1,5 +1,5 @@
 package game.server
 
-import game.shared.TeamInfo
+import game.TeamInfo
 
 case class GameTeam(info: TeamInfo, players: Seq[GamePlayer])

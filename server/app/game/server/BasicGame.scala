@@ -1,8 +1,8 @@
 package game.server
 
+import game.UID
 import game.protocol.ServerMessage
 import game.server.actors.{Matchmaker, Watcher}
-import game.shared.UID
 import utils.ActorGroup
 
 abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") {

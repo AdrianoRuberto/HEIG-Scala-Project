@@ -1,6 +1,6 @@
 package game.client
 
-import game.shared.{GameMode, TeamInfo, UID}
+import game.{GameMode, TeamInfo, UID}
 import org.scalajs.dom
 import org.scalajs.dom.html
 import scala.scalajs.js

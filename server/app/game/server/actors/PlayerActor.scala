@@ -6,7 +6,7 @@ import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
 import com.google.inject.name.Named
 import game.protocol.{ClientMessage, ServerMessage}
-import game.shared.{PlayerInfo, UID}
+import game.{PlayerInfo, UID}
 import java.nio.ByteBuffer
 import utils.Debug
 

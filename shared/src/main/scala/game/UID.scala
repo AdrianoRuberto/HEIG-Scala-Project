@@ -1,4 +1,4 @@
-package game.shared
+package game
 
 import boopickle.DefaultBasic._
 

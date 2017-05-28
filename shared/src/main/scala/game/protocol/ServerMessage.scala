@@ -2,7 +2,7 @@ package game.protocol
 
 import boopickle.Default._
 import game.maps.GameMap
-import game.shared.{GameMode, TeamInfo, UID}
+import game.{GameMode, TeamInfo, UID}
 
 sealed trait ServerMessage
 
