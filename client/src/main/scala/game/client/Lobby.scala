@@ -104,6 +104,7 @@ object Lobby {
 		found = true
 		lobby.classList.remove("searching")
 		lobby.classList.add("found")
+		Game.reset()
 		Game.start()
 		App.timeout(2000) {
 			Intro.display(mode, teams, me, warmup - 2)
@@ -114,9 +115,6 @@ object Lobby {
 	def message(lm: ServerMessage.LobbyMessage): Unit = lm match {
 		case ServerMessage.QueueUpdate(length) => playersInQueue = length
 		case ServerMessage.GameFound(mode, teams, me, warmup) => gameFound(mode, teams, me, warmup)
-		case ServerMessage.GameStart =>
-			App.hidePanels()
-			Game.unlock()
 	}
 
 	/** Resets the lobby state */

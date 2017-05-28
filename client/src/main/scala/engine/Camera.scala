@@ -1,11 +1,10 @@
 package engine
 
 import engine.entity.Entity
-import engine.entity.feature.Position
 import engine.geometry.{Point, Rectangle}
 
 final class Camera private[engine] (engine: Engine) {
-	private var following: Entity with Position = null
+	private var following: Entity = null
 
 	private var smoothing: Boolean = false
 	private var tx: Double = 0.0
@@ -58,7 +57,7 @@ final class Camera private[engine] (engine: Engine) {
 
 	@inline def setPoint(p: Point): Unit = setPoint(p.x, p.y)
 
-	def follow(entity: Entity with Position): Unit = following = entity
+	def follow(entity: Entity): Unit = following = entity
 	def detach(): Unit = following = null
 
 	def setSmoothing(state: Boolean): Unit = {

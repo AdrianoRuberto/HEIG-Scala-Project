@@ -1,5 +1,7 @@
 package engine.entity.feature
 
-trait AbsolutePosition extends Position {
+import engine.entity.Entity
+
+trait AbsolutePosition extends Entity {
 	override def positionIsAbsolute: Boolean = true
 }

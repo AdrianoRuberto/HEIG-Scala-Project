@@ -2,13 +2,12 @@ package game.client.entities
 
 import engine.CanvasCtx
 import engine.entity.Entity
-import engine.entity.feature.{AbsolutePosition, Drawable, Updatable}
+import engine.entity.feature.{AbsolutePosition, Updatable}
 import engine.geometry.Rectangle
 import engine.utils.Layer
 import game.client.Server
 
-class DebugStats(x: Double, y: Double) extends Entity
-		with Drawable with AbsolutePosition with Updatable {
+class DebugStats(x: Double, y: Double) extends Entity with AbsolutePosition with Updatable {
 
 	val boundingBox: Rectangle = Rectangle(x, y, 500, 15)
 	val layer: Layer = Layer.Interface

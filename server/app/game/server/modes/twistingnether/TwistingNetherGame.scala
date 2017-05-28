@@ -1,7 +1,6 @@
 package game.server.modes.twistingnether
 
 import game.maps.GameMap
-import game.protocol.ServerMessage
 import game.server.actors.Watcher
 import game.server.{BasicGame, GameTeam}
 import scala.concurrent.duration._
@@ -11,7 +10,7 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) {
 
 	def init(): Unit = {
 		log("Game init")
-		players.values.foreach(_.actor ! ServerMessage.SetGameMap(GameMap.Illios))
+		loadMap(GameMap.Illios)
 	}
 
 	def start(): Unit = {

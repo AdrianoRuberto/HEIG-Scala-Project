@@ -2,12 +2,11 @@ package game.client.entities
 
 import engine.CanvasCtx
 import engine.entity.Entity
-import engine.entity.feature.{AbsolutePosition, Drawable}
+import engine.entity.feature.AbsolutePosition
 import engine.geometry.Rectangle
 import engine.utils.Layer
 
-class PlayerFrame (x: Double, y: Double, player: Player) extends Entity
-		with Drawable with AbsolutePosition {
+class PlayerFrame (x: Double, y: Double, player: Player) extends Entity with AbsolutePosition {
 	val boundingBox: Rectangle = Rectangle(x, y, 200, 90)
 	val layer: Layer = Layer.Interface
 

@@ -1,7 +1,9 @@
 package game.client
 
 import engine.Engine
-import game.client.entities.{Character, DebugStats, Player, PlayerFrame, TeamFrame}
+import engine.entity.Entity
+import game.UID
+import game.client.entities.DebugStats
 import game.protocol.ServerMessage
 import org.scalajs.dom
 import org.scalajs.dom.html
@@ -11,15 +13,16 @@ object Game {
 	private lazy val canvas = dom.document.querySelector("#canvas").asInstanceOf[html.Canvas]
 	private lazy val engine = new Engine(canvas)
 
-	val debugStatsShown = PersistentBoolean("displayStats", default = false)
+	private val debugStatsShown = PersistentBoolean("displayStats", default = false)
 	private lazy val debugStatsEntity = new DebugStats(10, 10)
+
+	private var entities: Map[UID, Entity] = Map.empty
 
 	def setup(): Unit = {
 		dom.window.on(Event.Resize) { _ => resizeCanvas() }
 		resizeCanvas()
 		engine.setup()
-		engine.keyboard.registerCommandKey("s")(toggleDebugStats())
-		if (debugStatsShown) engine.registerEntity(debugStatsEntity)
+		engine.keyboard.registerKey("ctrl-s")(toggleDebugStats())
 	}
 
 	def resizeCanvas(): Unit = {
@@ -29,6 +32,8 @@ object Game {
 
 	def start(): Unit = {
 		engine.start()
+		if (debugStatsShown) engine.registerEntity(debugStatsEntity)
+		/*
 		engine.setWorldSize(2000, 2000)
 
 		val enemy = new Character("Malevolent foe", 0) {
@@ -62,7 +67,11 @@ object Game {
 
 		engine.registerEntity(new TeamFrame(10, if (debugStatsShown) 35 else 10, Seq(player, a, b, c)))
 
-		engine.registerEntity(new PlayerFrame(85, -80, player))
+		engine.registerEntity(new PlayerFrame(85, -80, player))*/
+	}
+
+	def reset(): Unit = {
+		engine.unregisterAllEntities()
 	}
 
 	def unlock(): Unit = engine.unlock()
@@ -80,7 +89,11 @@ object Game {
 	}
 
 	def message(gm: ServerMessage.GameMessage): Unit = if (engine.isRunning) gm match {
-		case ServerMessage.SetGameMap(map) => println(map.shapes)
+		case ServerMessage.GameStart =>
+			App.hidePanels()
+			Game.unlock()
+		case ServerMessage.SetCameraLocation(x, y) => engine.camera.setPoint(x, y)
+		case ServerMessage.SetCameraFollow(uid) => engine.camera.follow(entities(uid))
 		case anything => println(anything)
 	}
 }

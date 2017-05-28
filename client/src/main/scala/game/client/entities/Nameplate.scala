@@ -2,11 +2,10 @@ package game.client.entities
 
 import engine.CanvasCtx
 import engine.entity.Entity
-import engine.entity.feature.Drawable
 import engine.geometry.Rectangle
 import engine.utils.Layer
 
-class Nameplate (character: Character) extends Entity with Drawable {
+class Nameplate (character: Character) extends Entity {
 	val layer: Layer = Layer.Nameplates
 
 	def boundingBox: Rectangle = {

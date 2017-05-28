@@ -2,16 +2,17 @@ package engine
 
 import engine.Keyboard.Monitor
 import org.scalajs.dom
-import scala.collection.mutable
 
 class Keyboard private[engine] (engine: Engine) {
-	private var commands = Map.empty[String, () => Unit]
-
 	var shift: Boolean = false
 	var ctrl: Boolean = false
 	var alt: Boolean = false
 
-	private val states = mutable.Map.empty[String, Boolean]
+	private var states = Map.empty[String, Boolean]
+
+	private var handlers = Map[String, () => Unit](
+		"ctrl-f" -> (() => engine.drawBoundingBoxes = !engine.drawBoundingBoxes)
+	)
 
 	def key(name: String): Boolean = states.getOrElse(name, false)
 
@@ -27,14 +28,14 @@ class Keyboard private[engine] (engine: Engine) {
 					t = engine.time
 					a = b
 					b = state
-					monitor.states.update(name, (t, a, b))
+					monitor.states += (name -> (t, a, b))
 				}
 				b == expected && a != expected
 		}
 	}
 
-	def registerCommandKey(key: String)(cmd: => Unit): Unit = {
-		commands += (key -> (() => cmd))
+	def registerKey(key: String)(cmd: => Unit): Unit = {
+		handlers += (key.toLowerCase -> (() => cmd))
 	}
 
 	private[engine] def handler(event: dom.KeyboardEvent): Unit = if (!event.repeat) {
@@ -42,25 +43,26 @@ class Keyboard private[engine] (engine: Engine) {
 		ctrl = event.ctrlKey
 		alt = event.altKey
 		val state = event.`type` == "keydown"
-		states.update(event.key, state)
-		if (state && ctrl) {
-			event.key match {
-				case "d" => engine.drawWorldBoundingBox = !engine.drawWorldBoundingBox
-				case "f" => engine.drawBoundingBoxes = !engine.drawBoundingBoxes
-				case key =>
-					commands.get(key) match {
-						case Some(fn) => fn()
-						case None => return
-					}
+		states += (event.key -> state)
+
+		// Dispatch key press if engine is running and not locked
+		if (state && engine.isRunning && !engine.isLocked) {
+			var key = event.key
+			if (shift) key = "shift-" + key
+			if (alt) key = "alt-" + key
+			if (ctrl) key = "ctrl-" + key
+			handlers.get(key.toLowerCase) match {
+				case Some(handler) => handler()
+				case None => return
 			}
-			if (engine.isRunning) event.preventDefault()
+			event.preventDefault()
 		}
 	}
 }
 
 object Keyboard {
 	class Monitor {
-		private[Keyboard] val states: mutable.Map[String, (Double, Boolean, Boolean)] = mutable.Map.empty
+		private[Keyboard] var states: Map[String, (Double, Boolean, Boolean)] = Map.empty
 	}
 	private val defaultMonitorState = (0.0, false, false)
 }

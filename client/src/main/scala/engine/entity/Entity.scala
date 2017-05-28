@@ -1,6 +1,9 @@
 package engine
 package entity
 
+import engine.geometry.Rectangle
+import engine.quadtree.{Bounded, BoundingBox}
+import engine.utils.Layer
 import scala.scalajs.js
 
 abstract class Entity {
@@ -34,4 +37,27 @@ abstract class Entity {
 
 	/** The engine to which this entity is registered */
 	def engine: Engine = owner.orNull
+
+	def layer: Layer
+	def boundingBox: Rectangle
+	def positionIsAbsolute: Boolean = false
+	def draw(ctx: CanvasCtx): Unit
+}
+
+object Entity {
+	implicit val drawableOrdering: Ordering[Entity] = Ordering.by(entity => entity.layer)
+
+	type Key = (Entity, Rectangle)
+
+	implicit object KeyIsBounded extends Bounded[Key] {
+		def boundingBox(obj: (Entity, Rectangle)): BoundingBox = obj._2
+	}
+
+	implicit object KeyOrdering extends Ordering[Key] {
+		def compare(x: (Entity, Rectangle), y: (Entity, Rectangle)): Int = drawableOrdering.compare(x._1, y._1)
+	}
+
+	implicit object EntityIsBounded extends Bounded[Entity] {
+		def boundingBox(entity: Entity): BoundingBox = BoundingBox(entity.boundingBox)
+	}
 }

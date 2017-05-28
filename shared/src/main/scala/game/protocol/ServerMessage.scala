@@ -16,11 +16,12 @@ object ServerMessage {
 	sealed trait LobbyMessage extends ServerMessage
 	case class QueueUpdate(count: Int) extends LobbyMessage
 	case class GameFound(mode: GameMode, team: Seq[TeamInfo], me: UID, warmup: Int) extends LobbyMessage
-	case object GameStart extends LobbyMessage
 
 	// Game messages
 	sealed trait GameMessage extends ServerMessage
-	case class SetGameMap(map: GameMap) extends GameMessage
+	case object GameStart extends GameMessage
+	case class SetCameraLocation(x: Double, y: Double) extends GameMessage
+	case class SetCameraFollow(uid: UID) extends GameMessage
 
 	// Debug message
 	sealed trait Severity

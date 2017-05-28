@@ -2,13 +2,11 @@ package game.client.entities
 
 import engine.CanvasCtx
 import engine.entity.Entity
-import engine.entity.feature.{Drawable, Updatable}
+import engine.entity.feature.Updatable
 import engine.geometry.Rectangle
 import engine.utils.Layer
 
-abstract class Character(val name: String, sublayer: Int = 0) extends Entity
-		with Drawable with Updatable {
-
+abstract class Character(val name: String, sublayer: Int = 0) extends Entity with Updatable {
 	children += new Nameplate(this)
 
 	// Drawing layer
