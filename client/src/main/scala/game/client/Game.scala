@@ -106,10 +106,19 @@ object Game {
 	}
 
 	def message(gm: ServerMessage.GameMessage): Unit = if (engine.isRunning) gm match {
+		// Builders
 		case SkeletonEvent(event) => closet.handleEvent(event)
 		case InstantiateCharacter(characterUID, skeletonUID) => instantiateCharacter(characterUID, skeletonUID)
+
+		// Camera
 		case SetCameraLocation(x, y) => engine.camera.setPoint(x, y)
-		case SetCameraFollow(characterUID) => engine.camera.follow(characterEntities(characterUID))
+		case SetCameraFollow(characterUID) =>
+			if (characterUID.zero) engine.camera.detach()
+			else engine.camera.follow(characterEntities(characterUID))
+		case SetCameraSmoothing(smoothing) => engine.camera.setSmoothing(smoothing)
+		case SetCameraSpeed(speed) => engine.camera.setSmoothingSpeed(speed)
+
+		// Game start
 		case GameStart =>
 			App.hidePanels()
 			Game.unlock()

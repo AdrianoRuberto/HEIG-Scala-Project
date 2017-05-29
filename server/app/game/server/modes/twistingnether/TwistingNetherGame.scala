@@ -11,7 +11,7 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) {
 	def init(): Unit = {
 		log("Game init")
 		loadMap(GameMap.Illios)
-		camera.setFollowSelf()
+		camera.followSelf()
 	}
 
 	def start(): Unit = {

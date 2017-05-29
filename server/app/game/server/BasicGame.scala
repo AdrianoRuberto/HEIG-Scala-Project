@@ -75,9 +75,12 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 
 	/** Camera manipulation utilities */
 	object camera {
-		def setLocation(x: Double, y: Double): Unit = broadcast ! ServerMessage.SetCameraLocation(x, y)
-		def setFollow(uid: UID): Unit = broadcast ! ServerMessage.SetCameraFollow(uid)
-		def setFollowSelf(): Unit = for (uid <- players.keys) uid ! ServerMessage.SetCameraFollow(uid)
+		def move(x: Double, y: Double): Unit = broadcast ! ServerMessage.SetCameraLocation(x, y)
+		def follow(uid: UID): Unit = broadcast ! ServerMessage.SetCameraFollow(uid)
+		def followSelf(): Unit = for (uid <- players.keys) uid ! ServerMessage.SetCameraFollow(uid)
+		def detach(): Unit = broadcast ! ServerMessage.SetCameraFollow(UID.zero)
+		def setSmoothing(smoothing: Boolean): Unit = broadcast ! ServerMessage.SetCameraSmoothing(smoothing)
+		def setSpeed(pps: Double): Unit = broadcast ! ServerMessage.SetCameraSpeed(pps)
 	}
 
 	// --------------------------------

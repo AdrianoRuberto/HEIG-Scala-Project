@@ -24,8 +24,12 @@ object ServerMessage {
 	case object GameStart extends GameMessage
 	case class SkeletonEvent(event: skeleton.Event.ClosetEvent) extends GameMessage
 	case class InstantiateCharacter(characterUID: UID, skeletonUID: UID) extends GameMessage
+
+	// Camera
 	case class SetCameraLocation(x: Double, y: Double) extends GameMessage
 	case class SetCameraFollow(characterUID: UID) extends GameMessage
+	case class SetCameraSmoothing(smoothing: Boolean) extends GameMessage
+	case class SetCameraSpeed(pps: Double) extends GameMessage
 
 	// Debug message
 	sealed trait Severity
