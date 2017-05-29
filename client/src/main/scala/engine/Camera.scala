@@ -32,8 +32,8 @@ final class Camera private[engine] (engine: Engine) {
 			val dx = tx - x
 			val dy = ty - y
 			if (velocity) {
-				val norm = Math.sqrt(dx * dx + dy + dy)
-				val actual = norm max (dt * speed / 1000)
+				val norm = Math.sqrt(dx * dx + dy * dy)
+				val actual = norm min (dt * speed / 1000)
 				x += (dx / norm * actual)
 				y += (dy / norm * actual)
 			} else {
@@ -53,6 +53,10 @@ final class Camera private[engine] (engine: Engine) {
 		following = null
 		tx = a
 		ty = b
+		if (!smoothing) {
+			x = tx
+			y = ty
+		}
 	}
 
 	@inline def setPoint(p: Point): Unit = setPoint(p.x, p.y)

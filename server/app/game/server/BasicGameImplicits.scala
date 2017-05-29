@@ -2,15 +2,11 @@ package game.server
 
 import game.UID
 import game.protocol.ServerMessage
-import game.server.BasicGameImplicits.UIDOps
 import game.skeleton.{Event, Transmitter}
 import scala.language.implicitConversions
 
 trait BasicGameImplicits {
 	this: BasicGame =>
-
-	/** Implicit reference to the BasicGame itself */
-	protected implicit val self: this.type = this
 
 	/**
 	  * An instance of [[Transmitter]] that send [[Event.ClosetEvent]] to every players of the game.
@@ -22,13 +18,9 @@ trait BasicGameImplicits {
 		}
 	}
 
-	/** Implicit conversion from UID to UIDOps */
-	protected implicit def uidToUIDOps(uid: UID): UIDOps = new UIDOps(uid)
-}
-
-object BasicGameImplicits {
-	final class UIDOps(private val uid: UID) extends AnyVal {
-		@inline def ! (msg: Any)(implicit game: BasicGame): Unit = game.actors.get(uid) match {
+	/** Some quality of life operations on UIDs */
+	protected implicit final class UIDOps(private val uid: UID) {
+		@inline def ! (msg: Any): Unit = actors.get(uid) match {
 			case Some(ag) => ag ! msg
 			case None => throw new IllegalArgumentException(s"No actor target found for UID `$uid`")
 		}

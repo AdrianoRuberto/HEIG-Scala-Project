@@ -83,6 +83,7 @@ object Game {
 
 	def reset(): Unit = {
 		engine.unregisterAllEntities()
+		engine.camera.setSmoothing(false)
 		closet.clear()
 	}
 
