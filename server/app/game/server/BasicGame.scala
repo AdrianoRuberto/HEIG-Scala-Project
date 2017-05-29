@@ -1,5 +1,6 @@
 package game.server
 
+import akka.actor.ActorRef
 import engine.geometry.Point
 import game.UID
 import game.maps.GameMap
@@ -19,6 +20,9 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 
 	/** A map from UID to GamePlayer */
 	val players: Map[UID, GamePlayer] = roster.flatMap(_.players).map(p => (p.info.uid, p)).toMap
+
+	/** The reverse mapping from Actors to players */
+	val uids: Map[ActorRef, UID] = players.map { case (uid, player) => (player.actor, uid) }
 
 	/** An actor group composed from every players in the game */
 	val broadcast = ActorGroup(players.values.map(_.actor))
@@ -55,8 +59,8 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 		case Matchmaker.Start =>
 			broadcast ! ServerMessage.GameStart
 			start()
-		case PlayerActor.UpdateLatency(uid, latency) =>
-			latencies += (uid -> latency)
+		case PlayerActor.UpdateLatency(latency) =>
+			latencies += (senderUID -> latency)
 	}: Receive) orElse message
 
 	def init(): Unit
@@ -103,4 +107,7 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 			skeleton.y.value = center.y + Math.cos(beta) * radius
 		}
 	}
+
+	/** Retrieves the sender's UID */
+	def senderUID: UID = uids(sender())
 }

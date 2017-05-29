@@ -19,9 +19,6 @@ class PlayerActor @Inject() (@Assisted queue: SourceQueue[Array[Byte]], @Assiste
 		extends Actor with RequiresMessageQueue[UnboundedControlAwareMailbox] {
 	import context._
 
-	/** The player's UID */
-	private var uid: UID = UID.zero
-
 	/** The game actor */
 	private var game: ActorRef = null
 
@@ -86,9 +83,8 @@ class PlayerActor @Inject() (@Assisted queue: SourceQueue[Array[Byte]], @Assiste
 		Unpickle[ClientMessage].fromBytes(ByteBuffer.wrap(buffer)) match {
 			case ClientMessage.Ping(payload) =>
 				pingReceive(payload)
-			case ClientMessage.SearchGame(name, fast) if uid.zero =>
-				uid = UID.next
-				mm ! Matchmaker.Register(PlayerInfo(uid, name, bot = false), fast)
+			case ClientMessage.SearchGame(name, fast) =>
+				mm ! Matchmaker.Register(PlayerInfo(UID.next, name, bot = false), fast)
 			case msg: ClientMessage.GameMessage =>
 				if (game == null) out ! Debug.warn(s"Ignored GameMessage because socket is not yet bound: $msg")
 				else game ! msg
@@ -110,14 +106,14 @@ class PlayerActor @Inject() (@Assisted queue: SourceQueue[Array[Byte]], @Assiste
 		val ms = delta / 2000000.0
 		// Smooth latency variations by only updating a third of the old value
 		latency = (latency * 2 + ms) / 3
-		if (game != null) game ! PlayerActor.UpdateLatency(uid, latency)
+		if (game != null) game ! PlayerActor.UpdateLatency(latency)
 	}
 }
 
 object PlayerActor {
 	case object OfferAck extends ControlMessage
 	case object PingTick
-	case class UpdateLatency(uid: UID, latency: Double)
+	case class UpdateLatency(latency: Double)
 
 	trait Factory {
 		def apply(out: SourceQueue[Array[Byte]], queueSize: Int): Actor
