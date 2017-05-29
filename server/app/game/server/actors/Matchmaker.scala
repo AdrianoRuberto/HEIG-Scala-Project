@@ -16,6 +16,7 @@ import utils.NameGenerator
 
 class Matchmaker extends Actor {
 	import context._
+	import Matchmaker.dummyTimeout
 
 	private var queue = TreeSet.empty[QueuedPlayer](Ordering.by(_.since))
 	private var players = Map.empty[ActorRef, QueuedPlayer]
@@ -101,15 +102,16 @@ class Matchmaker extends Actor {
 
 	private def build(builder: GameBuilder, watcher: ActorRef, players: Seq[GamePlayer]): Unit = {
 		val teams = builder.composeTeams(players)
-		for (game <- watcher instantiate builder.gameProps(teams)) {
-			val warmup = builder.warmup(players.size)
-			val teamsInfo = teams.map(_.info)
+		val teamsInfo = teams.map(_.info)
+		val warmup = builder.warmup(players.size)
+		val warmupDeadline = warmup.seconds.fromNow
+		val ready = Future.sequence(for (player <- players) yield {
+			player.actor ? ServerMessage.GameFound(builder.mode, teamsInfo, player.info.uid, warmup)
+		})
+		for (_ <- ready; game <- watcher instantiate builder.gameProps(teams)) {
 			watcher ! Watcher.Ready
-			for (player <- players) {
-				player.actor ! Matchmaker.Bind(game)
-				player.actor ! ServerMessage.GameFound(builder.mode, teamsInfo, player.info.uid, warmup)
-			}
-			system.scheduler.scheduleOnce(warmup.seconds, game, Matchmaker.Start)
+			for (player <- players) player.actor ! Matchmaker.Bind(game)
+			system.scheduler.scheduleOnce(warmupDeadline.timeLeft, game, Matchmaker.Start)
 		}
 	}
 
@@ -141,7 +143,10 @@ object Matchmaker {
 	case class Register(player: PlayerInfo, fast: Boolean)
 	case object Tick
 	case class Bind(game: ActorRef)
+	case object Ready
 	case object Start
+
+	implicit val dummyTimeout: akka.util.Timeout = Timeout(10.seconds)
 
 	/** A queued player with some metadata */
 	case class QueuedPlayer(actor: ActorRef, player: PlayerInfo, since: Deadline) {
@@ -151,7 +156,6 @@ object Matchmaker {
 
 	implicit class WatcherOps(private val w: ActorRef) extends AnyVal {
 		def instantiate(props: Props): Future[ActorRef] = {
-			implicit val timeout = Timeout(60.seconds)
 			(w ? Watcher.Instantiate(props)).mapTo[ActorRef]
 		}
 	}

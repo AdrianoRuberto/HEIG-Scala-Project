@@ -62,6 +62,9 @@ class PlayerActor @Inject() (@Assisted queue: SourceQueue[Array[Byte]], @Assiste
 			handleMessage(buffer)
 		case PlayerActor.OfferAck =>
 			out.ack()
+		case msg: ServerMessage.GameFound =>
+			out ! msg
+			sender() ! Matchmaker.Ready
 		case msg: ServerMessage =>
 			out ! msg
 		case Matchmaker.Bind(ref) =>
