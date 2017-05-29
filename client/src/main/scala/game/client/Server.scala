@@ -57,6 +57,7 @@ object Server {
 	}
 
 	def handleMessage(msg: ServerMessage): Unit = msg match {
+		case ServerMessage.Bundle(messages) => messages.foreach(handleMessage)
 		case ServerMessage.Ping(payload) =>
 			latency = (dom.window.performance.now() - payload) / 2
 			pingInFlight = false
