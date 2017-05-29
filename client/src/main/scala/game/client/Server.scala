@@ -14,8 +14,6 @@ object Server {
 	private var socket: dom.WebSocket = null
 
 	var latency: Double = 0
-	private var pingInFlight = false
-	private var pingInterval: js.timers.SetIntervalHandle = null
 
 	def searchGame(name: String, fast: Boolean): Unit = {
 		require(socket == null, "Attempted to search for game while socket is still open")
@@ -27,12 +25,6 @@ object Server {
 		socket.on(Event.Message) { msg =>
 			val buffer = TypedArrayBuffer.wrap(msg.data.asInstanceOf[ArrayBuffer])
 			handleMessage(Unpickle[ServerMessage].fromBytes(buffer))
-		}
-		pingInterval = js.timers.setInterval(500) {
-			if (!pingInFlight) {
-				pingInFlight = true
-				this ! ClientMessage.Ping(dom.window.performance.now())
-			}
 		}
 	}
 
@@ -52,15 +44,13 @@ object Server {
 
 	def socketClosed(e: dom.Event): Unit = {
 		socket = null
-		js.timers.clearInterval(pingInterval)
-		pingInFlight = false
 	}
 
 	def handleMessage(msg: ServerMessage): Unit = msg match {
 		case ServerMessage.Bundle(messages) => messages.foreach(handleMessage)
-		case ServerMessage.Ping(payload) =>
-			latency = (dom.window.performance.now() - payload) / 2
-			pingInFlight = false
+		case ServerMessage.Ping(ms, payload) =>
+			latency = ms
+			this ! ClientMessage.Ping(payload)
 		case ServerMessage.Debug(severity, args) => debugOutput(severity, args)
 		case ServerMessage.ServerError => App.reboot(true)
 		case ServerMessage.GameEnd => App.reboot()

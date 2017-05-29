@@ -4,7 +4,7 @@ import engine.geometry.Point
 import game.UID
 import game.maps.GameMap
 import game.protocol.ServerMessage
-import game.server.actors.{Matchmaker, Watcher}
+import game.server.actors.{Matchmaker, PlayerActor, Watcher}
 import game.skeleton.concrete.CharacterSkeleton
 import scala.util.Random
 import utils.ActorGroup
@@ -42,6 +42,9 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 		skeleton
 	}
 
+	/** The map of player UIDs to their network latency */
+	var latencies: Map[UID, Double] = Map.empty.withDefaultValue(0.0)
+
 	init()
 
 	// --------------------------------
@@ -52,6 +55,8 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 		case Matchmaker.Start =>
 			broadcast ! ServerMessage.GameStart
 			start()
+		case PlayerActor.UpdateLatency(uid, latency) =>
+			latencies += (uid -> latency)
 	}: Receive) orElse message
 
 	def init(): Unit

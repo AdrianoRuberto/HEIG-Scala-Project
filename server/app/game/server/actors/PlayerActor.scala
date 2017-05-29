@@ -11,6 +11,7 @@ import game.protocol.{ClientMessage, ServerMessage}
 import game.{PlayerInfo, UID}
 import java.nio.ByteBuffer
 import scala.collection.mutable
+import scala.concurrent.duration._
 import utils.Debug
 
 class PlayerActor @Inject() (@Assisted queue: SourceQueue[Array[Byte]], @Assisted queueSize: Int)
@@ -18,14 +19,26 @@ class PlayerActor @Inject() (@Assisted queue: SourceQueue[Array[Byte]], @Assiste
 		extends Actor with RequiresMessageQueue[UnboundedControlAwareMailbox] {
 	import context._
 
+	/** The player's UID */
+	private var uid: UID = UID.zero
+
 	/** The game actor */
-	private var game: ActorRef = context.system.deadLetters
+	private var game: ActorRef = null
 
 	/** Outgoing message buffer to handle client back-pressure */
 	private var buffer: mutable.Buffer[ServerMessage] = mutable.Buffer.empty
 
 	/** Whether there is a queue offer pending */
 	private var pending: Int = 0
+
+	/** Latency of this client */
+	private var latency: Double = 0.0
+
+	/** Whether a ping request is currently pending */
+	private var pingPending: Boolean = false
+
+	// Schedule the first ping tick
+	system.scheduler.scheduleOnce(500.millis, self, PlayerActor.PingTick)
 
 	/** Fake actor for handling outgoing messages */
 	private object out {
@@ -58,36 +71,53 @@ class PlayerActor @Inject() (@Assisted queue: SourceQueue[Array[Byte]], @Assiste
 	}
 
 	def receive: Receive = {
-		case buffer: Array[Byte] =>
-			handleMessage(buffer)
-		case PlayerActor.OfferAck =>
-			out.ack()
+		case PlayerActor.OfferAck => out.ack()
+		case PlayerActor.PingTick => pingTick()
+		case buffer: Array[Byte] => handleMessage(buffer)
 		case msg: ServerMessage.GameFound =>
 			out ! msg
 			sender() ! Matchmaker.Ready
-		case msg: ServerMessage =>
-			out ! msg
-		case Matchmaker.Bind(ref) =>
-			game = ref
-		case unknown =>
-			out ! Debug.error(s"Unknown message: $unknown")
+		case msg: ServerMessage => out ! msg
+		case Matchmaker.Bind(ref) => game = ref
+		case unknown => out ! Debug.error(s"Unknown message: $unknown")
 	}
 
 	private def handleMessage(buffer: Array[Byte]): Unit = {
 		Unpickle[ClientMessage].fromBytes(ByteBuffer.wrap(buffer)) match {
 			case ClientMessage.Ping(payload) =>
-				out ! ServerMessage.Ping(payload)
-			case ClientMessage.SearchGame(name, fast) =>
-				val player = PlayerInfo(UID.next, name, bot = false)
-				mm ! Matchmaker.Register(player, fast)
+				pingReceive(payload)
+			case ClientMessage.SearchGame(name, fast) if uid.zero =>
+				uid = UID.next
+				mm ! Matchmaker.Register(PlayerInfo(uid, name, bot = false), fast)
 			case msg: ClientMessage.GameMessage =>
-				game ! msg
+				if (game == null) out ! Debug.warn(s"Ignored GameMessage because socket is not yet bound: $msg")
+				else game ! msg
 		}
+	}
+
+	private def pingTick(): Unit = {
+		if (!pingPending) {
+			pingPending = true
+			out ! ServerMessage.Ping(latency, System.nanoTime())
+		}
+		system.scheduler.scheduleOnce(500.millis, self, PlayerActor.PingTick)
+	}
+
+	private def pingReceive(payload: Long): Unit = {
+		pingPending = false
+		val delta = System.nanoTime() - payload
+		// Convert nanos to millis and divide by 2 to estimate one-way latency
+		val ms = delta / 2000000.0
+		// Smooth latency variations by only updating a third of the old value
+		latency = (latency * 2 + ms) / 3
+		if (game != null) game ! PlayerActor.UpdateLatency(uid, latency)
 	}
 }
 
 object PlayerActor {
 	case object OfferAck extends ControlMessage
+	case object PingTick
+	case class UpdateLatency(uid: UID, latency: Double)
 
 	trait Factory {
 		def apply(out: SourceQueue[Array[Byte]], queueSize: Int): Actor

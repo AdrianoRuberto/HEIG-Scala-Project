@@ -11,7 +11,7 @@ object ServerMessage {
 	// Core messages
 	case object ServerError extends ServerMessage
 	case object GameEnd extends ServerMessage
-	case class Ping(payload: Double) extends ServerMessage
+	case class Ping(latency: Double, payload: Long) extends ServerMessage
 	case class Bundle(messages: Seq[ServerMessage]) extends ServerMessage
 
 	// Lobby messages

@@ -6,7 +6,7 @@ import game.UID
 sealed trait ClientMessage
 
 object ClientMessage {
-	case class Ping(payload: Double) extends ClientMessage
+	case class Ping(payload: Long) extends ClientMessage
 	case class SearchGame(name: String, fast: Boolean) extends ClientMessage
 
 	trait GameMessage extends ClientMessage
