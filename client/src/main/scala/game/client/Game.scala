@@ -2,9 +2,12 @@ package game.client
 
 import engine.Engine
 import engine.entity.Entity
-import game.UID
-import game.client.entities.DebugStats
+import game.client.entities.{Character, DebugStats, Player}
 import game.protocol.ServerMessage
+import game.protocol.ServerMessage._
+import game.skeleton.Closet
+import game.skeleton.concrete.CharacterSkeleton
+import game.{TeamInfo, UID}
 import org.scalajs.dom
 import org.scalajs.dom.html
 import utils.PersistentBoolean
@@ -16,7 +19,11 @@ object Game {
 	private val debugStatsShown = PersistentBoolean("displayStats", default = false)
 	private lazy val debugStatsEntity = new DebugStats(10, 10)
 
-	private var entities: Map[UID, Entity] = Map.empty
+	private val closet = new Closet
+	private var characterEntities: Map[UID, Entity] = Map.empty
+
+	private var teams: Seq[TeamInfo] = Nil
+	private var playerUID: UID = _
 
 	def setup(): Unit = {
 		dom.window.on(Event.Resize) { _ => resizeCanvas() }
@@ -30,9 +37,13 @@ object Game {
 		canvas.height = dom.window.innerHeight.toInt
 	}
 
-	def start(): Unit = {
+	def start(teams: Seq[TeamInfo], me: UID): Unit = {
+		this.teams = teams
+		this.playerUID = me
 		engine.start()
-		if (debugStatsShown) engine.registerEntity(debugStatsEntity)
+		if (debugStatsShown) {
+			engine.registerEntity(debugStatsEntity)
+		}
 		/*
 		engine.setWorldSize(2000, 2000)
 
@@ -72,28 +83,35 @@ object Game {
 
 	def reset(): Unit = {
 		engine.unregisterAllEntities()
+		closet.clear()
 	}
 
 	def unlock(): Unit = engine.unlock()
 	def lock(): Unit = engine.lock()
+	def stop(): Unit = engine.stop()
 
-	def stop(): Unit = {
-		engine.stop()
-		engine.unregisterAllEntities()
-	}
-
-	def toggleDebugStats(): Unit = {
+	private def toggleDebugStats(): Unit = {
 		if (debugStatsShown) engine.unregisterEntity(debugStatsEntity)
 		else engine.registerEntity(debugStatsEntity)
 		debugStatsShown.toggle()
 	}
 
+	private def instantiateCharacter(characterUID: UID, skeletonUID: UID): Unit = {
+		val skeleton = closet.getAs[CharacterSkeleton](skeletonUID)
+		val entity =
+			if (characterUID == playerUID) new Player(skeleton)
+			else new Character(skeleton)
+		characterEntities += (characterUID -> entity)
+		engine.registerEntity(entity)
+	}
+
 	def message(gm: ServerMessage.GameMessage): Unit = if (engine.isRunning) gm match {
-		case ServerMessage.GameStart =>
+		case SkeletonEvent(event) => closet.handleEvent(event)
+		case InstantiateCharacter(characterUID, skeletonUID) => instantiateCharacter(characterUID, skeletonUID)
+		case SetCameraLocation(x, y) => engine.camera.setPoint(x, y)
+		case SetCameraFollow(characterUID) => engine.camera.follow(characterEntities(characterUID))
+		case GameStart =>
 			App.hidePanels()
 			Game.unlock()
-		case ServerMessage.SetCameraLocation(x, y) => engine.camera.setPoint(x, y)
-		case ServerMessage.SetCameraFollow(uid) => engine.camera.follow(entities(uid))
-		case anything => println(anything)
 	}
 }

@@ -54,6 +54,6 @@ trait EngineLoop { this: Engine =>
 
 	def stop(): Unit = {
 		running = false
-		ctx.clearRect(0, 0, canvas.width, canvas.height)
+		ctx.clearRect(-1, -1, canvas.width + 2, canvas.height + 2)
 	}
 }

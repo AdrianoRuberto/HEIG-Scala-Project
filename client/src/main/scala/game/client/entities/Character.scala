@@ -5,8 +5,9 @@ import engine.entity.Entity
 import engine.entity.feature.Updatable
 import engine.geometry.Rectangle
 import engine.utils.Layer
+import game.skeleton.concrete.CharacterSkeleton
 
-abstract class Character(val name: String, sublayer: Int = 0) extends Entity with Updatable {
+class Character(val skeleton: CharacterSkeleton, sublayer: Int = 0) extends Entity with Updatable {
 	children += new Nameplate(this)
 
 	// Drawing layer
@@ -41,7 +42,7 @@ abstract class Character(val name: String, sublayer: Int = 0) extends Entity wit
 	var tf: Double = 0.0
 
 	// Bounding box of this character
-	def boundingBox = Rectangle(x - size / 2, y - size / 2, size, size)
+	def boundingBox = Rectangle(skeleton.x.value - size / 2, skeleton.y.value - size / 2, size, size)
 
 	def update(dt: Double): Unit = {
 		// Update position

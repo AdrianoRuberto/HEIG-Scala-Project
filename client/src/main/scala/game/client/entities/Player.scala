@@ -2,8 +2,9 @@ package game.client.entities
 
 import engine.Keyboard
 import engine.geometry.Point
+import game.skeleton.concrete.CharacterSkeleton
 
-class Player (name: String) extends Character(name, 1) {
+class Player (skeleton: CharacterSkeleton) extends Character(skeleton, 1) {
 	// Keyboard monitor for edge detection in key presses
 	protected implicit val keyboardMonitor = new Keyboard.Monitor
 

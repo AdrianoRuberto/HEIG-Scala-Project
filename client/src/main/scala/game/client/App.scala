@@ -72,8 +72,5 @@ object App extends JSApp {
 		Lobby.reset()
 	}
 
-	def debugBoot(): Unit = {
-		Game.start()
-		Game.unlock()
-	}
+	def debugBoot(): Unit = ()
 }

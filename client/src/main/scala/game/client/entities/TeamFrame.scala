@@ -30,7 +30,7 @@ class TeamFrame (x: Double, y: => Double, team: Seq[Character]) extends Entity w
 
 			// Name
 			ctx.fillStyle = "#000"
-			ctx.fillText(c.name, 40, 20)
+			ctx.fillText(c.skeleton.name.value, 40, 20)
 
 			ctx.translate(90, 0)
 		}

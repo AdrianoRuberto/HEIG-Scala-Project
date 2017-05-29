@@ -2,7 +2,8 @@ package game.protocol
 
 import boopickle.Default._
 import game.maps.GameMap
-import game.{GameMode, TeamInfo, UID}
+import game.skeleton.Event
+import game.{GameMode, TeamInfo, UID, skeleton}
 
 sealed trait ServerMessage
 
@@ -11,6 +12,7 @@ object ServerMessage {
 	case object ServerError extends ServerMessage
 	case object GameEnd extends ServerMessage
 	case class Ping(payload: Double) extends ServerMessage
+	case class Bundle(messages: Seq[ServerMessage]) extends ServerMessage
 
 	// Lobby messages
 	sealed trait LobbyMessage extends ServerMessage
@@ -20,8 +22,10 @@ object ServerMessage {
 	// Game messages
 	sealed trait GameMessage extends ServerMessage
 	case object GameStart extends GameMessage
+	case class SkeletonEvent(event: skeleton.Event.ClosetEvent) extends GameMessage
+	case class InstantiateCharacter(characterUID: UID, skeletonUID: UID) extends GameMessage
 	case class SetCameraLocation(x: Double, y: Double) extends GameMessage
-	case class SetCameraFollow(uid: UID) extends GameMessage
+	case class SetCameraFollow(characterUID: UID) extends GameMessage
 
 	// Debug message
 	sealed trait Severity
@@ -37,5 +41,6 @@ object ServerMessage {
 	private implicit val UIDPicker = UID.pickler
 	private implicit val GameModePickler = GameMode.pickler
 	private implicit val GameMapPickler = GameMap.pickler
+	private implicit val SkeletonPickler = Event.closetEventPickler
 	implicit val pickler: Pickler[ServerMessage] = generatePickler[ServerMessage]
 }

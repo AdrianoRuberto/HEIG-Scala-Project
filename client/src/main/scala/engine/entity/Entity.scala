@@ -26,13 +26,13 @@ abstract class Entity {
 		require(engine == owner.orNull, "Attempt to unregister from foreign engine")
 		engine.entities -= this
 		owner = js.undefined
-		for (child <- children) child.unregisterFrom(engine)
+		for (child <- children) child.unregister(soft = true)
 	}
 
 	/** Unregisters the entity from the engine */
-	def unregister(): Unit = owner.orNull match {
-		case null => throw new IllegalStateException("Cannot unregister an entity that is not registered")
-		case engine => engine.unregisterEntity(this)
+	def unregister(soft: Boolean = false): Unit = owner.orNull match {
+		case null => if (!soft) throw new IllegalStateException("Cannot unregister an entity that is not registered")
+		case engine => unregisterFrom(engine)
 	}
 
 	/** The engine to which this entity is registered */

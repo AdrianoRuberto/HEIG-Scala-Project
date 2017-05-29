@@ -10,5 +10,5 @@ trait EngineEntities { this: Engine =>
 	def registerEntity(entity: Entity): Unit = entity.registerWith(this)
 	def unregisterEntity(entity: Entity): Unit = entity.unregisterFrom(this)
 
-	def unregisterAllEntities(): Unit = for (e <- entities) e.unregister()
+	def unregisterAllEntities(): Unit = for (e <- entities) e.unregister(soft = true)
 }
