@@ -9,11 +9,11 @@ trait BasicGameImplicits {
 	this: BasicGame =>
 
 	/**
-	  * An instance of [[Transmitter]] that send [[Event.ClosetEvent]] to every players of the game.
+	  * An instance of [[Transmitter]] that send [[Event.ManagerEvent]] to every players of the game.
 	  * It is used as implicit parameter during the construction of the [[skeletons]] map.
 	  */
 	protected implicit object SkeletonTransmitter extends Transmitter {
-		def ! (event: Event.ClosetEvent): Unit = {
+		def ! (event: Event.ManagerEvent): Unit = {
 			broadcast ! ServerMessage.SkeletonEvent(event)
 		}
 	}

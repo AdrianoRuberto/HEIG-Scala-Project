@@ -22,7 +22,7 @@ object ServerMessage {
 	// Game messages
 	sealed trait GameMessage extends ServerMessage
 	case object GameStart extends GameMessage
-	case class SkeletonEvent(event: skeleton.Event.ClosetEvent) extends GameMessage
+	case class SkeletonEvent(event: skeleton.Event.ManagerEvent) extends GameMessage
 	case class InstantiateCharacter(characterUID: UID, skeletonUID: UID) extends GameMessage
 
 	// Camera

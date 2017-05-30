@@ -5,7 +5,7 @@ import engine.entity.Entity
 import game.client.entities.{Character, DebugStats, Player}
 import game.protocol.ServerMessage
 import game.protocol.ServerMessage._
-import game.skeleton.Closet
+import game.skeleton.SkeletonManager
 import game.skeleton.concrete.CharacterSkeleton
 import game.{TeamInfo, UID}
 import org.scalajs.dom
@@ -19,7 +19,7 @@ object Game {
 	private val debugStatsShown = PersistentBoolean("displayStats", default = false)
 	private lazy val debugStatsEntity = new DebugStats(10, 10)
 
-	private val closet = new Closet
+	private val skeletonManager = new SkeletonManager
 	private var characterEntities: Map[UID, Entity] = Map.empty
 
 	private var teams: Seq[TeamInfo] = Nil
@@ -84,7 +84,7 @@ object Game {
 	def reset(): Unit = {
 		engine.unregisterAllEntities()
 		engine.camera.setSmoothing(false)
-		closet.clear()
+		skeletonManager.clear()
 	}
 
 	def unlock(): Unit = engine.unlock()
@@ -98,7 +98,7 @@ object Game {
 	}
 
 	private def instantiateCharacter(characterUID: UID, skeletonUID: UID): Unit = {
-		val skeleton = closet.getAs[CharacterSkeleton](skeletonUID)
+		val skeleton = skeletonManager.getAs[CharacterSkeleton](skeletonUID)
 		val entity =
 			if (characterUID == playerUID) new Player(skeleton)
 			else new Character(skeleton)
@@ -108,7 +108,7 @@ object Game {
 
 	def message(gm: ServerMessage.GameMessage): Unit = if (engine.isRunning) gm match {
 		// Builders
-		case SkeletonEvent(event) => closet.receive(event)
+		case SkeletonEvent(event) => skeletonManager.receive(event)
 		case InstantiateCharacter(characterUID, skeletonUID) => instantiateCharacter(characterUID, skeletonUID)
 
 		// Camera
