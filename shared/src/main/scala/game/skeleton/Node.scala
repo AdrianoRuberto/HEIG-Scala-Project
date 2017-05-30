@@ -1,30 +1,24 @@
 package game.skeleton
 
-import boopickle.DefaultBasic._
-import java.nio.ByteBuffer
+/**
+  * A node is a container for some data inside a skeleton.
+  *
+  * @param skeleton the owner skeleton
+  * @tparam E the type of event received by this node
+  */
+abstract class Node[E <: Event.NodeEvent](implicit val skeleton: AbstractSkeleton) {
+	/** This node ID, unique for a given skeleton */
+	val nid: NodeId = skeleton.nextNodeId
+	skeleton.nodes += (nid -> this)
 
-class Node[T: Pickler] private (val nid: Int, private var current: T, skeleton: AbstractSkeleton) {
-	def value: T = current
+	/** Receives a event from the server-side instance of this node */
+	def receive(event: E): Unit
 
-	def value_= (newValue: T): Unit = {
-		current = newValue
-		// Transmit update
-		val buffer = Pickle.intoBytes(newValue)
-		val array = new Array[Byte](buffer.remaining)
-		buffer.get(array)
-		skeleton emit Event.NodeUpdate(nid, array)
-	}
-
-	private[skeleton] def value_= (pickled: Array[Byte]): Unit = {
-		value = Unpickle[T].fromBytes(ByteBuffer.wrap(pickled))
-	}
-}
-
-object Node {
-	def apply[T: Pickler](initialValue: T)(implicit skeleton: AbstractSkeleton): Node[T] = {
-		val nid = skeleton.lastNodeId.incrementAndGet()
-		val node = new Node(nid, initialValue, skeleton)
-		skeleton.nodes += (nid -> node)
-		node
+	/** Transmits an event to the client-side version of this node. */
+	@inline final def emit(event: E): Unit = {
+		val transmitter = skeleton.transmitter
+		if (transmitter != Transmitter.NoTransmitter) {
+			transmitter ! Event.NotifyNode(skeleton.uid, nid, event)
+		}
 	}
 }

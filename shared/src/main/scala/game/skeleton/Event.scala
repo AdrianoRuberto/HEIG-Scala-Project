@@ -3,15 +3,28 @@ package game.skeleton
 import boopickle.Default._
 import game.UID
 
+/**
+  * Skeleton-related events
+  */
 object Event {
-	sealed trait SkeletonEvent
-	case class NodeUpdate(nid: Int, value: Array[Byte]) extends SkeletonEvent
+	/** Events targeting node instances */
+	sealed trait NodeEvent
 
-	sealed trait ClosetEvent
-	case class InstantiateSkeleton(tpe: Type, uid: UID) extends ClosetEvent
-	case class NotifySkeleton(uid: UID, event: SkeletonEvent) extends ClosetEvent
+	/** Events targeting [[SimpleNode]] instances */
+	sealed trait SimpleNodeEvent extends NodeEvent
+	/** Update to a [[SimpleNode]] value */
+	case class SimpleUpdate(value: Array[Byte]) extends SimpleNodeEvent
+
+	/** Events targeting a [[SkeletonManager]] */
+	sealed trait ManagerEvent
+	/** Instantiates a new skeleton of the given type with a given UID */
+	case class InstantiateSkeleton(tpe: Type, uid: UID) extends ManagerEvent
+	/** Notify a node of the given skeleton about an event */
+	case class NotifyNode(uid: UID, nid: NodeId, event: NodeEvent) extends ManagerEvent
 
 	private implicit val UIDPickler = UID.pickler
-	implicit val skeletonEventPickler: Pickler[SkeletonEvent] = generatePickler[SkeletonEvent]
-	implicit val closetEventPickler: Pickler[ClosetEvent] = generatePickler[ClosetEvent]
+	private implicit val NodeIdPickler = NodeId.pickler
+
+	implicit val skeletonEventPickler: Pickler[NodeEvent] = generatePickler[NodeEvent]
+	implicit val closetEventPickler: Pickler[ManagerEvent] = generatePickler[ManagerEvent]
 }
