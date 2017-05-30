@@ -1,10 +1,7 @@
 package game.skeleton
 
-import game.UID
-
 abstract class Transmitter {
 	def ! (event: Event.ClosetEvent): Unit
-	final def ! (uid: UID, event: Event.SkeletonEvent): Unit = this ! Event.NotifySkeleton(uid, event)
 }
 
 object Transmitter {

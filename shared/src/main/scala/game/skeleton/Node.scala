@@ -1,30 +1,25 @@
 package game.skeleton
 
 import boopickle.DefaultBasic._
-import java.nio.ByteBuffer
+import game.skeleton.Event.{NodeEvent, NotifyNode}
+import game.skeleton.Node.NodeId
 
-class Node[T: Pickler] private (val nid: Int, private var current: T, skeleton: AbstractSkeleton) {
-	def value: T = current
+abstract class Node[E <: NodeEvent](implicit val skeleton: AbstractSkeleton) {
+	val nid: NodeId = skeleton.nextNodeId
+	skeleton.nodes += (nid -> this)
 
-	def value_= (newValue: T): Unit = {
-		current = newValue
-		// Transmit update
-		val buffer = Pickle.intoBytes(newValue)
-		val array = new Array[Byte](buffer.remaining)
-		buffer.get(array)
-		skeleton emit Event.NodeUpdate(nid, array)
-	}
+	def receive(event: E): Unit
 
-	private[skeleton] def value_= (pickled: Array[Byte]): Unit = {
-		value = Unpickle[T].fromBytes(ByteBuffer.wrap(pickled))
+	@inline
+	final def emit(event: E): Unit = {
+		val transmitter = skeleton.transmitter
+		if (transmitter != Transmitter.NoTransmitter) {
+			transmitter ! NotifyNode(skeleton.uid, nid, event)
+		}
 	}
 }
 
 object Node {
-	def apply[T: Pickler](initialValue: T)(implicit skeleton: AbstractSkeleton): Node[T] = {
-		val nid = skeleton.lastNodeId.incrementAndGet()
-		val node = new Node(nid, initialValue, skeleton)
-		skeleton.nodes += (nid -> node)
-		node
-	}
+	case class NodeId(value: Int) extends AnyVal
+	implicit val nodeIdPickler: Pickler[NodeId] = PicklerGenerator.generatePickler[NodeId]
 }

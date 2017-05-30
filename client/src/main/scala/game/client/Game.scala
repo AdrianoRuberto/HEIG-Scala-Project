@@ -108,7 +108,7 @@ object Game {
 
 	def message(gm: ServerMessage.GameMessage): Unit = if (engine.isRunning) gm match {
 		// Builders
-		case SkeletonEvent(event) => closet.handleEvent(event)
+		case SkeletonEvent(event) => closet.receive(event)
 		case InstantiateCharacter(characterUID, skeletonUID) => instantiateCharacter(characterUID, skeletonUID)
 
 		// Camera

@@ -1,6 +1,7 @@
 package game.skeleton
 
 import game.UID
+import game.skeleton.Event.ClosetEvent
 
 class Closet {
 	private var skeletons: Map[UID, AbstractSkeleton] = Map.empty
@@ -12,12 +13,12 @@ class Closet {
 
 	def getAs[T <: AbstractSkeleton](uid: UID): T = get(uid).asInstanceOf[T]
 
-	def handleEvent(event: Event.ClosetEvent): Unit = event match {
+	def receive(event: ClosetEvent): Unit = event match {
 		case Event.InstantiateSkeleton(tpe, uid) =>
 			val skeleton = tpe.instantiate(uid)
 			skeletons += (uid -> skeleton)
-		case Event.NotifySkeleton(uid, ev) =>
-			get(uid).receive(ev)
+		case n @ Event.NotifyNode(uid, _, _) =>
+			get(uid).receive(n)
 	}
 
 	def clear(): Unit = skeletons = Map.empty
