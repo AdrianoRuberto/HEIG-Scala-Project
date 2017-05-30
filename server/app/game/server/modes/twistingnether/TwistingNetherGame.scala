@@ -11,14 +11,13 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) {
 	def init(): Unit = {
 		log("Game init")
 		loadMap(GameMap.Illios)
-		camera.move(0, 0)
-		camera.setSpeed(20)
 		camera.followSelf()
 	}
 
 	def start(): Unit = {
 		log("Game start")
 		warn("FIXME: Game will shutdown in 5 seconds")
+		camera.setSpeed(20)
 		context.system.scheduler.scheduleOnce(5.seconds, parent, Watcher.Terminate)
 	}
 

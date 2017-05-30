@@ -28,21 +28,23 @@ final class Camera private[engine] (engine: Engine) {
 			ty = target.y + target.height / 2
 		}
 
-		if (smoothing) {
-			val dx = tx - x
-			val dy = ty - y
-			if (velocity) {
-				val norm = Math.sqrt(dx * dx + dy * dy)
-				val actual = norm min (dt * speed / 1000)
-				x += (dx / norm * actual)
-				y += (dy / norm * actual)
+		if (tx != x || ty != y) {
+			if (smoothing) {
+				val dx = tx - x
+				val dy = ty - y
+				if (velocity) {
+					val norm = Math.sqrt(dx * dx + dy * dy)
+					val actual = norm min (dt * speed / 1000)
+					x += (dx / norm * actual)
+					y += (dy / norm * actual)
+				} else {
+					x += dx / 3
+					y += dy / 3
+				}
 			} else {
-				x += dx / 3
-				y += dy / 3
+				x = tx
+				y = ty
 			}
-		} else {
-			x = tx
-			y = ty
 		}
 
 		left = x - engine.canvas.width / 2
@@ -60,8 +62,8 @@ final class Camera private[engine] (engine: Engine) {
 	}
 
 	@inline def setPoint(p: Point): Unit = setPoint(p.x, p.y)
-
 	def follow(entity: Entity): Unit = following = entity
+
 	def detach(): Unit = following = null
 
 	def setSmoothing(state: Boolean): Unit = {
