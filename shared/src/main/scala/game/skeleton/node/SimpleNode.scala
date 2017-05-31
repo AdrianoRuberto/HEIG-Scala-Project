@@ -1,7 +1,7 @@
 package game.skeleton.node
 
 import boopickle.DefaultBasic._
-import game.skeleton._
+import game.skeleton.AbstractSkeleton
 
 /**
   * A simple node holds a single value of type [[T]].

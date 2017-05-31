@@ -1,6 +1,7 @@
 package game.skeleton
 
 import game.UID
+import game.protocol.enums.SkeletonType
 import game.skeleton.node.{Node, NodeEvent, NodeId}
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -8,7 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger
   * A skeleton is an data container that is kept in sync between
   * client and server automatically.
   */
-class AbstractSkeleton(tpe: Type, val uid: UID = UID.next)
+class AbstractSkeleton(tpe: SkeletonType, val uid: UID = UID.next)
                       (implicit val transmitter: Transmitter = Transmitter.NoTransmitter) {
 	protected implicit val self: this.type = this
 

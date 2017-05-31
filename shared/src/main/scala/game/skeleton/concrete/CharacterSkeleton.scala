@@ -2,12 +2,13 @@ package game.skeleton.concrete
 
 import boopickle.DefaultBasic._
 import game.UID
+import game.protocol.enums.SkeletonType
 import game.skeleton._
 import game.skeleton.node.{InterpolatedNode, SimpleNode}
 
 class CharacterSkeleton (uid: UID = UID.next)
                         (implicit receiver: Transmitter = Transmitter.NoTransmitter)
-		extends AbstractSkeleton(Type.Character, uid) {
+		extends AbstractSkeleton(SkeletonType.Character, uid) {
 
 	val name = SimpleNode("Unknown")
 	val x = InterpolatedNode(0.0)
