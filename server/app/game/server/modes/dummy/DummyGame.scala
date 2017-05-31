@@ -8,11 +8,14 @@ import scala.concurrent.duration._
 class DummyGame (roster: Seq[GameTeam]) extends BasicGame(roster) {
 	import context._
 
-	def init(): Unit = ()
+	def init(): Unit = {
+		loadMap(GameMap.Illios)
+		camera.followSelf()
+		setDefaultTeamColors()
+	}
 
 	def start(): Unit = {
-		loadMap(GameMap.Illios)
-		context.system.scheduler.scheduleOnce(5.seconds, parent, Watcher.Terminate)
+		context.system.scheduler.scheduleOnce(30.seconds, parent, Watcher.Terminate)
 	}
 
 	def message: Receive = {

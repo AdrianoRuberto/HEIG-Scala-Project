@@ -24,7 +24,7 @@ class Character(val skeleton: CharacterSkeleton, sublayer: Int = 0) extends Enti
 	def update(dt: Double): Unit = {
 		if (skeleton.facingOverride.value) {
 			targetFacing = skeleton.facingDirection.value
-		} else {
+		} else if (skeleton.moving.value) {
 			val x = skeleton.x.current
 			val y = skeleton.y.current
 			if (x != lastX || y != lastY) {

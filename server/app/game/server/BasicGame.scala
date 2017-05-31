@@ -4,7 +4,7 @@ import akka.actor.ActorRef
 import engine.geometry.Point
 import game.UID
 import game.maps.GameMap
-import game.protocol.ServerMessage
+import game.protocol.{ClientMessage, ServerMessage}
 import game.server.actors.{Matchmaker, PlayerActor, Watcher}
 import game.skeleton.concrete.CharacterSkeleton
 import scala.util.Random
@@ -59,10 +59,11 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 		case Matchmaker.Start =>
 			broadcast ! ServerMessage.GameStart
 			start()
-		case PlayerActor.UpdateLatency(latency) =>
-			latencies += (senderUID -> latency)
+		case PlayerActor.UpdateLatency(latency) => latencies += (senderUID -> latency)
+		case ClientMessage.Moving(angle) => playerMoving(senderUID, angle)
+		case ClientMessage.Stopped(x, y) => playerStopped(senderUID, x, y)
 	}: Receive) orElse message orElse {
-		case m => warn("Ignored unknown message message:", m.toString)
+		case m => warn("Ignored unknown message:", m.toString)
 	}
 
 	def init(): Unit
@@ -94,6 +95,14 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 		def setSpeed(pps: Double): Unit = broadcast ! ServerMessage.SetCameraSpeed(pps)
 	}
 
+	def setTeamColors(colors: String*): Unit = {
+		for ((team, color) <- teams.values zip colors; player <- team.players) {
+			skeletons(player.info.uid).color.value = color
+		}
+	}
+
+	def setDefaultTeamColors(): Unit = setTeamColors("#5a5", "#f55")
+
 	// --------------------------------
 	// Internal API, override if required
 	// --------------------------------
@@ -110,13 +119,25 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 		}
 	}
 
-	def setTeamColors(colors: String*): Unit = {
-		for ((team, color) <- teams.values zip colors; player <- team.players) {
-			skeletons(player.info.uid).color.value = color
-		}
+	def playerMoving(uid: UID, angle: Double): Unit = {
+		val skeleton = uid.skeleton
+		skeleton.moving.value = true
+
+		val speed = skeleton.speed.value
+		val tx = skeleton.x.current + Math.cos(angle) * speed
+		val ty = skeleton.y.current + Math.sin(angle) * speed
+
+		val latency = uid.latency
+		skeleton.x.interpolate(tx, 1000 - latency)
+		skeleton.y.interpolate(ty, 1000 - latency)
 	}
 
-	def setDefaultTeamColors(): Unit = setTeamColors("#5a5", "#f55")
+	def playerStopped(uid: UID, x: Double, y: Double): Unit = {
+		val skeleton = uid.skeleton
+		skeleton.moving.value = false
+		skeleton.x.interpolate(x, 50)
+		skeleton.y.interpolate(y, 50)
+	}
 
 	/** Retrieves the sender's UID */
 	def senderUID: UID = uids(sender())

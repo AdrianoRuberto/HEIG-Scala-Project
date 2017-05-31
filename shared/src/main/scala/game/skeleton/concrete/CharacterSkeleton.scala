@@ -13,6 +13,7 @@ class CharacterSkeleton (uid: UID = UID.next)
 	val name = SimpleNode("Unknown")
 	val color = SimpleNode("black")
 
+	val moving = SimpleNode(false)
 	val x = InterpolatedNode(0.0)
 	val y = InterpolatedNode(0.0)
 	val speed = SimpleNode(100)
