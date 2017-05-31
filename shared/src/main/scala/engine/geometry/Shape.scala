@@ -7,7 +7,7 @@ trait Shape {
 	def boundingBox: Rectangle
 
 	def contains(x: Double, y: Double): Boolean
-	@inline final def contains(point: Point): Boolean = contains(point.x, point.y)
+	@inline final def contains(point: Vector): Boolean = contains(point.x, point.y)
 
 	def contains(r: Rectangle): Boolean = contains(r.left, r.top) && contains(r.right, r.bottom) &&
 	                                      contains(r.right, r.top) && contains(r.left, r.bottom)

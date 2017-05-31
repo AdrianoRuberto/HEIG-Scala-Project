@@ -1,7 +1,7 @@
 package game.server
 
 import akka.actor.ActorRef
-import engine.geometry.{ColoredShape, Point, Shape}
+import engine.geometry.{ColoredShape, Vector, Shape}
 import game.UID
 import game.maps.GameMap
 import game.protocol.{ClientMessage, ServerMessage}
@@ -112,7 +112,7 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 	// --------------------------------
 
 	/** Computes players spawn around a point for a given team */
-	def spawnPlayers(center: Point, players: Seq[GamePlayer]): Unit = {
+	def spawnPlayers(center: Vector, players: Seq[GamePlayer]): Unit = {
 		val alpha = Math.PI * 2 / players.size
 		val radius = if (players.size == 1) 0 else 30 / Math.sin(alpha / 2)
 		val start = Random.nextDouble() * Math.PI * 2

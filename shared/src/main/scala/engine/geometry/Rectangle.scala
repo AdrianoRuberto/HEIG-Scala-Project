@@ -21,5 +21,5 @@ case class Rectangle (x: Double, y: Double, width: Double, height: Double) exten
 }
 
 object Rectangle {
-	@inline def apply(corner: Point, size: Size): Rectangle = apply(corner.x, corner.y, size.width, size.height)
+	@inline def apply(corner: Vector, size: Size): Rectangle = apply(corner.x, corner.y, size.width, size.height)
 }

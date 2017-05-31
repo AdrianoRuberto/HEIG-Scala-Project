@@ -1,17 +1,17 @@
 package game.maps
 
 import boopickle.Default._
-import engine.geometry.{ColoredShape, Point}
+import engine.geometry.{ColoredShape, Vector}
 
 sealed abstract class GameMap(val geometry: Seq[ColoredShape],
-                              val spawns: List[Point] = Nil) {
+                              val spawns: List[Vector] = Nil) {
 
 }
 
 object GameMap {
 	case object Illios extends GameMap(
 		geometry = KingOfTheHill.illios,
-		spawns = List(Point(100, 300), Point(400, 300))
+		spawns = List(Vector(100, 300), Vector(400, 300))
 	)
 
 	implicit val pickler: Pickler[GameMap] = generatePickler[GameMap]
