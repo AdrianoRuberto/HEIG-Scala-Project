@@ -31,8 +31,6 @@ case class InterpolatedNode (private var targetValue: Double)
 
 	def value: Double = targetValue
 
-	def value_= (value: Double): Unit = interpolate(value, 0.0)
-
 	def interpolate(value: Double, duration: Double): Unit = {
 		targetValue = value
 		if (duration <= 0.0) {
@@ -53,10 +51,14 @@ case class InterpolatedNode (private var targetValue: Double)
 		}
 	}
 
+	def value_= (value: Double): Unit = interpolate(value, 0.0)
+
 	def interpolateAtSpeed(value: Double, speed: Double): Unit = {
-		if (speed == 0) interpolate(targetValue, 0)
+		if (speed == 0) stop()
 		else interpolate(value, 1000.0 * (value - currentValue) / speed)
 	}
+
+	def stop(): Unit = interpolate(targetValue, 0)
 
 	/** Receives a event from the server-side instance of this node */
 	def receive(event: Event.InterpolatedNodeEvent): Unit = event match {
