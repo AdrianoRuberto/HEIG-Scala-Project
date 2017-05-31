@@ -14,6 +14,7 @@ class PlayerFrame (x: Double, y: Double, player: Player) extends Entity with Abs
 
 	def draw(ctx: CanvasCtx): Unit = {
 		ctx.transform(1, -0.05, 0, 1, -0.5, 0)
+		//ctx.strokeRect(0, 0, 200, 90)
 
 		ctx.font = "500 24px 'Roboto Mono'"
 		ctx.textAlign = "right"

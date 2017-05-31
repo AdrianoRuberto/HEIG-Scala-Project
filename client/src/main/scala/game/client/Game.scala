@@ -2,7 +2,7 @@ package game.client
 
 import engine.Engine
 import engine.entity.Entity
-import game.client.entities.{Character, DebugStats, Player, PlayerFrame}
+import game.client.entities.{Character, DebugStats, Player, PlayerFrame, PlayerSpells}
 import game.protocol.ServerMessage
 import game.protocol.ServerMessage._
 import game.skeleton.SkeletonManager
@@ -102,6 +102,7 @@ object Game {
 		val entity = if (characterUID != playerUID) new Character(skeleton) else {
 			val player = new Player(skeleton)
 			engine.registerEntity(new PlayerFrame(85, -80, player))
+			engine.registerEntity(new PlayerSpells(-85, -65, player))
 			player
 		}
 		characterEntities += (characterUID -> entity)
