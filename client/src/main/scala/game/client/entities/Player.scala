@@ -1,7 +1,6 @@
 package game.client.entities
 
 import engine.Keyboard
-import engine.geometry.Point
 import game.client.Server
 import game.protocol.ClientMessage
 import game.skeleton.concrete.CharacterSkeleton
@@ -12,7 +11,7 @@ class Player (skeleton: CharacterSkeleton) extends Character(skeleton, 1) {
 	protected implicit val keyboardMonitor = new Keyboard.Monitor
 
 	private var moving = false
-	private var movingAngle = 0.0
+	private var movingDirection = (0, 0)
 	private var movingThrottle = 0.0
 	private var sprinting = false
 
@@ -31,27 +30,46 @@ class Player (skeleton: CharacterSkeleton) extends Character(skeleton, 1) {
 			speed *= 2
 			energy.startDrain(50)
 		}
+
 */
-		if (engine.mouse.left) {
+		val w = engine.keyboard.key("w")
+		val a = engine.keyboard.key("a")
+		val s = engine.keyboard.key("s")
+		val d = engine.keyboard.key("d")
+
+		val h = if (a && !d) -1 else if (!a && d) 1 else 0
+		val v = if (w && !s) -1 else if (!w && s) 1 else 0
+
+		if (h != 0 || v != 0) {
 			moving = true
-
-			val Point(x, y) = engine.mouse.relative.point
-			movingAngle = Math.atan2(y, x)
-			val speed = skeleton.speed.value
-			val tx = skeleton.x.current + Math.cos(movingAngle) * speed
-			val ty = skeleton.y.current + Math.sin(movingAngle) * speed
-
-			skeleton.x.interpolate(tx, 1000)
-			skeleton.y.interpolate(ty, 1000)
-
+			val direction = (h, v)
 			val now = dom.window.performance.now()
-			if (now - movingThrottle > 40) {
-				// Remote movement is 25 Hz
+			if (direction != movingDirection || (now - movingThrottle) > 500) {
+				val angle = direction match {
+					case (-1, 0) => Math.PI
+					case (1, 0) => 0
+					case (0, -1) => -Math.PI / 2
+					case (0, 1) => Math.PI / 2
+					case (-1, -1) => Math.PI / 4 * -3
+					case (-1, 1) => Math.PI / 4 * 3
+					case (1, -1) => -Math.PI / 4
+					case (1, 1) => Math.PI / 4
+				}
+
+				val speed = skeleton.speed.value
+				val tx = skeleton.x.current + Math.cos(angle) * speed
+				val ty = skeleton.y.current + Math.sin(angle) * speed
+
+				skeleton.x.interpolate(tx, 1000)
+				skeleton.y.interpolate(ty, 1000)
+
+				movingDirection = direction
 				movingThrottle = now
-				Server ! ClientMessage.Moving(movingAngle)
+				Server ! ClientMessage.Moving(tx, ty)
 			}
 		} else if (moving) {
 			moving = false
+			movingDirection = (0, 0)
 			skeleton.x.stop()
 			skeleton.y.stop()
 			Server ! ClientMessage.Stopped(skeleton.x.current, skeleton.y.current)

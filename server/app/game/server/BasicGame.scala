@@ -60,7 +60,7 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 			broadcast ! ServerMessage.GameStart
 			start()
 		case PlayerActor.UpdateLatency(latency) => latencies += (senderUID -> latency)
-		case ClientMessage.Moving(angle) => playerMoving(senderUID, angle)
+		case ClientMessage.Moving(x, y) => playerMoving(senderUID, x, y)
 		case ClientMessage.Stopped(x, y) => playerStopped(senderUID, x, y)
 	}: Receive) orElse message orElse {
 		case m => warn("Ignored unknown message:", m.toString)
@@ -101,7 +101,7 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 		}
 	}
 
-	def setDefaultTeamColors(): Unit = setTeamColors("#5a5", "#f55")
+	def setDefaultTeamColors(): Unit = setTeamColors("#77f", "#f55")
 
 	// --------------------------------
 	// Internal API, override if required
@@ -119,24 +119,22 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 		}
 	}
 
-	def playerMoving(uid: UID, angle: Double): Unit = {
+	def playerMoving(uid: UID, x: Double, y: Double): Unit = {
 		val skeleton = uid.skeleton
 		skeleton.moving.value = true
 
 		val speed = skeleton.speed.value
-		val tx = skeleton.x.current + Math.cos(angle) * speed
-		val ty = skeleton.y.current + Math.sin(angle) * speed
 
 		val latency = uid.latency
-		skeleton.x.interpolate(tx, 1000 - latency)
-		skeleton.y.interpolate(ty, 1000 - latency)
+		skeleton.x.interpolate(x, 1000 - latency)
+		skeleton.y.interpolate(y, 1000 - latency)
 	}
 
 	def playerStopped(uid: UID, x: Double, y: Double): Unit = {
 		val skeleton = uid.skeleton
 		skeleton.moving.value = false
-		skeleton.x.interpolate(x, 50)
-		skeleton.y.interpolate(y, 50)
+		skeleton.x.interpolate(x, 200)
+		skeleton.y.interpolate(y, 200)
 	}
 
 	/** Retrieves the sender's UID */

@@ -10,7 +10,7 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) {
 		loadMap(GameMap.Illios)
 		setDefaultTeamColors()
 		camera.followSelf()
-		camera.setSpeed(120)
+		camera.setSpeed(200)
 	}
 
 	def start(): Unit = {

@@ -10,7 +10,7 @@ object ClientMessage {
 	case class SearchGame(name: String, fast: Boolean) extends ClientMessage
 
 	sealed trait GameMessage extends ClientMessage
-	case class Moving(angle: Double) extends GameMessage
+	case class Moving(x: Double, y: Double) extends GameMessage
 	case class Stopped(x: Double, y: Double) extends GameMessage
 
 	private implicit val UIDPicker = UID.pickler

@@ -16,10 +16,10 @@ class Character(val skeleton: CharacterSkeleton, sublayer: Int = 0) extends Enti
 	// Bounding box of this character
 	def boundingBox = Rectangle(skeleton.x.current - 15, skeleton.y.current - 15, 30, 30)
 
-	private var lastX = 0.0
-	private var lastY = 0.0
-	private var targetFacing = 0.0
-	private var facing = 0.0
+	private var lastX = Double.NaN
+	private var lastY = Double.NaN
+	private var targetFacing = Math.PI / 2
+	private var facing = Math.PI / 2
 
 	def update(dt: Double): Unit = {
 		if (skeleton.facingOverride.value) {
@@ -27,6 +27,8 @@ class Character(val skeleton: CharacterSkeleton, sublayer: Int = 0) extends Enti
 		} else if (skeleton.moving.value) {
 			val x = skeleton.x.current
 			val y = skeleton.y.current
+			if (lastX.isNaN) lastX = x
+			if (lastY.isNaN) lastY = y
 			if (x != lastX || y != lastY) {
 				targetFacing = Math.atan2(y - lastY, x - lastX)
 				lastX = x

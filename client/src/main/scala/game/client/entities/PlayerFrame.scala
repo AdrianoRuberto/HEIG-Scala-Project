@@ -39,7 +39,7 @@ class PlayerFrame (x: Double, y: Double, player: Player) extends Entity with Abs
 		ctx.clip()
 		ctx.fillStyle = "rgba(216, 216, 216, 0.9)"
 		ctx.fillRect(0, 45, 200, 25)
-		ctx.fillStyle = skeleton.color.value
+		ctx.fillStyle = "#5a5"
 		ctx.fillRect(0, 45, 200 * skeleton.health.percent, 25)
 		ctx.restore()
 

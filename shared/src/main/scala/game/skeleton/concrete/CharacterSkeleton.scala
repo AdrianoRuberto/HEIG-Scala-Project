@@ -16,7 +16,7 @@ class CharacterSkeleton (uid: UID = UID.next)
 	val moving = SimpleNode(false)
 	val x = InterpolatedNode(0.0)
 	val y = InterpolatedNode(0.0)
-	val speed = SimpleNode(100)
+	val speed = SimpleNode(150)
 
 	val facingOverride = SimpleNode(false)
 	val facingDirection = SimpleNode(0.0)
