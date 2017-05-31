@@ -19,6 +19,8 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) {
 		warn("FIXME: Game will shutdown in 5 seconds")
 		camera.setSpeed(20)
 		context.system.scheduler.scheduleOnce(5.seconds, parent, Watcher.Terminate)
+		skeletons.head._2.x.interpolate(0, 5000)
+		skeletons.head._2.y.interpolate(0, 5000)
 	}
 
 	def message: Receive = {

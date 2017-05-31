@@ -14,13 +14,15 @@ case class InterpolatedNode (private var targetValue: Double)
 	def current: Double = {
 		if (currentValue != targetValue) {
 			val now = currentTime
-			if (now >= endTime) {
-				currentValue = targetValue
-			} else if (now != lastTime) {
-				val delta = targetValue - currentValue
-				val timeSpan = now - lastTime
-				val timeLeft = endTime - lastTime
-				currentValue += delta * (timeSpan / timeLeft)
+			if (now != lastTime) {
+				if (now >= endTime) {
+					currentValue = targetValue
+				} else {
+					val delta = targetValue - currentValue
+					val timeSpan = now - lastTime
+					val timeLeft = endTime - lastTime
+					currentValue += delta * (timeSpan / timeLeft)
+				}
 				lastTime = now
 			}
 		}
@@ -29,17 +31,21 @@ case class InterpolatedNode (private var targetValue: Double)
 
 	def value: Double = targetValue
 
-	def value_= (value: Double, duration: Double = 0): Unit = {
+	def value_= (value: Double): Unit = interpolate(value, 0.0)
+
+	def interpolate(value: Double, duration: Double): Unit = {
 		targetValue = value
-		if (duration == 0) {
+		if (duration <= 0.0) {
 			currentValue = value
 		} else {
-			endTime = currentTime + duration
+			val now = currentTime
+			lastTime = now
+			endTime = now + duration
 		}
 
 		// Update with receiver latency awareness
 		if (shouldEmit) {
-			if (duration == 0) {
+			if (duration <= 0.0) {
 				this emit InterpolatedUpdate(value, duration)
 			} else {
 				this emitLatencyAware (latency => Event.InterpolatedUpdate(value, duration - latency))
@@ -47,11 +53,13 @@ case class InterpolatedNode (private var targetValue: Double)
 		}
 	}
 
-	/** Allow for `.value = (value, duration)` syntax */
-	def value_= (valueAndDuration: (Double, Double)): Unit = value_=(valueAndDuration._1, valueAndDuration._2)
+	def interpolateAtSpeed(value: Double, speed: Double): Unit = {
+		if (speed == 0) interpolate(targetValue, 0)
+		else interpolate(value, 1000.0 * (value - currentValue) / speed)
+	}
 
 	/** Receives a event from the server-side instance of this node */
 	def receive(event: Event.InterpolatedNodeEvent): Unit = event match {
-		case Event.InterpolatedUpdate(t, d) => value = (t, d)
+		case Event.InterpolatedUpdate(t, d) => interpolate(t, d)
 	}
 }

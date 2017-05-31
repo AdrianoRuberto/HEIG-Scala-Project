@@ -55,7 +55,7 @@ object Server {
 		case ServerMessage.ServerError => App.reboot(true)
 		case ServerMessage.GameEnd => App.reboot()
 		case lm: ServerMessage.LobbyMessage => Lobby.message(lm)
-		case gm: ServerMessage.GameMessage => Game.message(gm)
+		case gm: ServerMessage.GameMessage => println(gm); Game.message(gm)
 	}
 
 	private def debugOutput(severity: Severity, args: Seq[String]): Unit = if (args.nonEmpty) {

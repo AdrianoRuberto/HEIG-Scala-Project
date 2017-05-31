@@ -42,7 +42,7 @@ class Character(val skeleton: CharacterSkeleton, sublayer: Int = 0) extends Enti
 	var tf: Double = 0.0
 
 	// Bounding box of this character
-	def boundingBox = Rectangle(skeleton.x.value - size / 2, skeleton.y.value - size / 2, size, size)
+	def boundingBox = Rectangle(skeleton.x.current - size / 2, skeleton.y.current - size / 2, size, size)
 
 	def update(dt: Double): Unit = {
 		// Update position

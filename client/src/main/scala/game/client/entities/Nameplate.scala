@@ -9,7 +9,7 @@ class Nameplate (character: Character) extends Entity {
 	val layer: Layer = Layer.Nameplates
 
 	def boundingBox: Rectangle = {
-		Rectangle(character.skeleton.x.value - 30, character.skeleton.y.value - character.size / 2 - 25, 60, 10)
+		Rectangle(character.skeleton.x.current - 30, character.skeleton.y.current - character.size / 2 - 25, 60, 10)
 	}
 
 	def draw(ctx: CanvasCtx): Unit = {

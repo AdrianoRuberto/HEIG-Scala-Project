@@ -39,11 +39,11 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 	}
 
 	/** The map of every character skeletons */
-	val skeletons: Map[UID, CharacterSkeleton] = players.mapValues { player =>
+	val skeletons: Map[UID, CharacterSkeleton] = players.map { case (uid, player) =>
 		val skeleton = new CharacterSkeleton
 		skeleton.name.value = player.info.name
 		broadcast ! ServerMessage.InstantiateCharacter(player.info.uid, skeleton.uid)
-		skeleton
+		(uid, skeleton)
 	}
 
 	/** The map of player UIDs to their network latency */
