@@ -19,4 +19,6 @@ case class Circle(x: Double, y: Double, radius: Double) extends Shape {
 	@inline def intersect(c: Circle): Boolean = g.intersect(this, c)
 	@inline def intersect(t: Triangle): Boolean = g.intersect(t, this)
 	@inline def intersect(s: Segment): Boolean = g.intersect(s, this)
+
+	def sized (k: Double): Shape = Circle(x * k, y * k, radius * k)
 }
