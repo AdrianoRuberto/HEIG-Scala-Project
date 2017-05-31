@@ -9,6 +9,7 @@ case class Layer(strata: Double) extends AnyVal {
 }
 
 object Layer {
+	final val World = Layer(4)
 	final val Players = Layer(5)
 	final val Nameplates = Layer(6)
 	final val Interface = Layer(10)

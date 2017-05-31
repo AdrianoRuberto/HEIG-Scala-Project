@@ -1,5 +1,6 @@
 package engine.geometry
 
+import boopickle.Default._
 import engine.quadtree.{Bounded, BoundingBox}
 
 trait Shape {
@@ -43,4 +44,5 @@ object Shape {
 	implicit object ShapeIsBounded extends Bounded[Shape] {
 		def boundingBox(shape: Shape): BoundingBox = shape.boundingBox
 	}
+	implicit val pickler: Pickler[Shape] = compositePickler[Shape].addConcreteType[Triangle].addConcreteType[Rectangle].addConcreteType[Circle]
 }

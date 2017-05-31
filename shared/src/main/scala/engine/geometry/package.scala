@@ -18,16 +18,17 @@ package object geometry {
 		}
 
 		@inline def intersect(a: Triangle, b: Triangle): Boolean = {
-			List(a.AB, a.AC, a.BC).map(line => List(b.AB, b.AC, b.BC).filter(_ intersect line)).nonEmpty
+			a.contains(b) || List(a.AB, a.AC, a.BC).map(line => List(b.AB, b.AC, b.BC).filter(_ intersect line)).nonEmpty
 		}
 
 		@inline def intersect(t: Triangle, r: Rectangle): Boolean = {
+			t.contains(r) ||
 			(Triangle(r.x, r.y, r.x + r.width, r.y, r.x, r.y + r.height) intersect t) ||
 			(Triangle(r.x + r.width, r.y + r.height, r.x + r.width, r.y, r.x, r.y + r.height) intersect t)
 		}
 
 		@inline def intersect(t: Triangle, c: Circle): Boolean = {
-			intersect(t.AB, c) || intersect(t.AC, c) || intersect(t.BC, c)
+			t.contains(c) || intersect(t.AB, c) || intersect(t.AC, c) || intersect(t.BC, c)
 		}
 
 		@inline def intersect(s: Segment, c: Circle): Boolean = {

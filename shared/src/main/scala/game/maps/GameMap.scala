@@ -1,9 +1,9 @@
 package game.maps
 
 import boopickle.Default._
-import engine.geometry.{Point, Shape}
+import engine.geometry.{ColoredShape, Point}
 
-sealed abstract class GameMap(val geometry: Seq[Shape],
+sealed abstract class GameMap(val geometry: Seq[ColoredShape],
                               val spawns: List[Point] = Nil) {
 
 }
