@@ -61,7 +61,9 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 			start()
 		case PlayerActor.UpdateLatency(latency) =>
 			latencies += (senderUID -> latency)
-	}: Receive) orElse message
+	}: Receive) orElse message orElse {
+		case m => warn("Ignored unknown message message:", m.toString)
+	}
 
 	def init(): Unit
 	def start(): Unit

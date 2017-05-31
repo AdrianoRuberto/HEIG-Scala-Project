@@ -2,21 +2,21 @@ package game.server
 
 import game.UID
 import game.protocol.ServerMessage
-import game.skeleton.{Event, Transmitter}
+import game.skeleton.{ManagerEvent, Transmitter}
 import scala.language.implicitConversions
 
 trait BasicGameImplicits {
 	this: BasicGame =>
 
 	/**
-	  * An instance of [[Transmitter]] that send [[Event.ManagerEvent]] to every players of the game.
+	  * An instance of [[Transmitter]] that send [[ManagerEvent]] to every players of the game.
 	  * It is used as implicit parameter during the construction of the [[skeletons]] map.
 	  */
 	protected implicit object SkeletonTransmitter extends Transmitter {
-		def ! (event: Event.ManagerEvent): Unit = {
+		def ! (event: ManagerEvent): Unit = {
 			broadcast ! ServerMessage.SkeletonEvent(event)
 		}
-		def sendLatencyAware (f: (Double) => Event.ManagerEvent): Unit = {
+		def sendLatencyAware (f: (Double) => ManagerEvent): Unit = {
 			for ((uid, player) <- players; latency = latencies(uid)) {
 				player.actor ! ServerMessage.SkeletonEvent(f(latency))
 			}

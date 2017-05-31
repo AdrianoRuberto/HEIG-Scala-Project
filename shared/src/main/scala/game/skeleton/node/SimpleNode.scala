@@ -1,12 +1,13 @@
-package game.skeleton
+package game.skeleton.node
 
 import boopickle.DefaultBasic._
+import game.skeleton._
 
 /**
   * A simple node holds a single value of type [[T]].
   */
 case class SimpleNode[T: Pickler] (private var current: T)
-                                  (implicit skeleton: AbstractSkeleton) extends Node[Event.SimpleNodeEvent] {
+                                  (implicit skeleton: AbstractSkeleton) extends Node[NodeEvent.SimpleEvent] {
 	/** Current value of the node */
 	def value: T = current
 
@@ -14,12 +15,12 @@ case class SimpleNode[T: Pickler] (private var current: T)
 	def value_=(newValue: T): Unit = {
 		current = newValue
 		if (shouldEmit) {
-			this emit Event.SimpleUpdate(pickle(newValue))
+			this emit NodeEvent.SimpleUpdate(pickle(newValue))
 		}
 	}
 
 	/** Handle reception of update events from server */
-	override def receive(event: Event.SimpleNodeEvent): Unit = event match {
-		case Event.SimpleUpdate(buffer) => value = unpickle(buffer)
+	override def receive(event: NodeEvent.SimpleEvent): Unit = event match {
+		case NodeEvent.SimpleUpdate(buffer) => value = unpickle(buffer)
 	}
 }

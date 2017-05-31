@@ -1,9 +1,10 @@
 package game.server
 
 import akka.actor.Props
+import game.protocol.enums.GameMode
 import game.server.modes.ctf.CaptureTheFlagBuilder
 import game.server.modes.koth.KingOfTheHillBuilder
-import game.{GameMode, TeamInfo, UID}
+import game.{TeamInfo, UID}
 import scala.util.Random
 
 abstract class GameBuilder(val mode: GameMode) {

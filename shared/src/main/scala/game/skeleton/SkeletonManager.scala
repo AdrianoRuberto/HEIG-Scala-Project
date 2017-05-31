@@ -1,7 +1,6 @@
 package game.skeleton
 
 import game.UID
-import game.skeleton.Event.ManagerEvent
 
 class SkeletonManager {
 	private var skeletons: Map[UID, AbstractSkeleton] = Map.empty
@@ -14,10 +13,10 @@ class SkeletonManager {
 	def getAs[T <: AbstractSkeleton](uid: UID): T = get(uid).asInstanceOf[T]
 
 	def receive(event: ManagerEvent): Unit = event match {
-		case Event.InstantiateSkeleton(tpe, uid) =>
+		case ManagerEvent.InstantiateSkeleton(tpe, uid) =>
 			val skeleton = tpe.instantiate(uid)
 			skeletons += (uid -> skeleton)
-		case n @ Event.NotifyNode(uid, _, _) =>
+		case n @ ManagerEvent.NotifyNode(uid, _, _) =>
 			get(uid).receive(n)
 	}
 

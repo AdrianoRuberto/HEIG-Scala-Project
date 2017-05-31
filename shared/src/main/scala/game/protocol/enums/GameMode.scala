@@ -1,6 +1,4 @@
-package game
-
-import boopickle.Default._
+package game.protocol.enums
 
 sealed trait GameMode {
 	val name: String
@@ -22,6 +20,4 @@ object GameMode {
 		val name = "Twisting Nether"
 		val desc = "In space no one can hear you scream..."
 	}
-
-	implicit val pickler: Pickler[GameMode] = generatePickler[GameMode]
 }

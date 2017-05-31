@@ -1,9 +1,9 @@
-package game.skeleton
+package game.skeleton.node
 
-import game.skeleton.Event.InterpolatedUpdate
+import game.skeleton.AbstractSkeleton
 
 case class InterpolatedNode (private var targetValue: Double)
-                            (implicit skeleton: AbstractSkeleton) extends Node[Event.InterpolatedNodeEvent] {
+                            (implicit skeleton: AbstractSkeleton) extends Node[NodeEvent.InterpolatedEvent] {
 
 	private var currentValue: Double = targetValue
 	private var lastTime: Double = 0.0
@@ -44,9 +44,9 @@ case class InterpolatedNode (private var targetValue: Double)
 		// Update with receiver latency awareness
 		if (shouldEmit) {
 			if (duration <= 0.0) {
-				this emit InterpolatedUpdate(value, duration)
+				this emit NodeEvent.InterpolatedUpdate(value, duration)
 			} else {
-				this emitLatencyAware (latency => Event.InterpolatedUpdate(value, duration - latency))
+				this emitLatencyAware (latency => NodeEvent.InterpolatedUpdate(value, duration - latency))
 			}
 		}
 	}
@@ -61,7 +61,7 @@ case class InterpolatedNode (private var targetValue: Double)
 	def stop(): Unit = interpolate(targetValue, 0)
 
 	/** Receives a event from the server-side instance of this node */
-	def receive(event: Event.InterpolatedNodeEvent): Unit = event match {
-		case Event.InterpolatedUpdate(t, d) => interpolate(t, d)
+	def receive(event: NodeEvent.InterpolatedEvent): Unit = event match {
+		case NodeEvent.InterpolatedUpdate(t, d) => interpolate(t, d)
 	}
 }

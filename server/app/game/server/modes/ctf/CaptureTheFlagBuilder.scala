@@ -1,7 +1,7 @@
 package game.server.modes.ctf
 
 import akka.actor.Props
-import game.GameMode
+import game.protocol.enums.GameMode
 import game.server.GameBuilder
 import game.server.modes.dummy.{DummyBot, DummyGame}
 

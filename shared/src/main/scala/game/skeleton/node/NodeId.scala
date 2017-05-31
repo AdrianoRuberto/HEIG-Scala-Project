@@ -1,4 +1,4 @@
-package game.skeleton
+package game.skeleton.node
 
 import boopickle.DefaultBasic._
 

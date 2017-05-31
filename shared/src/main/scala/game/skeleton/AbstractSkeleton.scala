@@ -1,7 +1,7 @@
 package game.skeleton
 
 import game.UID
-import game.skeleton.Event.{NodeEvent, NotifyNode}
+import game.skeleton.node.{Node, NodeEvent, NodeId}
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -14,7 +14,7 @@ class AbstractSkeleton(tpe: Type, val uid: UID = UID.next)
 
 	// Notify client-side of this skeleton instantiation
 	if (transmitter != Transmitter.NoTransmitter) {
-		transmitter ! Event.InstantiateSkeleton(tpe, uid)
+		transmitter ! ManagerEvent.InstantiateSkeleton(tpe, uid)
 	}
 
 	// NodeIds generator
@@ -25,7 +25,7 @@ class AbstractSkeleton(tpe: Type, val uid: UID = UID.next)
 	private[skeleton] var nodes: Map[NodeId, Node[_]] = Map.empty
 
 	/** Receives notifications from the server instance of this skeleton */
-	final def receive(notification: NotifyNode): Unit = nodes.get(notification.nid) match {
+	final def receive(notification: ManagerEvent.NotifyNode): Unit = nodes.get(notification.nid) match {
 		case Some(node) => node.asInstanceOf[Node[NodeEvent]].receive(notification.event)
 		case None => throw new IllegalStateException(s"Received notification for unknown node: ${notification.nid}")
 	}
