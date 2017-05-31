@@ -10,7 +10,6 @@ class Player (skeleton: CharacterSkeleton) extends Character(skeleton, 1) {
 	protected implicit val keyboardMonitor = new Keyboard.Monitor
 
 	private var moving = false
-	private var movingDirection = 0.0
 	private var movingThrottle = 0.0
 	private var sprinting = false
 
@@ -31,17 +30,20 @@ class Player (skeleton: CharacterSkeleton) extends Character(skeleton, 1) {
 		}
 */
 		if (engine.mouse.left) {
+			moving = true
+
+			val Point(x, y) = engine.mouse.relative.point
+			val angle = Math.atan2(y, x)
+			val speed = skeleton.speed.value
+			val tx = skeleton.x.current + Math.cos(angle) * speed
+			val ty = skeleton.y.current + Math.sin(angle) * speed
+
+			skeleton.x.interpolate(tx, 1000)
+			skeleton.y.interpolate(ty, 1000)
+
 			val now = dom.window.performance.now()
-			if (!moving || now - movingThrottle > 100) {
+			if (now - movingThrottle > 100) {
 				movingThrottle = now
-				moving = true
-				val Point(x, y) = engine.mouse.relative.point
-				val angle = Math.atan2(y, x)
-				val speed = skeleton.speed.value
-				val tx = skeleton.x.current + Math.cos(angle) * speed
-				val ty = skeleton.y.current + Math.sin(angle) * speed
-				skeleton.x.interpolate(tx, 1000)
-				skeleton.y.interpolate(ty, 1000)
 			}
 		} else if (moving) {
 			moving = false
