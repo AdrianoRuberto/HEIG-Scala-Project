@@ -16,6 +16,11 @@ trait BasicGameImplicits {
 		def ! (event: Event.ManagerEvent): Unit = {
 			broadcast ! ServerMessage.SkeletonEvent(event)
 		}
+		def sendLatencyAware (f: (Double) => Event.ManagerEvent): Unit = {
+			for ((uid, player) <- players; latency = latencies(uid)) {
+				player.actor ! ServerMessage.SkeletonEvent(f(latency))
+			}
+		}
 	}
 
 	/** Some quality of life operations on UIDs */

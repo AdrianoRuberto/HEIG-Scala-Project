@@ -15,6 +15,9 @@ object Event {
 	/** Update to a [[SimpleNode]] value */
 	case class SimpleUpdate(value: Array[Byte]) extends SimpleNodeEvent
 
+	sealed trait InterpolatedNodeEvent extends NodeEvent
+	case class InterpolatedUpdate(target: Double, duration: Double) extends InterpolatedNodeEvent
+
 	/** Events targeting a [[SkeletonManager]] */
 	sealed trait ManagerEvent
 	/** Instantiates a new skeleton of the given type with a given UID */

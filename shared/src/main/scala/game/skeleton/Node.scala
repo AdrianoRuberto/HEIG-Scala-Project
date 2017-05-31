@@ -14,11 +14,16 @@ abstract class Node[E <: Event.NodeEvent](implicit val skeleton: AbstractSkeleto
 	/** Receives a event from the server-side instance of this node */
 	def receive(event: E): Unit
 
+	@inline protected final def shouldEmit: Boolean = {
+		skeleton.transmitter != Transmitter.NoTransmitter
+	}
+
 	/** Transmits an event to the client-side version of this node. */
-	@inline final def emit(event: E): Unit = {
-		val transmitter = skeleton.transmitter
-		if (transmitter != Transmitter.NoTransmitter) {
-			transmitter ! Event.NotifyNode(skeleton.uid, nid, event)
-		}
+	@inline protected final def emit(event: E): Unit = {
+		skeleton.transmitter ! Event.NotifyNode(skeleton.uid, nid, event)
+	}
+
+	@inline protected final def emitLatencyAware(f: Double => E): Unit = {
+		skeleton.transmitter sendLatencyAware (lat => Event.NotifyNode(skeleton.uid, nid, f(lat)))
 	}
 }
