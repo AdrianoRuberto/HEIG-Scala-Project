@@ -7,21 +7,23 @@ import engine.geometry.Rectangle
 import engine.utils.Layer
 
 class PlayerFrame (x: Double, y: Double, player: Player) extends Entity with AbsolutePosition {
-	val boundingBox: Rectangle = Rectangle(x, y, 200, 90)
 	val layer: Layer = Layer.Interface
+	val boundingBox: Rectangle = Rectangle(x, y, 200, 90)
+
+	private val skeleton = player.skeleton
 
 	def draw(ctx: CanvasCtx): Unit = {
 		ctx.transform(1, -0.05, 0, 1, -0.5, 0)
 
 		ctx.font = "500 24px 'Roboto Mono'"
 		ctx.textAlign = "right"
-		ctx.fillText(player.health.smoothValue.ceil.toString, 45, 30)
+		ctx.fillText(skeleton.health.current.ceil.toString, 45, 30)
 
 		ctx.font = "400 14px 'Roboto Mono'"
 		ctx.textAlign = "left"
-		ctx.fillText("/ " + player.health.max.ceil, 52, 30)
+		ctx.fillText("/ " + skeleton.health.max.ceil, 52, 30)
 
-		val splits = (player.health.max / 25).round.toInt
+		val splits = (skeleton.health.max / 25 + 0.5).toInt
 		val blanks = (splits - 1) * 5
 		val width = (200.0 - blanks) / splits
 
@@ -37,8 +39,8 @@ class PlayerFrame (x: Double, y: Double, player: Player) extends Entity with Abs
 		ctx.clip()
 		ctx.fillStyle = "rgba(216, 216, 216, 0.9)"
 		ctx.fillRect(0, 45, 200, 25)
-		ctx.fillStyle = player.healthColor
-		ctx.fillRect(0, 45, 200 * player.health.smoothPercent, 25)
+		ctx.fillStyle = skeleton.color.value
+		ctx.fillRect(0, 45, 200 * skeleton.health.percent, 25)
 		ctx.restore()
 
 		drawSegments()
@@ -50,7 +52,7 @@ class PlayerFrame (x: Double, y: Double, player: Player) extends Entity with Abs
 		ctx.fillRect(0, 80, 200, 10)
 
 		ctx.fillStyle = "#fc2"
-		ctx.fillRect(0, 80, 200 * player.energy.smoothPercent, 10)
+		ctx.fillRect(0, 80, 200 * skeleton.energy.percent, 10)
 
 		ctx.strokeRect(0, 80, 200, 10)
 	}

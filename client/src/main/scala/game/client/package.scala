@@ -17,6 +17,7 @@ package object client {
 		object Close extends Event[dom.CloseEvent]("close")
 		object Error extends Event[dom.Event]("error")
 		object Input extends Event[dom.Event]("input")
+		object KeyDown extends Event[dom.KeyboardEvent]("keydown")
 		object KeyUp extends Event[dom.KeyboardEvent]("keyup")
 		object Load extends Event[dom.UIEvent]("load")
 		object Message extends Event[dom.MessageEvent]("message")

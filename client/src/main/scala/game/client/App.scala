@@ -32,6 +32,13 @@ object App extends JSApp {
 				boot()
 			}
 		}
+
+		dom.document.on(Event.KeyDown) { ev =>
+			if (!ev.repeat && ev.key == "a" && ev.ctrlKey) {
+				Server.verbose.toggle()
+				dom.console.log("Server verbose mode:", Server.verbose.value)
+			}
+		}
 	})
 
 	def boot(): Unit = {

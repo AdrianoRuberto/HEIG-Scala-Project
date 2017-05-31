@@ -37,7 +37,7 @@ final class Camera private[engine] (engine: Engine) {
 					val actual = norm min (dt * speed / 1000)
 					x += (dx / norm * actual)
 					y += (dy / norm * actual)
-				} else {
+				} else if (dt > 0.0) {
 					x += dx / 3
 					y += dy / 3
 				}
@@ -55,25 +55,28 @@ final class Camera private[engine] (engine: Engine) {
 		following = null
 		tx = a
 		ty = b
-		if (!smoothing) {
-			x = tx
-			y = ty
-		}
+		update(0)
 	}
 
 	@inline def setPoint(p: Point): Unit = setPoint(p.x, p.y)
-	def follow(entity: Entity): Unit = following = entity
+
+	def follow(entity: Entity): Unit = {
+		following = entity
+		update(0)
+	}
 
 	def detach(): Unit = following = null
 
 	def setSmoothing(state: Boolean): Unit = {
 		smoothing = state
 		velocity = false
+		update(0)
 	}
 
 	def setSmoothingSpeed(pps: Double): Unit = {
 		speed = pps
 		smoothing = true
 		velocity = true
+		update(0)
 	}
 }

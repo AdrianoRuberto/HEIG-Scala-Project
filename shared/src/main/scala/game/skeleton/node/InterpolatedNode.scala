@@ -2,8 +2,8 @@ package game.skeleton.node
 
 import game.skeleton.AbstractSkeleton
 
-case class InterpolatedNode (private var targetValue: Double)
-                            (implicit skeleton: AbstractSkeleton) extends Node[NodeEvent.InterpolatedEvent] {
+class InterpolatedNode (private var targetValue: Double)
+                       (implicit skeleton: AbstractSkeleton) extends Node[NodeEvent.InterpolatedEvent] {
 
 	private var currentValue: Double = targetValue
 	private var lastTime: Double = 0.0
@@ -31,7 +31,7 @@ case class InterpolatedNode (private var targetValue: Double)
 
 	def value: Double = targetValue
 
-	def interpolate(value: Double, duration: Double): Unit = {
+	def interpolate(value: Double, duration: Double): Unit = if (targetValue != value) {
 		targetValue = value
 		if (duration <= 0.0) {
 			currentValue = value
@@ -58,10 +58,14 @@ case class InterpolatedNode (private var targetValue: Double)
 		else interpolate(value, 1000.0 * (value - currentValue) / speed)
 	}
 
-	def stop(): Unit = interpolate(targetValue, 0)
+	def stop(): Unit = interpolate(currentValue, 0)
 
 	/** Receives a event from the server-side instance of this node */
 	def receive(event: NodeEvent.InterpolatedEvent): Unit = event match {
 		case NodeEvent.InterpolatedUpdate(t, d) => interpolate(t, d)
 	}
+}
+
+object InterpolatedNode {
+	def apply(value: Double)(implicit skeleton: AbstractSkeleton): InterpolatedNode = new InterpolatedNode(value)
 }

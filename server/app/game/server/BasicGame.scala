@@ -110,6 +110,14 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 		}
 	}
 
+	def setTeamColors(colors: String*): Unit = {
+		for ((team, color) <- teams.values zip colors; player <- team.players) {
+			skeletons(player.info.uid).color.value = color
+		}
+	}
+
+	def setDefaultTeamColors(): Unit = setTeamColors("#5a5", "#f55")
+
 	/** Retrieves the sender's UID */
 	def senderUID: UID = uids(sender())
 }

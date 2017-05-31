@@ -2,17 +2,19 @@ package game.client
 
 import boopickle.DefaultBasic._
 import game.protocol.ServerMessage.Severity
-import game.protocol.{ClientMessage, ServerMessage}
+import game.protocol.{ClientMessage, ServerMessage, SystemMessage}
 import java.nio.ByteBuffer
 import org.scalajs.dom
 import org.scalajs.dom.raw.WebSocket
 import scala.scalajs.js
 import scala.scalajs.js.typedarray._
 import scala.util.Try
+import utils.PersistentBoolean
 
 object Server {
 	private var socket: dom.WebSocket = null
 
+	val verbose = PersistentBoolean("serverVerbose", default = false)
 	var latency: Double = 0
 
 	def searchGame(name: String, fast: Boolean): Unit = {
@@ -22,8 +24,8 @@ object Server {
 		socket.on(Event.Open) { _ => Server ! ClientMessage.SearchGame(name, fast) }
 		socket.on(Event.Close)(socketClosed)
 		socket.on(Event.Error)(socketClosed)
-		socket.on(Event.Message) { msg =>
-			val buffer = TypedArrayBuffer.wrap(msg.data.asInstanceOf[ArrayBuffer])
+		socket.on(Event.Message) { event =>
+			val buffer = TypedArrayBuffer.wrap(event.data.asInstanceOf[ArrayBuffer])
 			handleMessage(Unpickle[ServerMessage].fromBytes(buffer))
 		}
 	}
@@ -36,9 +38,10 @@ object Server {
 		}
 	}
 
-	def ! (msg: ClientMessage): Unit = {
+	def ! (message: ClientMessage): Unit = {
 		//require(socket != null, "Attempted to send message to server while not connected")
-		val buffer = Pickle.intoBytes(msg).toArrayBuffer
+		if (verbose && !message.isInstanceOf[SystemMessage]) dom.console.log(">>", message.toString)
+		val buffer = Pickle.intoBytes(message).toArrayBuffer
 		socket.send(buffer)
 	}
 
@@ -46,16 +49,19 @@ object Server {
 		socket = null
 	}
 
-	def handleMessage(msg: ServerMessage): Unit = msg match {
-		case ServerMessage.Bundle(messages) => messages.foreach(handleMessage)
-		case ServerMessage.Ping(ms, payload) =>
-			latency = ms
-			this ! ClientMessage.Ping(payload)
-		case ServerMessage.Debug(severity, args) => debugOutput(severity, args)
-		case ServerMessage.ServerError => App.reboot(true)
-		case ServerMessage.GameEnd => App.reboot()
-		case lm: ServerMessage.LobbyMessage => Lobby.message(lm)
-		case gm: ServerMessage.GameMessage => Game.message(gm)
+	def handleMessage(message: ServerMessage): Unit = {
+		if (verbose && !message.isInstanceOf[SystemMessage]) dom.console.log("<<", message.toString)
+		message match {
+			case ServerMessage.Bundle(messages) => messages.foreach(handleMessage)
+			case ServerMessage.Ping(ms, payload) =>
+				latency = ms
+				this ! ClientMessage.Ping(payload)
+			case ServerMessage.Debug(severity, args) => debugOutput(severity, args)
+			case ServerMessage.ServerError => App.reboot(true)
+			case ServerMessage.GameEnd => App.reboot()
+			case lm: ServerMessage.LobbyMessage => Lobby.message(lm)
+			case gm: ServerMessage.GameMessage => Game.message(gm)
+		}
 	}
 
 	private def debugOutput(severity: Severity, args: Seq[String]): Unit = if (args.nonEmpty) {

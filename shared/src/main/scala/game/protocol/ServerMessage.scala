@@ -11,8 +11,8 @@ object ServerMessage {
 	// Core messages
 	case object ServerError extends ServerMessage
 	case object GameEnd extends ServerMessage
-	case class Ping(latency: Double, payload: Long) extends ServerMessage
-	case class Bundle(messages: Seq[ServerMessage]) extends ServerMessage
+	case class Ping(latency: Double, payload: Long) extends ServerMessage with SystemMessage
+	case class Bundle(messages: Seq[ServerMessage]) extends ServerMessage with SystemMessage
 
 	// Lobby messages
 	sealed trait LobbyMessage extends ServerMessage
@@ -40,7 +40,7 @@ object ServerMessage {
 		case object Error extends Severity
 		implicit val pickler: Pickler[Severity] = generatePickler[Severity]
 	}
-	case class Debug(severity: Severity, args: Seq[String]) extends ServerMessage
+	case class Debug(severity: Severity, args: Seq[String]) extends ServerMessage with SystemMessage
 
 	private implicit val UIDPicker = UID.pickler
 	private implicit val SkeletonPickler = ManagerEvent.pickler
