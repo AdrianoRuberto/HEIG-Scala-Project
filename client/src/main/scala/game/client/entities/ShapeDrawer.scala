@@ -11,6 +11,7 @@ class ShapeDrawer(coloredShape: ColoredShape) extends Entity {
 	def boundingBox: Rectangle = coloredShape.boundingBox
 	def draw(ctx: CanvasCtx): Unit = {
 		ctx.fillStyle = coloredShape.color
+		ctx.strokeStyle = coloredShape.color
 
 		coloredShape.shape match {
 			case Circle(x, y, radius) =>
@@ -24,7 +25,12 @@ class ShapeDrawer(coloredShape: ColoredShape) extends Entity {
 				ctx.lineTo(bx, by)
 				ctx.lineTo(cx, cy)
 				ctx.fill()
-			case _ =>
+			case Segment(x1, y1, x2, y2) =>
+				ctx.beginPath()
+				ctx.lineWidth = 5
+				ctx.moveTo(x1, y1)
+				ctx.lineTo(x2, y2)
+				ctx.stroke()
 		}
 	}
 }
