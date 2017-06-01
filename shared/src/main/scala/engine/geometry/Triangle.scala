@@ -51,5 +51,5 @@ case class Triangle(ax: Double, ay: Double, bx: Double, by: Double, cx: Double, 
 	@inline def intersect(t: Triangle): Boolean = g.intersect(this, t)
 	@inline def intersect(s: Segment): Boolean = g.intersect(s, this)
 
-	def sized (k: Double): Shape = Triangle(ax * k, ay * k, bx * k, by * k, cx * k, cy * k)
+	def scale (k: Double): Shape = Triangle(ax * k, ay * k, bx * k, by * k, cx * k, cy * k)
 }

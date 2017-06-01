@@ -16,5 +16,5 @@ case class Segment(x1: Double, y1: Double, x2: Double, y2: Double) extends Shape
 	def contains(x: Double, y: Double): Boolean = Vector(x - x1, y - y1).cross(Vector(x2 - x, y2 - y)) == 0
 	def contains(c: Circle): Boolean = c.radius == 0 && contains(c.x, c.y)
 
-	def sized (k: Double): Shape = Segment(x1 * k, y1 * k, x2 * k, y2 * k)
+	def scale (k: Double): Shape = Segment(x1 * k, y1 * k, x2 * k, y2 * k)
 }

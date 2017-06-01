@@ -6,29 +6,30 @@ import scala.language.implicitConversions
 private[maps] object KingOfTheHill {
 
 	private val size: Double = 20
+	private implicit val wallColor = ColoredShape.DefaultColor("#333")
 
-	val illios = Seq(
+	val illios = Seq[ColoredShape](
 		// Left side
-		ColoredShape(Segment(-22, -13, -22, 25) sized size),
-		ColoredShape(Segment(-22, 7, -7, 7) sized size),
-		ColoredShape(Rectangle(-7, 5, 2, 2) sized size),
-		ColoredShape(Rectangle(-18, -3, 6, 7) sized size),
-		ColoredShape(Rectangle(-10, -3, 5, 4) sized size),
-		ColoredShape(Rectangle(-13, -10, 7, 4) sized size),
-		ColoredShape(Triangle(-7, 7, -10, 7, -7, 5) sized size),
+		Segment(-22, -13, -22, 25) scale size,
+		Segment(-22, 7, -7, 7) scale size,
+		Rectangle(-7, 5, 2, 2) scale size,
+		Rectangle(-18, -3, 6, 7) scale size,
+		Rectangle(-10, -3, 5, 4) scale size,
+		Rectangle(-13, -10, 7, 4) scale size,
+		Triangle(-7, 7, -10, 7, -7, 5) scale size,
 		// Center
-		ColoredShape(Circle(0, 0, 3) sized size),
-		ColoredShape(Segment(-22, -13, 22, -13) sized size),
-		ColoredShape(Segment(-4, -11, 4, -11) sized size),
-		ColoredShape(Segment(-4, -11, -4, -9) sized size),
-		ColoredShape(Segment(-4, -7, -4, -5) sized size),
-		ColoredShape(Segment(4, -11, 4, -9) sized size),
-		ColoredShape(Segment(4, -7, 4, -5) sized size),
-		ColoredShape(Segment(-4, -5, -1, -5) sized size),
-		ColoredShape(Segment(4, -5, 1, -5) sized size),
-		ColoredShape(Triangle(0, -12, -1, -11, 1, -11) sized size),
+		Circle(0, 0, 3) scale size,
+		Segment(-22, -13, 22, -13) scale size,
+		Segment(-4, -11, 4, -11) scale size,
+		Segment(-4, -11, -4, -9) scale size,
+		Segment(-4, -7, -4, -5) scale size,
+		Segment(4, -11, 4, -9) scale size,
+		Segment(4, -7, 4, -5) scale size,
+		Segment(-4, -5, -1, -5) scale size,
+		Segment(4, -5, 1, -5) scale size,
+		Triangle(0, -12, -1, -11, 1, -11) scale size,
 		// Right side
 
-		ColoredShape(Segment(22, -13, 22, 7) sized size)
+		Segment(22, -13, 22, 7) scale size
 	)
 }

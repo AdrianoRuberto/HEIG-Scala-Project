@@ -20,5 +20,5 @@ case class Rectangle (x: Double, y: Double, width: Double, height: Double) exten
 	@inline def intersect(t: Triangle): Boolean = g.intersect(t, this)
 	@inline def intersect(s: Segment): Boolean = g.intersect(s, this)
 
-	def sized (k: Double): Shape = Rectangle(x * k, y * k, width * k,height * k)
+	def scale (k: Double): Shape = Rectangle(x * k, y * k, width * k, height * k)
 }

@@ -1,7 +1,7 @@
 package game.server
 
 import akka.actor.ActorRef
-import engine.geometry.{ColoredShape, Vector, Shape}
+import engine.geometry.{ColoredShape, Shape, Vector}
 import game.UID
 import game.maps.GameMap
 import game.protocol.{ClientMessage, ServerMessage}
@@ -144,10 +144,11 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 	/** Retrieves the sender's UID */
 	def senderUID: UID = uids(sender())
 
-	def addShape(coloredShape: ColoredShape): Unit = {
+	def addShape(coloredShape: ColoredShape): UID = {
 		val uid = UID.next
 		shapes += (uid -> coloredShape)
 		broadcast ! ServerMessage.DrawShape(uid, coloredShape)
+		uid
 	}
 
 	def deleteShape(uid: UID): Unit = {

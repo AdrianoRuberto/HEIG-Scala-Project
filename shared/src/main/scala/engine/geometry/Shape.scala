@@ -34,9 +34,10 @@ trait Shape {
 		case s: Segment => intersect(s)
 	}
 
-	def sized (k: Double): Shape
-
 	@inline final def disjoint(shape: Shape): Boolean = !(this intersect shape)
+
+	def scale(k: Double): Shape
+	def colored(color: String): ColoredShape = ColoredShape(this, color)
 }
 
 object Shape {

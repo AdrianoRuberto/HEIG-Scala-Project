@@ -14,7 +14,8 @@ case class Vector(x: Double, y: Double) {
 	def cross(v: Vector): Double = x * v.y - y * v.x
 	def norm: Double = math.sqrt(x * x + y * y)
 	def project(v: Vector): Vector = v * (this * v)
-	def perpendicular: Vector = Vector(-y, x)
+	def orthogonal: Vector = Vector(-y, x)
+	def normalized: Vector = this / norm
 
 	@inline def squaredDistance(v: Vector): Double = squaredDistance(v.x, v.y)
 	@inline def squaredDistance(u: Double, v: Double): Double = g.squaredDistance(x, y, u, v)
