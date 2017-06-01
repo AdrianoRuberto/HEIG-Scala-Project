@@ -4,29 +4,27 @@ import engine.entity.Entity
 import engine.entity.feature.AbsolutePosition
 import engine.geometry.Rectangle
 import engine.utils.Layer
-import game.spells.icon
+import game.skeleton.concrete.SpellSkeleton
+import game.spells.icon.SpellIcon
 
-class PlayerSpells (x: Double, y: Double, player: Player) extends Entity with AbsolutePosition {
+class PlayerSpells (x: Double, y: Double, playerSpells: => Array[Option[SpellSkeleton]])
+	extends Entity with AbsolutePosition {
+
 	val layer: Layer = Layer.Interface
 	val boundingBox: Rectangle = Rectangle(x, y, 300, 105)
 
-	//private val skeleton = player.skeleton
+	val keys = Seq("1", "2", "3", "4")
 
 	def draw(ctx: CanvasCtx): Unit = {
-		ctx.transform(1, 0.05, -0.1, 1, 0, 0)
-		//ctx.strokeRect(0, 0, 300, 90)
-
-		ctx.translate(300 - 60, 10)
-
-		val spells = Seq((icon.Sword, "M1"), (icon.Sprint, "Shift"), (icon.BioticField, "Q"), (icon.Sprint, "F1"))
+		ctx.transform(1, 0.05, -0.1, 1, 240, 10)
 
 		ctx.textAlign = "center"
 		ctx.textBaseline = "hanging"
 		ctx.font = "400 12px 'Roboto Mono'"
 		ctx.fillStyle = "#000"
 
-		for ((spell, key) <- spells) {
-			spell.draw(ctx)
+		for ((Some(skeleton), key) <- playerSpells zip keys) {
+			SpellIcon.forSpell(skeleton.spell.value).draw(ctx)
 			ctx.fillText(key, 30, 65)
 			ctx.translate(-75, 0)
 		}

@@ -1,9 +1,5 @@
 package game.client
 
-import game.UID
-import game.protocol.ServerMessage
-import game.protocol.enums.SkeletonType
-import game.skeleton.ManagerEvent
 import org.scalajs.dom
 import org.scalajs.dom.ext._
 import org.scalajs.dom.html
@@ -16,7 +12,7 @@ object App extends JSApp {
 	private lazy val cover = dom.document.querySelector("#cover")
 
 	private var timers = Set.empty[SetTimeoutHandle]
-	private val debug = true
+	private val debug = false
 
 	/**
 	  * Application entry point.
@@ -83,11 +79,5 @@ object App extends JSApp {
 		Lobby.reset()
 	}
 
-	def debugBoot(): Unit = {
-		hidePanels()
-		Game.start(null, UID.zero)
-		Game.message(ServerMessage.SkeletonEvent(ManagerEvent.InstantiateSkeleton(SkeletonType.Character, UID.zero)))
-		Game.message(ServerMessage.InstantiateCharacter(UID.zero, UID.zero))
-		Game.unlock()
-	}
+	def debugBoot(): Unit = ()
 }

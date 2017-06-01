@@ -6,7 +6,7 @@ import game.client.entities.{Character, DebugStats, Player, PlayerFrame, PlayerS
 import game.protocol.ServerMessage
 import game.protocol.ServerMessage._
 import game.skeleton.SkeletonManager
-import game.skeleton.concrete.CharacterSkeleton
+import game.skeleton.concrete.{CharacterSkeleton, SpellSkeleton}
 import game.{TeamInfo, UID}
 import org.scalajs.dom
 import org.scalajs.dom.html
@@ -23,7 +23,9 @@ object Game {
 	private var characterEntities: Map[UID, Entity] = Map.empty
 
 	private var teams: Seq[TeamInfo] = Nil
-	private var playerUID: UID = _
+	private var playerUID: UID = UID.zero
+
+	private var playerSpells: Array[Option[SpellSkeleton]] = Array.fill(4)(None)
 
 	def setup(): Unit = {
 		dom.window.on(Event.Resize) { _ => resizeCanvas() }
@@ -102,7 +104,7 @@ object Game {
 		val entity = if (characterUID != playerUID) new Character(skeleton) else {
 			val player = new Player(skeleton)
 			engine.registerEntity(new PlayerFrame(85, -80, player))
-			engine.registerEntity(new PlayerSpells(-85, -65, player))
+			engine.registerEntity(new PlayerSpells(-85, -65, playerSpells))
 			player
 		}
 		characterEntities += (characterUID -> entity)
