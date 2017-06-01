@@ -1,17 +1,16 @@
 package game.client.entities
-
 import engine.CanvasCtx
 import engine.entity.Entity
 import engine.entity.feature.AbsolutePosition
 import engine.geometry.Rectangle
 import engine.utils.Layer
-import game.spells.icon.SpellIcon
+import game.spells.icon
 
 class PlayerSpells (x: Double, y: Double, player: Player) extends Entity with AbsolutePosition {
 	val layer: Layer = Layer.Interface
 	val boundingBox: Rectangle = Rectangle(x, y, 300, 105)
 
-	private val skeleton = player.skeleton
+	//private val skeleton = player.skeleton
 
 	def draw(ctx: CanvasCtx): Unit = {
 		ctx.transform(1, 0.05, -0.1, 1, 0, 0)
@@ -19,7 +18,7 @@ class PlayerSpells (x: Double, y: Double, player: Player) extends Entity with Ab
 
 		ctx.translate(300 - 60, 10)
 
-		val spells = Seq((SpellIcon.Sword, "M1"), (SpellIcon.Sprint, "Shift"), (SpellIcon.Sprint, "Q"), (SpellIcon.Sprint, "F1"))
+		val spells = Seq((icon.Sword, "M1"), (icon.Sprint, "Shift"), (icon.BioticField, "Q"), (icon.Sprint, "F1"))
 
 		ctx.textAlign = "center"
 		ctx.textBaseline = "hanging"
