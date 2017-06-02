@@ -11,12 +11,12 @@ class CharacterSkeleton (uid: UID = UID.next)
 		extends AbstractSkeleton(SkeletonType.Character, uid) {
 
 	val name = SimpleNode("Unknown")
-	val color = SimpleNode("black")
+	val color = SimpleNode("#999")
 
 	val moving = SimpleNode(false)
 	val x = InterpolatedNode(0.0)
 	val y = InterpolatedNode(0.0)
-	val speed = SimpleNode(150)
+	val speed = InterpolatedNode(150.0)
 
 	val facingOverride = SimpleNode(false)
 	val facingDirection = SimpleNode(0.0)

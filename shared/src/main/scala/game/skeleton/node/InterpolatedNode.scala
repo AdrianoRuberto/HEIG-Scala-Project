@@ -55,7 +55,7 @@ class InterpolatedNode (private var targetValue: Double)
 
 	def interpolateAtSpeed(value: Double, speed: Double): Unit = {
 		if (speed == 0) stop()
-		else interpolate(value, 1000.0 * (value - currentValue) / speed)
+		else interpolate(value, 1000.0 * (value - current) / speed)
 	}
 
 	def stop(): Unit = interpolate(currentValue, 0)

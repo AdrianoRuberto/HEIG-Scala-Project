@@ -34,7 +34,7 @@ object App extends JSApp {
 		}
 
 		dom.document.on(Event.KeyDown) { ev =>
-			if (!ev.repeat && ev.key == "a" && ev.ctrlKey) {
+			if (!ev.repeat && ev.key == "a" && ev.altKey) {
 				Server.verbose.toggle()
 				dom.console.log("Server verbose mode:", Server.verbose.value)
 			}

@@ -18,6 +18,7 @@ abstract class Entity {
 		require(owner.isEmpty, "Attempt to register an already registered entity")
 		engine.entities += this
 		owner = engine
+		attached()
 		for (child <- children) child.registerWith(engine)
 	}
 
@@ -26,6 +27,7 @@ abstract class Entity {
 		require(engine == owner.orNull, "Attempt to unregister from foreign engine")
 		engine.entities -= this
 		owner = js.undefined
+		detached()
 		for (child <- children) child.unregister(soft = true)
 	}
 
@@ -42,6 +44,12 @@ abstract class Entity {
 	def boundingBox: Rectangle
 	def positionIsAbsolute: Boolean = false
 	def draw(ctx: CanvasCtx): Unit
+
+	/** Called when the unit is registered with the engine */
+	protected def attached(): Unit = ()
+
+	/** Called when the unit is unregistered from the engine */
+	protected def detached(): Unit = ()
 }
 
 object Entity {

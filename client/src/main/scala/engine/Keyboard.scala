@@ -2,6 +2,7 @@ package engine
 
 import engine.Keyboard.Monitor
 import org.scalajs.dom
+import scala.scalajs.js
 
 class Keyboard private[engine] (engine: Engine) {
 	var shift: Boolean = false
@@ -10,8 +11,11 @@ class Keyboard private[engine] (engine: Engine) {
 
 	private var states = Map.empty[String, Boolean]
 
-	private var handlers = Map[String, () => Unit](
-		"ctrl-f" -> (() => engine.drawBoundingBoxes = !engine.drawBoundingBoxes)
+	private var handlers = Map[String, (Option[() => Unit], Option[() => Unit])](
+		"alt-f" -> (
+			Some(() => engine.drawBoundingBoxes = !engine.drawBoundingBoxes),
+			None
+		)
 	)
 
 	def key(name: String): Boolean = states.getOrElse(name, false)
@@ -35,28 +39,55 @@ class Keyboard private[engine] (engine: Engine) {
 	}
 
 	def registerKey(key: String)(cmd: => Unit): Unit = {
-		handlers += (key.toLowerCase -> (() => cmd))
+		handlers += (key.toLowerCase -> (Some(() => cmd), None))
 	}
 
+	def registerKey(key: String, down: () => Unit, up: () => Unit): Unit = {
+		require(!key.contains("-"), "Cannot bind a KeyUp event for a key with a modifier")
+		var state = false
+		handlers += (key.toLowerCase -> (
+			Some(() => if (!state) {state = true; down()}),
+			Some(() => if (state) {state = false; up()})
+		))
+	}
+
+	def unregisterKeys(keys: String*): Unit = for (key <- keys) handlers -= key
+
 	private[engine] def handler(event: dom.KeyboardEvent): Unit = if (!event.repeat) {
+		val code = getKeyCode(event)
 		shift = event.shiftKey
 		ctrl = event.ctrlKey
 		alt = event.altKey
 		val state = event.`type` == "keydown"
-		states += (event.key -> state)
+		states += (code -> state)
 
 		// Dispatch key press if engine is running and not locked
-		if (state && engine.isRunning && !engine.isLocked) {
-			var key = event.key
-			if (shift) key = "shift-" + key
-			if (alt) key = "alt-" + key
-			if (ctrl) key = "ctrl-" + key
-			handlers.get(key.toLowerCase) match {
-				case Some(handler) => handler()
-				case None => return
+		if (engine.isRunning && !engine.isLocked) {
+			var codes = List(code)
+			if (shift) codes = codes ::: codes.map("shift-" + _)
+			if (ctrl) codes = codes ::: codes.map("ctrl-" + _)
+			if (alt) codes = codes ::: codes.map("alt-" + _)
+			if ((false /: codes) { case (a, c) => attemptDispatch(c, state) || a }) {
+				event.preventDefault()
 			}
-			event.preventDefault()
 		}
+	}
+
+	private def getKeyCode(event: dom.KeyboardEvent): String = {
+		event.asInstanceOf[js.Dynamic].code.asInstanceOf[js.UndefOr[String]].map { code =>
+			code.replaceFirst("^Digit|^Key|^Numpad|Left$|Right$", "")
+		}.getOrElse {
+			event.key match {
+				case " " => "space"
+				case key => key
+			}
+		}.toLowerCase
+	}
+
+	private def attemptDispatch(code: String, state: Boolean): Boolean = handlers.get(code) match {
+		case Some((Some(handler), _)) if state => handler(); true
+		case Some((_, Some(handler))) if !state => handler(); true
+		case _ => false
 	}
 }
 

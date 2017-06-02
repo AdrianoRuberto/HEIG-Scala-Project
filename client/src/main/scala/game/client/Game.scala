@@ -2,11 +2,11 @@ package game.client
 
 import engine.Engine
 import engine.entity.Entity
-import game.client.entities.{Character, DebugStats, Player, PlayerFrame, ShapeDrawer}
-import game.protocol.ServerMessage
+import game.client.entities.{Character, DebugStats, Player, PlayerFrame, PlayerSpells, ShapeDrawer}
 import game.protocol.ServerMessage._
+import game.protocol.{ClientMessage, ServerMessage}
 import game.skeleton.SkeletonManager
-import game.skeleton.concrete.CharacterSkeleton
+import game.skeleton.concrete.{CharacterSkeleton, SpellSkeleton}
 import game.{TeamInfo, UID}
 import org.scalajs.dom
 import org.scalajs.dom.html
@@ -24,13 +24,34 @@ object Game {
 	private var shapeEntities: Map[UID, Entity] = Map.empty
 
 	private var teams: Seq[TeamInfo] = Nil
-	private var playerUID: UID = _
+	private var playerUID: UID = UID.zero
+
+	private val playerSpells: Array[Option[SpellSkeleton]] = Array.fill(4)(None)
 
 	def setup(): Unit = {
 		dom.window.on(Event.Resize) { _ => resizeCanvas() }
 		resizeCanvas()
 		engine.setup()
-		engine.keyboard.registerKey("ctrl-s")(toggleDebugStats())
+		engine.keyboard.registerKey("alt-s")(toggleDebugStats())
+		engine.keyboard.registerKey("e", spellKeyDown(1), spellKeyUp(1))
+		engine.keyboard.registerKey("q", spellKeyDown(2), spellKeyUp(2))
+		engine.keyboard.registerKey("shift", spellKeyDown(3), spellKeyUp(3))
+	}
+
+	private def spellKeyDown(slot: Int)(): Unit = playerSpells(slot) match {
+		case Some(skeleton) =>
+			if (skeleton.cooldown.ready) {
+				skeleton.activated.value = true
+			}
+			Server ! ClientMessage.SpellCast(slot)
+		case _ => // Ignore
+	}
+
+	private def spellKeyUp(slot: Int)(): Unit = playerSpells(slot) match {
+		case Some(skeleton) =>
+			skeleton.activated.value = false
+			Server ! ClientMessage.SpellCancel(slot)
+		case _ => // Ignore
 	}
 
 	def resizeCanvas(): Unit = {
@@ -103,6 +124,7 @@ object Game {
 		val entity = if (characterUID != playerUID) new Character(skeleton) else {
 			val player = new Player(skeleton)
 			engine.registerEntity(new PlayerFrame(85, -80, player))
+			engine.registerEntity(new PlayerSpells(-85, -65, playerSpells))
 			player
 		}
 		characterEntities += (characterUID -> entity)
@@ -113,6 +135,8 @@ object Game {
 		// Builders
 		case SkeletonEvent(event) => skeletonManager.receive(event)
 		case InstantiateCharacter(characterUID, skeletonUID) => instantiateCharacter(characterUID, skeletonUID)
+		case GainSpell(slot, uid) => playerSpells(slot) = Some(skeletonManager.getAs[SpellSkeleton](uid))
+		case LoseSpell(slot) => playerSpells(slot) = None
 		case DrawShape(shapeUID, shape) =>
 			val shapeDrawer = new ShapeDrawer(shape)
 			shapeEntities += (shapeUID -> shapeDrawer)

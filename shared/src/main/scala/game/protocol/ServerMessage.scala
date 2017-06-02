@@ -28,6 +28,9 @@ object ServerMessage {
 	case class DrawShape(shapeUID: UID, shape: ColoredShape) extends GameMessage
 	case class EraseShape(shapeUID: UID) extends GameMessage
 
+	case class GainSpell(slot: Int, skeletonUID: UID) extends GameMessage
+	case class LoseSpell(slot: Int) extends GameMessage
+
 	// Camera
 	case class SetCameraLocation(x: Double, y: Double) extends GameMessage
 	case class SetCameraFollow(characterUID: UID) extends GameMessage
