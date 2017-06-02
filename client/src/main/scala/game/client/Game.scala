@@ -31,7 +31,22 @@ object Game {
 		dom.window.on(Event.Resize) { _ => resizeCanvas() }
 		resizeCanvas()
 		engine.setup()
-		engine.keyboard.registerKey("ctrl-s")(toggleDebugStats())
+		engine.keyboard.registerKey("alt-s")(toggleDebugStats())
+		engine.keyboard.registerKey("e", keyDown(1), keyUp(1))
+		engine.keyboard.registerKey("q", keyDown(2), keyUp(2))
+		engine.keyboard.registerKey("shift", keyDown(3), keyUp(3))
+	}
+
+	private def keyDown(spell: Int)(): Unit = playerSpells(spell) match {
+		case Some(skeleton) =>
+			skeleton.activated.value = true
+		case _ => // Ignore
+	}
+
+	private def keyUp(spell: Int)(): Unit = playerSpells(spell) match {
+		case Some(skeleton) =>
+			skeleton.activated.value = false
+		case _ => // Ignore
 	}
 
 	def resizeCanvas(): Unit = {

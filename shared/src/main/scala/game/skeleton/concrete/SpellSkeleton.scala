@@ -12,4 +12,5 @@ class SpellSkeleton (uid: UID = UID.next)
 
 	val spell = SimpleNode(null: Spell)
 	val cooldown = new CooldownNode
+	val activated = SimpleNode(false)
 }

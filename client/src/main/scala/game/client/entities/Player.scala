@@ -15,34 +15,24 @@ class Player (skeleton: CharacterSkeleton) extends Character(skeleton, 1) {
 	private var movingThrottle = 0.0
 	private var sprinting = false
 
+	private var keyH = 0
+	private var keyV = 0
+
+	override protected def attached(): Unit = {
+		engine.keyboard.registerKey("w", () => keyV -= 1, () => keyV += 1)
+		engine.keyboard.registerKey("a", () => keyH -= 1, () => keyH += 1)
+		engine.keyboard.registerKey("s", () => keyV += 1, () => keyV -= 1)
+		engine.keyboard.registerKey("d", () => keyH += 1, () => keyH -= 1)
+	}
+
+	override protected def detached(): Unit = {
+		engine.keyboard.unregisterKeys("w", "a", "s", "d")
+	}
+
 	override def update(dt: Double): Unit = {
-		/*val Point(rx, ry) = engine.mouse.relative.point
-		if (rx != 0 && ry != 0) tf = Math.atan2(ry, rx)
-
-		val moving = tx != x || ty != y
-		if (sprinting && (!engine.keyboard.shift || energy.value < 1 || !moving)) {
-			sprinting = false
-			speed /= 2
-			energy.stopDrain(50)
-		}
-		else if (!sprinting && engine.keyboard.down("Shift") && energy.value > 1 && moving) {
-			sprinting = true
-			speed *= 2
-			energy.startDrain(50)
-		}
-
-*/
-		val w = engine.keyboard.key("w")
-		val a = engine.keyboard.key("a")
-		val s = engine.keyboard.key("s")
-		val d = engine.keyboard.key("d")
-
-		val h = if (a && !d) -1 else if (!a && d) 1 else 0
-		val v = if (w && !s) -1 else if (!w && s) 1 else 0
-
-		if (h != 0 || v != 0) {
+		if (keyH != 0 || keyV != 0) {
 			moving = true
-			val direction = (h, v)
+			val direction = (keyH, keyV)
 			val now = dom.window.performance.now()
 			if (direction != movingDirection || (now - movingThrottle) > 500) {
 				val angle = direction match {
