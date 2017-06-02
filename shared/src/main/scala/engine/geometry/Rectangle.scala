@@ -18,8 +18,7 @@ case class Rectangle (x: Double, y: Double, width: Double, height: Double) exten
 	@inline def intersect(r: Rectangle): Boolean = g.intersect(this, r)
 	@inline def intersect(c: Circle): Boolean = g.intersect(this, c)
 	@inline def intersect(t: Triangle): Boolean = g.intersect(t, this)
-}
+	@inline def intersect(s: Segment): Boolean = g.intersect(s, this)
 
-object Rectangle {
-	@inline def apply(corner: Point, size: Size): Rectangle = apply(corner.x, corner.y, size.width, size.height)
+	def scale (k: Double): Shape = Rectangle(x * k, y * k, width * k, height * k)
 }

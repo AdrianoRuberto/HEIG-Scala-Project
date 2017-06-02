@@ -18,16 +18,18 @@ package object geometry {
 		}
 
 		@inline def intersect(a: Triangle, b: Triangle): Boolean = {
+			a.contains(b) || b.contains(a) ||
 			List(a.AB, a.AC, a.BC).map(line => List(b.AB, b.AC, b.BC).filter(_ intersect line)).nonEmpty
 		}
 
 		@inline def intersect(t: Triangle, r: Rectangle): Boolean = {
+			t.contains(r) || r.contains(t)
 			(Triangle(r.x, r.y, r.x + r.width, r.y, r.x, r.y + r.height) intersect t) ||
 			(Triangle(r.x + r.width, r.y + r.height, r.x + r.width, r.y, r.x, r.y + r.height) intersect t)
 		}
 
 		@inline def intersect(t: Triangle, c: Circle): Boolean = {
-			intersect(t.AB, c) || intersect(t.AC, c) || intersect(t.BC, c)
+			t.contains(c) || c.contains(t) || intersect(t.AB, c) || intersect(t.AC, c) || intersect(t.BC, c)
 		}
 
 		@inline def intersect(s: Segment, c: Circle): Boolean = {
@@ -37,6 +39,30 @@ package object geometry {
 			val D = s.x1 * s.y2 - s.x2 * s.y1
 			val discri = (c.radius * c.radius * dr * dr) - (D * D)
 			discri > 0
+		}
+
+		@inline def intersect(s: Segment, r: Rectangle): Boolean = {
+			r.contains(s) || s.contains(r)
+			s.intersect(Segment(r.x, r.y, r.x + r.width, r.y)) ||
+			s.intersect(Segment(r.x, r.y, r.x, r.y + r.height)) ||
+			s.intersect(Segment(r.x + r.width, r.y + r.height, r.x + r.width, r.y)) ||
+			s.intersect(Segment(r.x + r.width, r.y + r.height, r.x, r.y + r.height))
+		}
+
+		@inline def intersect(a: Segment, b: Segment): Boolean = {
+			val det = a.A * b.B - b.A * a.B
+			if (det == 0) false
+			else {
+				val x = (b.B * a.C - a.B * b.C) / det
+				val y = (a.A * b.C - b.A * a.C) / det
+
+				(a.x1 min a.x2) <= x && x <= (a.x1 max a.x2) &&
+				(a.y1 min a.y2) <= y && y <= (a.y1 max a.y2)
+			}
+		}
+		@inline def intersect(s: Segment, t: Triangle): Boolean = {
+			s.contains(t) || t.contains(s) ||
+			s.intersect(t.AB) || s.intersect(t.AC) || s.intersect(t.BC)
 		}
 
 		@inline def squaredDistance(ax: Double, ay: Double, bx: Double, by: Double): Double = {
