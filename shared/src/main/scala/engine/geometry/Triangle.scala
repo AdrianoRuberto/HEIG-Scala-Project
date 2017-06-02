@@ -49,28 +49,7 @@ case class Triangle(ax: Double, ay: Double, bx: Double, by: Double, cx: Double, 
 	@inline def intersect(r: Rectangle): Boolean = g.intersect(this, r)
 	@inline def intersect(c: Circle): Boolean = g.intersect(this, c)
 	@inline def intersect(t: Triangle): Boolean = g.intersect(this, t)
-}
+	@inline def intersect(s: Segment): Boolean = g.intersect(s, this)
 
-object Triangle {
-	@inline def apply(A: Point, B: Point, C: Point): Triangle = Triangle(A.x, A.y, B.x, B.y, C.x, C.y)
-}
-
-case class Segment(x1: Double, y1: Double, x2: Double, y2: Double) {
-	val A: Double = y2 - y1
-	val B: Double = x1 - x2
-	val C: Double = A * x1 + B * y1
-
-	@inline def length: Double = math.sqrt(g.squaredDistance(x1, y1, x2, y2))
-
-	def intersect(line: Segment): Boolean = {
-		val det = A * line.B - line.A * B
-		if (det == 0) false
-		else {
-			val x = (line.B * C - B * line.C) / det
-			val y = (A * line.C - line.A * C) / det
-
-			math.min(x1, x2) <= x && x <= math.max(x1, x2) &&
-			math.min(y1, y2) <= y && y <= math.max(y1, y2)
-		}
-	}
+	def scale (k: Double): Shape = Triangle(ax * k, ay * k, bx * k, by * k, cx * k, cy * k)
 }

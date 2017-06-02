@@ -2,7 +2,7 @@ package game.client
 
 import engine.Engine
 import engine.entity.Entity
-import game.client.entities.{Character, DebugStats, Player, PlayerFrame, PlayerSpells}
+import game.client.entities.{Character, DebugStats, Player, PlayerFrame, PlayerSpells, ShapeDrawer}
 import game.protocol.ServerMessage._
 import game.protocol.{ClientMessage, ServerMessage}
 import game.skeleton.SkeletonManager
@@ -21,6 +21,7 @@ object Game {
 
 	private val skeletonManager = new SkeletonManager
 	private var characterEntities: Map[UID, Entity] = Map.empty
+	private var shapeEntities: Map[UID, Entity] = Map.empty
 
 	private var teams: Seq[TeamInfo] = Nil
 	private var playerUID: UID = UID.zero
@@ -136,6 +137,14 @@ object Game {
 		case InstantiateCharacter(characterUID, skeletonUID) => instantiateCharacter(characterUID, skeletonUID)
 		case GainSpell(slot, uid) => playerSpells(slot) = Some(skeletonManager.getAs[SpellSkeleton](uid))
 		case LoseSpell(slot) => playerSpells(slot) = None
+		case DrawShape(shapeUID, shape) =>
+			val shapeDrawer = new ShapeDrawer(shape)
+			shapeEntities += (shapeUID -> shapeDrawer)
+			engine.registerEntity(shapeDrawer)
+		case EraseShape(shapeUID) =>
+			val shape = shapeEntities(shapeUID)
+			shapeEntities -= shapeUID
+			engine.unregisterEntity(shape)
 
 		// Camera
 		case SetCameraLocation(x, y) => engine.camera.setPoint(x, y)

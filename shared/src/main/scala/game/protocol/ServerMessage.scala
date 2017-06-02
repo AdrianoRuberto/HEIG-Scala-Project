@@ -1,6 +1,7 @@
 package game.protocol
 
 import boopickle.Default._
+import engine.geometry.{ColoredShape, Shape}
 import game.protocol.enums.GameMode
 import game.skeleton.ManagerEvent
 import game.{TeamInfo, UID}
@@ -24,6 +25,8 @@ object ServerMessage {
 	case object GameStart extends GameMessage
 	case class SkeletonEvent(event: ManagerEvent) extends GameMessage
 	case class InstantiateCharacter(characterUID: UID, skeletonUID: UID) extends GameMessage
+	case class DrawShape(shapeUID: UID, shape: ColoredShape) extends GameMessage
+	case class EraseShape(shapeUID: UID) extends GameMessage
 
 	case class GainSpell(slot: Int, skeletonUID: UID) extends GameMessage
 	case class LoseSpell(slot: Int) extends GameMessage
@@ -47,5 +50,6 @@ object ServerMessage {
 
 	private implicit val UIDPicker = UID.pickler
 	private implicit val SkeletonPickler = ManagerEvent.pickler
+	private implicit val ShapePickler =  Shape.pickler
 	implicit val pickler: Pickler[ServerMessage] = generatePickler[ServerMessage]
 }

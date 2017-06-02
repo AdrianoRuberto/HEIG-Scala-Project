@@ -1,7 +1,7 @@
 package game.server
 
 import akka.actor.ActorRef
-import engine.geometry.Point
+import engine.geometry.{ColoredShape, Shape, Vector}
 import game.UID
 import game.maps.GameMap
 import game.protocol.{ClientMessage, ServerMessage}
@@ -60,6 +60,8 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 
 	/** Defined tickers */
 	var tickers: Set[Ticker] = Set.empty
+  
+	var shapes: Map[UID, Shape] = Map.empty
 
 	init()
 	context.system.scheduler.scheduleOnce(20.millis, self, BasicGame.Tick)
@@ -99,6 +101,8 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 			require(map.spawns.size == roster.size, "Map must have as many spawns as there are teams in the game")
 			for ((spawn, team) <- map.spawns zip roster) spawnPlayers(spawn, team.players)
 		}
+
+		for (shape <- map.geometry) addShape(shape)
 	}
 
 	/** Camera manipulation utilities */
@@ -146,7 +150,7 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 	def unregisterTicker(ticker: Ticker): Unit = tickers -= ticker
 
 	/** Computes players spawn around a point for a given team */
-	def spawnPlayers(center: Point, players: Seq[GamePlayer]): Unit = {
+	def spawnPlayers(center: Vector, players: Seq[GamePlayer]): Unit = {
 		val alpha = Math.PI * 2 / players.size
 		val radius = if (players.size == 1) 0 else 30 / Math.sin(alpha / 2)
 		val start = Random.nextDouble() * Math.PI * 2
@@ -184,6 +188,18 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 
 	/** Retrieves the sender's UID */
 	def senderUID: UID = uids(sender())
+
+	def addShape(coloredShape: ColoredShape): UID = {
+		val uid = UID.next
+		shapes += (uid -> coloredShape)
+		broadcast ! ServerMessage.DrawShape(uid, coloredShape)
+		uid
+	}
+
+	def deleteShape(uid: UID): Unit = {
+		shapes -= uid
+		broadcast ! ServerMessage.EraseShape(uid)
+	}
 }
 
 object BasicGame {

@@ -1,7 +1,7 @@
 package engine.geometry
 
 case class Circle(x: Double, y: Double, radius: Double) extends Shape {
-	@inline def center: Point = Point(x, y)
+	@inline def center: Vector = Vector(x, y)
 
 	lazy val squaredRadius: Double = radius * radius
 	lazy val boundingBox: Rectangle = Rectangle(x - radius, y - radius, radius * 2, radius * 2)
@@ -18,8 +18,7 @@ case class Circle(x: Double, y: Double, radius: Double) extends Shape {
 	@inline def intersect(r: Rectangle): Boolean = g.intersect(r, this)
 	@inline def intersect(c: Circle): Boolean = g.intersect(this, c)
 	@inline def intersect(t: Triangle): Boolean = g.intersect(t, this)
-}
+	@inline def intersect(s: Segment): Boolean = g.intersect(s, this)
 
-object Circle {
-	@inline def apply(center: Point, r: Double): Circle = Circle(center.x, center.y, r)
+	def scale (k: Double): Shape = Circle(x * k, y * k, radius * k)
 }
