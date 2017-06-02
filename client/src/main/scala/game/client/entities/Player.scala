@@ -11,9 +11,9 @@ class Player (skeleton: CharacterSkeleton) extends Character(skeleton, 1) {
 	protected implicit val keyboardMonitor = new Keyboard.Monitor
 
 	private var moving = false
+	private var movingSpeed = 0.0
 	private var movingDirection = (0, 0)
 	private var movingThrottle = 0.0
-	private var sprinting = false
 
 	private var keyH = 0
 	private var keyV = 0
@@ -34,7 +34,8 @@ class Player (skeleton: CharacterSkeleton) extends Character(skeleton, 1) {
 			moving = true
 			val direction = (keyH, keyV)
 			val now = dom.window.performance.now()
-			if (direction != movingDirection || (now - movingThrottle) > 500) {
+			val speed = skeleton.speed.value
+			if (direction != movingDirection || (now - movingThrottle) > 1000 || speed != movingSpeed) {
 				val angle = direction match {
 					case (-1, 0) => Math.PI
 					case (1, 0) => 0
@@ -46,15 +47,15 @@ class Player (skeleton: CharacterSkeleton) extends Character(skeleton, 1) {
 					case (1, 1) => Math.PI / 4
 				}
 
-				val speed = skeleton.speed.value
-				val tx = skeleton.x.current + Math.cos(angle) * speed
-				val ty = skeleton.y.current + Math.sin(angle) * speed
+				val tx = skeleton.x.current + Math.cos(angle) * speed * 2
+				val ty = skeleton.y.current + Math.sin(angle) * speed * 2
 
-				skeleton.x.interpolate(tx, 1000)
-				skeleton.y.interpolate(ty, 1000)
+				skeleton.x.interpolate(tx, 2000)
+				skeleton.y.interpolate(ty, 2000)
 
 				movingDirection = direction
 				movingThrottle = now
+				movingSpeed = speed
 				Server ! ClientMessage.Moving(tx, ty)
 			}
 		} else if (moving) {

@@ -44,10 +44,14 @@ class Keyboard private[engine] (engine: Engine) {
 
 	def registerKey(key: String, down: () => Unit, up: () => Unit): Unit = {
 		require(!key.contains("-"), "Cannot bind a KeyUp event for a key with a modifier")
-		handlers += (key.toLowerCase -> (Some(down), Some(up)))
+		var state = false
+		handlers += (key.toLowerCase -> (
+			Some(() => if (!state) {state = true; down()}),
+			Some(() => if (state) {state = false; up()})
+		))
 	}
 
-	def unregisterKeys(keys: String*): Unit = for (key <- keys ) handlers -= key
+	def unregisterKeys(keys: String*): Unit = for (key <- keys) handlers -= key
 
 	private[engine] def handler(event: dom.KeyboardEvent): Unit = if (!event.repeat) {
 		val code = getKeyCode(event)

@@ -12,6 +12,8 @@ object ClientMessage {
 	sealed trait GameMessage extends ClientMessage
 	case class Moving(x: Double, y: Double) extends GameMessage
 	case class Stopped(x: Double, y: Double) extends GameMessage
+	case class SpellCast(slot: Int) extends GameMessage
+	case class SpellCancel(slot: Int) extends GameMessage
 
 	private implicit val UIDPicker = UID.pickler
 	implicit val pickler: Pickler[ClientMessage] = generatePickler[ClientMessage]

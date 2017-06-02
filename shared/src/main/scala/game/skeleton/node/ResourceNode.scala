@@ -27,7 +27,10 @@ class ResourceNode (private var maxValue: Double, private var regenRate: Double 
 
 	def energize(amount: Double): Unit = consume(-amount)
 
-	private def setupInterpolation(): Unit = interpolateAtSpeed(maxValue, regenRate)
+	private def setupInterpolation(): Unit = {
+		if (regenRate > 0) interpolateAtSpeed(maxValue, regenRate)
+		else if (regenRate < 0) interpolateAtSpeed(0.0, regenRate)
+	}
 }
 
 object ResourceNode {

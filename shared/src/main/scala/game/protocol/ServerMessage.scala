@@ -25,6 +25,9 @@ object ServerMessage {
 	case class SkeletonEvent(event: ManagerEvent) extends GameMessage
 	case class InstantiateCharacter(characterUID: UID, skeletonUID: UID) extends GameMessage
 
+	case class GainSpell(slot: Int, skeletonUID: UID) extends GameMessage
+	case class LoseSpell(slot: Int) extends GameMessage
+
 	// Camera
 	case class SetCameraLocation(x: Double, y: Double) extends GameMessage
 	case class SetCameraFollow(characterUID: UID) extends GameMessage

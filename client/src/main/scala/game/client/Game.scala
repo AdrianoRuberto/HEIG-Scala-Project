@@ -3,8 +3,8 @@ package game.client
 import engine.Engine
 import engine.entity.Entity
 import game.client.entities.{Character, DebugStats, Player, PlayerFrame, PlayerSpells}
-import game.protocol.ServerMessage
 import game.protocol.ServerMessage._
+import game.protocol.{ClientMessage, ServerMessage}
 import game.skeleton.SkeletonManager
 import game.skeleton.concrete.{CharacterSkeleton, SpellSkeleton}
 import game.{TeamInfo, UID}
@@ -25,27 +25,31 @@ object Game {
 	private var teams: Seq[TeamInfo] = Nil
 	private var playerUID: UID = UID.zero
 
-	private var playerSpells: Array[Option[SpellSkeleton]] = Array.fill(4)(None)
+	private val playerSpells: Array[Option[SpellSkeleton]] = Array.fill(4)(None)
 
 	def setup(): Unit = {
 		dom.window.on(Event.Resize) { _ => resizeCanvas() }
 		resizeCanvas()
 		engine.setup()
 		engine.keyboard.registerKey("alt-s")(toggleDebugStats())
-		engine.keyboard.registerKey("e", keyDown(1), keyUp(1))
-		engine.keyboard.registerKey("q", keyDown(2), keyUp(2))
-		engine.keyboard.registerKey("shift", keyDown(3), keyUp(3))
+		engine.keyboard.registerKey("e", spellKeyDown(1), spellKeyUp(1))
+		engine.keyboard.registerKey("q", spellKeyDown(2), spellKeyUp(2))
+		engine.keyboard.registerKey("shift", spellKeyDown(3), spellKeyUp(3))
 	}
 
-	private def keyDown(spell: Int)(): Unit = playerSpells(spell) match {
+	private def spellKeyDown(slot: Int)(): Unit = playerSpells(slot) match {
 		case Some(skeleton) =>
-			skeleton.activated.value = true
+			if (skeleton.cooldown.ready) {
+				skeleton.activated.value = true
+			}
+			Server ! ClientMessage.SpellCast(slot)
 		case _ => // Ignore
 	}
 
-	private def keyUp(spell: Int)(): Unit = playerSpells(spell) match {
+	private def spellKeyUp(slot: Int)(): Unit = playerSpells(slot) match {
 		case Some(skeleton) =>
 			skeleton.activated.value = false
+			Server ! ClientMessage.SpellCancel(slot)
 		case _ => // Ignore
 	}
 
@@ -130,6 +134,8 @@ object Game {
 		// Builders
 		case SkeletonEvent(event) => skeletonManager.receive(event)
 		case InstantiateCharacter(characterUID, skeletonUID) => instantiateCharacter(characterUID, skeletonUID)
+		case GainSpell(slot, uid) => playerSpells(slot) = Some(skeletonManager.getAs[SpellSkeleton](uid))
+		case LoseSpell(slot) => playerSpells(slot) = None
 
 		// Camera
 		case SetCameraLocation(x, y) => engine.camera.setPoint(x, y)

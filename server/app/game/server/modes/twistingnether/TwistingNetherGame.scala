@@ -1,6 +1,7 @@
 package game.server.modes.twistingnether
 
 import game.maps.GameMap
+import game.protocol.enums.Spell
 import game.server.{BasicGame, GameTeam}
 
 class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) {
@@ -10,7 +11,8 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) {
 		loadMap(GameMap.Illios)
 		setDefaultTeamColors()
 		camera.followSelf()
-		camera.setSpeed(200)
+		camera.setSpeed(250)
+		for (uid <- players.keys) uid gainSpell (3, Spell.Sprint)
 	}
 
 	def start(): Unit = {
@@ -23,4 +25,6 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) {
 	def message: Receive = {
 		case null => ???
 	}
+
+	def tick(dt: Double): Unit = ()
 }

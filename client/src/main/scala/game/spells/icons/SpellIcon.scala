@@ -1,29 +1,42 @@
-package game.spells.icon
+package game.spells.icons
 
 import engine.CanvasCtx
 import game.protocol.enums.Spell
-import game.spells.icon.SpellIcon._
+import game.skeleton.concrete.SpellSkeleton
+import game.spells.icons.SpellIcon._
 
 trait SpellIcon {
-	final def draw(ctx: CanvasCtx): Unit = {
+	final def draw(ctx: CanvasCtx, skeleton: SpellSkeleton): Unit = {
+		val activated = skeleton.activated.value
+		val ready = skeleton.cooldown.ready
+
 		ctx.translate(2, 2)
-		ctx.beginPath()
-		ctx.fillStyle = "rgba(17, 17, 17, 0.2)"
-		drawButton(ctx)
-		ctx.fill()
-		ctx.translate(-2, -2)
+		if (!activated) {
+			ctx.beginPath()
+			ctx.fillStyle = "rgba(17, 17, 17, 0.2)"
+			drawButton(ctx)
+			ctx.fill()
+			ctx.translate(-2, -2)
+		}
 
 		ctx.beginPath()
-		ctx.fillStyle = "rgba(255, 255, 255, 0.9)"
+		ctx.fillStyle =
+			if (activated) "rgba(255, 240, 191, 0.9)"
+			else "rgba(255, 255, 255, 0.9)"
 		ctx.strokeStyle = "rgba(17, 17, 17, 0.3)"
 		drawButton(ctx)
-		ctx.fill()
+		ctx.save()
+		ctx.clip()
+		ctx.fillRect(0, 60, 60, -60 * skeleton.cooldown.progress)
+		ctx.restore()
 		ctx.stroke()
 
 		ctx.beginPath()
 		ctx.fillStyle = "rgba(17, 17, 17, 0.8)"
 		drawIcon(ctx)
 		ctx.fill()
+
+		if (activated) ctx.translate(-2, -2)
 	}
 
 	private def drawButton(ctx: CanvasCtx): Unit = {

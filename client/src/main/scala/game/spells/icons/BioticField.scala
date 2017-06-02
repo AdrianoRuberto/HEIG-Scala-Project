@@ -1,4 +1,4 @@
-package game.spells.icon
+package game.spells.icons
 import engine.CanvasCtx
 
 object BioticField extends SpellIcon {

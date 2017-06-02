@@ -6,11 +6,15 @@ import game.UID
 import game.maps.GameMap
 import game.protocol.{ClientMessage, ServerMessage}
 import game.server.actors.{Matchmaker, PlayerActor, Watcher}
-import game.skeleton.concrete.CharacterSkeleton
+import game.skeleton.concrete.{CharacterSkeleton, SpellSkeleton}
+import game.spells.effects.{SpellContext, SpellEffect}
+import scala.concurrent.duration._
 import scala.util.Random
 import utils.ActorGroup
 
 abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with BasicGameImplicits {
+	import context._
+
 	// --------------------------------
 	// Basic data structures
 	// --------------------------------
@@ -49,7 +53,17 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 	/** The map of player UIDs to their network latency */
 	var latencies: Map[UID, Double] = Map.empty.withDefaultValue(0.0)
 
+	/** Players spells */
+	var spells: Map[UID, Array[Option[SpellSkeleton]]] = players.map { case (uid, _) =>
+		(uid, Array.fill[Option[SpellSkeleton]](4)(None))
+	}
+
+	/** Defined tickers */
+	var tickers: Set[Ticker] = Set.empty
+
 	init()
+	context.system.scheduler.scheduleOnce(20.millis, self, BasicGame.Tick)
+	override final def postStop(): Unit = tickers.foreach(_.unregister())
 
 	// --------------------------------
 	// Implementation-defined behaviors
@@ -59,16 +73,18 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 		case Matchmaker.Start =>
 			broadcast ! ServerMessage.GameStart
 			start()
+		case BasicGame.Tick => tickImpl()
 		case PlayerActor.UpdateLatency(latency) => latencies += (senderUID -> latency)
 		case ClientMessage.Moving(x, y) => playerMoving(senderUID, x, y)
 		case ClientMessage.Stopped(x, y) => playerStopped(senderUID, x, y)
-	}: Receive) orElse message orElse {
-		case m => warn("Ignored unknown message:", m.toString)
-	}
+		case ClientMessage.SpellCast(slot) => castSpell(senderUID, slot)
+		case ClientMessage.SpellCancel(slot) => cancelSpell(senderUID, slot)
+	}: Receive) orElse message orElse { case m => warn("Ignored unknown message:", m.toString) }
 
 	def init(): Unit
 	def start(): Unit
 	def message: Receive
+	def tick(dt: Double): Unit
 
 	/** Terminates the game, stopping every related actors and closing sockets */
 	def terminate(): Unit = context.parent ! Watcher.Terminate
@@ -107,6 +123,28 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 	// Internal API, override if required
 	// --------------------------------
 
+	private var lastTick = Double.NaN
+	private def tickImpl(): Unit = {
+		context.system.scheduler.scheduleOnce(20.millis, self, BasicGame.Tick)
+		val now = System.nanoTime() / 1000000.0
+		val dt = if (lastTick.isNaN) 0.0 else now - lastTick
+		lastTick = now
+		tick(dt)
+		for (ticker <- tickers) ticker.tick(dt)
+	}
+
+	def createTicker(tick: Double => Unit): Ticker = {
+		val ticker = new Ticker() {
+			def tick(dt: Double): Unit = tick(dt)
+			def unregister(): Unit = unregisterTicker(this)
+		}
+		registerTicker(ticker)
+		ticker
+	}
+
+	def registerTicker(ticker: Ticker): Unit = tickers += ticker
+	def unregisterTicker(ticker: Ticker): Unit = tickers -= ticker
+
 	/** Computes players spawn around a point for a given team */
 	def spawnPlayers(center: Point, players: Seq[GamePlayer]): Unit = {
 		val alpha = Math.PI * 2 / players.size
@@ -121,11 +159,8 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 
 	def playerMoving(uid: UID, x: Double, y: Double): Unit = {
 		val skeleton = uid.skeleton
-		skeleton.moving.value = true
-
-		val speed = skeleton.speed.value
-
 		val latency = uid.latency
+		skeleton.moving.value = true
 		skeleton.x.interpolate(x, 1000 - latency)
 		skeleton.y.interpolate(y, 1000 - latency)
 	}
@@ -137,6 +172,20 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 		skeleton.y.interpolate(y, 200)
 	}
 
+	def castSpell(player: UID, slot: Int): Unit = player.spells(slot) match {
+		case Some(skeleton) => SpellEffect.forSpell(skeleton.spell.value).cast(SpellContext(this, skeleton, player))
+		case None => warn(s"Player `${player.skeleton.name.value}` attempted to cast spell from empty slot")
+	}
+
+	def cancelSpell(player: UID, slot: Int): Unit = player.spells(slot) match {
+		case Some(skeleton) => SpellEffect.forSpell(skeleton.spell.value).cancel(SpellContext(this, skeleton, player))
+		case None => warn(s"Player `${player.skeleton.name.value}` attempted to cancel spell from empty slot")
+	}
+
 	/** Retrieves the sender's UID */
 	def senderUID: UID = uids(sender())
+}
+
+object BasicGame {
+	case object Tick
 }

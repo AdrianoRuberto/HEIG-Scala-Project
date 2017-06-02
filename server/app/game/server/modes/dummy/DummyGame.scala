@@ -18,4 +18,6 @@ class DummyGame (roster: Seq[GameTeam]) extends BasicGame(roster) {
 	def message: Receive = {
 		case _ =>
 	}
+
+	def tick(dt: Double): Unit = ()
 }
