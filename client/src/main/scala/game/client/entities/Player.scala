@@ -1,7 +1,7 @@
 package game.client.entities
 
 import engine.Keyboard
-import game.client.Server
+import game.client.{Game, Server}
 import game.protocol.ClientMessage
 import game.skeleton.concrete.CharacterSkeleton
 import org.scalajs.dom
@@ -17,6 +17,8 @@ class Player (skeleton: CharacterSkeleton) extends Character(skeleton, 1) {
 
 	private var keyH = 0
 	private var keyV = 0
+
+	private var mouseState = false
 
 	override protected def attached(): Unit = {
 		engine.keyboard.registerKey("w", () => keyV -= 1, () => keyV += 1)
@@ -64,6 +66,13 @@ class Player (skeleton: CharacterSkeleton) extends Character(skeleton, 1) {
 			skeleton.x.stop()
 			skeleton.y.stop()
 			Server ! ClientMessage.Stopped(skeleton.x.current, skeleton.y.current)
+		}
+
+		val state = engine.mouse.left
+		if (state != mouseState) {
+			if (state) Game.spellKeyDown(0)()
+			else Game.spellKeyUp(0)()
+			mouseState = state
 		}
 
 		super.update(dt)

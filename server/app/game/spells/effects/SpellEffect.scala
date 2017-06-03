@@ -38,6 +38,6 @@ abstract class SpellEffect {
 object SpellEffect {
 	def forSpell(spell: Spell): SpellEffect = spell match {
 		case Spell.Sprint => Sprint
-		case Spell.Sword => ???
+		case Spell.Sword => Sword
 	}
 }

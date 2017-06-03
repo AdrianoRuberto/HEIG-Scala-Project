@@ -200,8 +200,8 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 		val skeleton = uid.skeleton
 		val latency = uid.latency
 		skeleton.moving.value = true
-		skeleton.x.interpolate(x, 1000 - latency)
-		skeleton.y.interpolate(y, 1000 - latency)
+		skeleton.x.interpolate(x, 2000 - latency)
+		skeleton.y.interpolate(y, 2000 - latency)
 	}
 
 	def playerStopped(uid: UID, x: Double, y: Double): Unit = {
