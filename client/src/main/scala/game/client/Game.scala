@@ -40,10 +40,8 @@ object Game {
 
 	private def spellKeyDown(slot: Int)(): Unit = playerSpells(slot) match {
 		case Some(skeleton) =>
-			if (skeleton.cooldown.ready) {
-				skeleton.activated.value = true
-			}
-			Server ! ClientMessage.SpellCast(slot)
+			if (skeleton.cooldown.ready) skeleton.activated.value = true
+			Server ! ClientMessage.SpellCast(slot, engine.mouse.point)
 		case _ => // Ignore
 	}
 

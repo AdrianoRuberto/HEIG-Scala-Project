@@ -20,15 +20,19 @@ trait SpellIcon {
 		}
 
 		ctx.beginPath()
+		drawButton(ctx)
 		ctx.fillStyle =
 			if (activated) "rgba(255, 240, 191, 0.9)"
 			else "rgba(255, 255, 255, 0.9)"
+		ctx.fill()
+		if (!ready) {
+			ctx.save()
+			ctx.clip()
+			ctx.fillStyle = "rgba(17, 17, 17, 0.5)"
+			ctx.fillRect(0, 0, 60, 60 * (1 - skeleton.cooldown.progress))
+			ctx.restore()
+		}
 		ctx.strokeStyle = "rgba(17, 17, 17, 0.3)"
-		drawButton(ctx)
-		ctx.save()
-		ctx.clip()
-		ctx.fillRect(0, 60, 60, -60 * skeleton.cooldown.progress)
-		ctx.restore()
 		ctx.stroke()
 
 		ctx.beginPath()

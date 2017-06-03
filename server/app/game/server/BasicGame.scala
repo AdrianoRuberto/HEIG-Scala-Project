@@ -82,7 +82,7 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 		case PlayerActor.UpdateLatency(latency) => latencies += (senderUID -> latency)
 		case ClientMessage.Moving(x, y) => playerMoving(senderUID, x, y)
 		case ClientMessage.Stopped(x, y) => playerStopped(senderUID, x, y)
-		case ClientMessage.SpellCast(slot) => castSpell(senderUID, slot)
+		case ClientMessage.SpellCast(slot, point) => castSpell(senderUID, slot, point)
 		case ClientMessage.SpellCancel(slot) => cancelSpell(senderUID, slot)
 	}: Receive) orElse message orElse { case m => warn("Ignored unknown message:", m.toString) }
 
@@ -211,14 +211,18 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 		skeleton.y.interpolate(y, 200)
 	}
 
-	def castSpell(player: UID, slot: Int): Unit = player.spells(slot) match {
-		case Some(skeleton) => SpellEffect.forSpell(skeleton.spell.value).cast(SpellContext(this, skeleton, player))
-		case None => warn(s"Player `${player.skeleton.name.value}` attempted to cast spell from empty slot")
+	def castSpell(player: UID, slot: Int, point: Vector): Unit = player.spells(slot) match {
+		case Some(skeleton) =>
+			SpellEffect.forSpell(skeleton.spell.value).cast(SpellContext(this, skeleton, player, point))
+		case None =>
+			warn(s"Player `${player.skeleton.name.value}` attempted to cast spell from empty slot")
 	}
 
 	def cancelSpell(player: UID, slot: Int): Unit = player.spells(slot) match {
-		case Some(skeleton) => SpellEffect.forSpell(skeleton.spell.value).cancel(SpellContext(this, skeleton, player))
-		case None => warn(s"Player `${player.skeleton.name.value}` attempted to cancel spell from empty slot")
+		case Some(skeleton) =>
+			SpellEffect.forSpell(skeleton.spell.value).cancel(SpellContext(this, skeleton, player, Vector.zero))
+		case None =>
+			warn(s"Player `${player.skeleton.name.value}` attempted to cancel spell from empty slot")
 	}
 
 	/** Retrieves the sender's UID */
