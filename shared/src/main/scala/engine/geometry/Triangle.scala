@@ -2,18 +2,18 @@ package engine.geometry
 
 case class Triangle(ax: Double, ay: Double, bx: Double, by: Double, cx: Double, cy: Double) extends Shape {
 
-	@inline def AB: Segment = Segment(ax, ay, bx, by)
-	@inline def AC: Segment = Segment(ax, ay, cx, cy)
-	@inline def BC: Segment = Segment(bx, by, cx, cy)
+	lazy val AB: Segment = Segment(ax, ay, bx, by)
+	lazy val AC: Segment = Segment(ax, ay, cx, cy)
+	lazy val BC: Segment = Segment(bx, by, cx, cy)
 
-	@inline def area: Double = {
+	lazy val area: Double = {
 		val s = (AB.length + AC.length + BC.length) / 2
 		math.sqrt(s * (s - AB.length) * (s - AC.length) * (s - BC.length))
 	}
 
 	lazy val height: Double = 2 * area / BC.length
 
-	def boundingBox: Rectangle = {
+	lazy val boundingBox: Rectangle = {
 		@inline def max(a: Double, b: Double, c: Double): Double = math.max(math.max(a, b), c)
 		@inline def min(a: Double, b: Double, c: Double): Double = math.min(math.min(a, b), c)
 
