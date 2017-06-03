@@ -1,6 +1,6 @@
 package game.skeleton.node
 
-import game.skeleton.{AbstractSkeleton, ManagerEvent, Transmitter}
+import game.skeleton.{AbstractSkeleton, ManagerEvent}
 
 /**
   * A node is a container for some data inside a skeleton.
@@ -16,16 +16,18 @@ abstract class Node[E <: NodeEvent](implicit val skeleton: AbstractSkeleton) {
 	/** Receives a event from the server-side instance of this node */
 	def receive(event: E): Unit
 
-	@inline protected final def shouldEmit: Boolean = {
-		skeleton.transmitter != Transmitter.NoTransmitter
-	}
+	/** Whether this node should emit events to remotes skeletons */
+	@inline protected final def shouldEmit: Boolean = skeleton.remotes.nonEmpty
 
 	/** Transmits an event to the client-side version of this node. */
-	@inline protected final def emit(event: E): Unit = {
-		skeleton.transmitter ! ManagerEvent.NotifyNode(skeleton.uid, nid, event)
+	@inline protected final def send(event: E): Unit = {
+		for (remote <- skeleton.remotes) remote send ManagerEvent.NotifyNode(skeleton.uid, nid, event)
 	}
 
-	@inline protected final def emitLatencyAware(f: Double => E): Unit = {
-		skeleton.transmitter sendLatencyAware (lat => ManagerEvent.NotifyNode(skeleton.uid, nid, f(lat)))
+	/** Transmits an event to the client-side version of this node with latency awareness. */
+	@inline protected final def sendLatencyAware(f: Double => E): Unit = {
+		for (remote <- skeleton.remotes) {
+			remote sendLatencyAware (latency => ManagerEvent.NotifyNode(skeleton.uid, nid, f(latency)))
+		}
 	}
 }

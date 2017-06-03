@@ -15,7 +15,7 @@ case class SimpleNode[T: Pickler] (private var current: T)
 	def value_=(newValue: T): Unit = if (newValue != value) {
 		current = newValue
 		if (shouldEmit) {
-			this emit NodeEvent.SimpleUpdate(pickle(newValue))
+			this send NodeEvent.SimpleUpdate(pickle(newValue))
 		}
 	}
 

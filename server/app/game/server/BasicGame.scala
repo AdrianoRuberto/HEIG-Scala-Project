@@ -4,9 +4,11 @@ import akka.actor.ActorRef
 import engine.geometry.{ColoredShape, Shape, Vector}
 import game.UID
 import game.maps.GameMap
+import game.protocol.enums.SkeletonType
 import game.protocol.{ClientMessage, ServerMessage}
 import game.server.actors.{Matchmaker, PlayerActor, Watcher}
 import game.skeleton.concrete.{CharacterSkeleton, SpellSkeleton}
+import game.skeleton.{AbstractSkeleton, ManagerEvent, RemoteManager}
 import game.spells.effects.{SpellContext, SpellEffect}
 import scala.concurrent.duration._
 import scala.util.Random
@@ -26,7 +28,7 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 	val players: Map[UID, GamePlayer] = roster.flatMap(_.players).map(p => (p.info.uid, p)).toMap
 
 	/** The reverse mapping from Actors to players */
-	val uids: Map[ActorRef, UID] = players.map { case (uid, player) => (player.actor, uid) }
+	val actorsUID: Map[ActorRef, UID] = players.map { case (uid, player) => (player.actor, uid) }
 
 	/** An actor group composed from every players in the game */
 	val broadcast = ActorGroup(players.values.map(_.actor))
@@ -44,7 +46,7 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 
 	/** The map of every character skeletons */
 	val skeletons: Map[UID, CharacterSkeleton] = players.map { case (uid, player) =>
-		val skeleton = new CharacterSkeleton
+		val skeleton = createGlobalSkeleton(SkeletonType.Character)
 		skeleton.name.value = player.info.name
 		broadcast ! ServerMessage.InstantiateCharacter(player.info.uid, skeleton.uid)
 		(uid, skeleton)
@@ -54,17 +56,18 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 	var latencies: Map[UID, Double] = Map.empty.withDefaultValue(0.0)
 
 	/** Players spells */
-	var spells: Map[UID, Array[Option[SpellSkeleton]]] = players.map { case (uid, _) =>
+	var spells: Map[UID, Array[Option[SpellSkeleton]]] = players.keys.map { uid =>
 		(uid, Array.fill[Option[SpellSkeleton]](4)(None))
-	}
+	}.toMap
 
-	/** Defined tickers */
+	/** Registered tickers */
 	var tickers: Set[Ticker] = Set.empty
-  
+
+	/** Wall shapes */
 	var shapes: Map[UID, Shape] = Map.empty
 
 	init()
-	context.system.scheduler.scheduleOnce(20.millis, self, BasicGame.Tick)
+	context.system.scheduler.scheduleOnce(20.millis, self, BasicGame.Tick) // 50 Hz ticks
 	override final def postStop(): Unit = tickers.foreach(_.unregister())
 
 	// --------------------------------
@@ -79,7 +82,7 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 		case PlayerActor.UpdateLatency(latency) => latencies += (senderUID -> latency)
 		case ClientMessage.Moving(x, y) => playerMoving(senderUID, x, y)
 		case ClientMessage.Stopped(x, y) => playerStopped(senderUID, x, y)
-		case ClientMessage.SpellCast(slot) => castSpell(senderUID, slot)
+		case ClientMessage.SpellCast(slot, point) => castSpell(senderUID, slot, point)
 		case ClientMessage.SpellCancel(slot) => cancelSpell(senderUID, slot)
 	}: Receive) orElse message orElse { case m => warn("Ignored unknown message:", m.toString) }
 
@@ -123,20 +126,24 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 
 	def setDefaultTeamColors(): Unit = setTeamColors("#77f", "#f55")
 
-	// --------------------------------
-	// Internal API, override if required
-	// --------------------------------
-
-	private var lastTick = Double.NaN
-	private def tickImpl(): Unit = {
-		context.system.scheduler.scheduleOnce(20.millis, self, BasicGame.Tick)
-		val now = System.nanoTime() / 1000000.0
-		val dt = if (lastTick.isNaN) 0.0 else now - lastTick
-		lastTick = now
-		tick(dt)
-		for (ticker <- tickers) ticker.tick(dt)
+	// Skeleton
+	def createSkeleton[T <: AbstractSkeleton](tpe: SkeletonType[T], remotes: Seq[UID]): T = {
+		tpe.instantiate(remotes.map { remote =>
+			new RemoteManager {
+				def send(event: ManagerEvent): Unit = {
+					remote ! ServerMessage.SkeletonEvent(event)
+				}
+				def sendLatencyAware(f: (Double) => ManagerEvent): Unit = {
+					remote ! ServerMessage.SkeletonEvent(f(remote.latency))
+				}
+			}
+		})
 	}
 
+	def createSkeleton[T <: AbstractSkeleton](tpe: SkeletonType[T], remote: UID): T = createSkeleton(tpe, Seq(remote))
+	def createGlobalSkeleton[T <: AbstractSkeleton](tpe: SkeletonType[T]): T = createSkeleton(tpe, players.keys.toSeq)
+
+	// Ticker
 	def createTicker(tick: Double => Unit): Ticker = {
 		val ticker = new Ticker() {
 			def tick(dt: Double): Unit = tick(dt)
@@ -149,12 +156,40 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 	def registerTicker(ticker: Ticker): Unit = tickers += ticker
 	def unregisterTicker(ticker: Ticker): Unit = tickers -= ticker
 
+	// Shapes
+	def addShape(coloredShape: ColoredShape): UID = {
+		val uid = UID.next
+		shapes += (uid -> coloredShape)
+		broadcast ! ServerMessage.DrawShape(uid, coloredShape)
+		uid
+	}
+
+	def deleteShape(uid: UID): Unit = {
+		shapes -= uid
+		broadcast ! ServerMessage.EraseShape(uid)
+	}
+
+	// --------------------------------
+	// Internal API
+	// --------------------------------
+
+	// Ticks
+	private var lastTick = Double.NaN
+	private def tickImpl(): Unit = {
+		context.system.scheduler.scheduleOnce(20.millis, self, BasicGame.Tick)
+		val now = System.nanoTime() / 1000000.0
+		val dt = if (lastTick.isNaN) 0.0 else now - lastTick
+		lastTick = now
+		tick(dt)
+		for (ticker <- tickers) ticker.tick(dt)
+	}
+
 	/** Computes players spawn around a point for a given team */
 	def spawnPlayers(center: Vector, players: Seq[GamePlayer]): Unit = {
 		val alpha = Math.PI * 2 / players.size
 		val radius = if (players.size == 1) 0 else 30 / Math.sin(alpha / 2)
 		val start = Random.nextDouble() * Math.PI * 2
-		for ((player, i) <- players.zipWithIndex; skeleton = skeletons(player.info.uid)) {
+		for ((player, i) <- players.zipWithIndex; skeleton = player.info.uid.skeleton) {
 			val beta = alpha * i + start
 			skeleton.x.value = center.x + Math.sin(beta) * radius
 			skeleton.y.value = center.y + Math.cos(beta) * radius
@@ -176,30 +211,22 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 		skeleton.y.interpolate(y, 200)
 	}
 
-	def castSpell(player: UID, slot: Int): Unit = player.spells(slot) match {
-		case Some(skeleton) => SpellEffect.forSpell(skeleton.spell.value).cast(SpellContext(this, skeleton, player))
-		case None => warn(s"Player `${player.skeleton.name.value}` attempted to cast spell from empty slot")
+	def castSpell(player: UID, slot: Int, point: Vector): Unit = player.spells(slot) match {
+		case Some(skeleton) =>
+			SpellEffect.forSpell(skeleton.spell.value).cast(SpellContext(this, skeleton, player, point))
+		case None =>
+			warn(s"Player `${player.skeleton.name.value}` attempted to cast spell from empty slot")
 	}
 
 	def cancelSpell(player: UID, slot: Int): Unit = player.spells(slot) match {
-		case Some(skeleton) => SpellEffect.forSpell(skeleton.spell.value).cancel(SpellContext(this, skeleton, player))
-		case None => warn(s"Player `${player.skeleton.name.value}` attempted to cancel spell from empty slot")
+		case Some(skeleton) =>
+			SpellEffect.forSpell(skeleton.spell.value).cancel(SpellContext(this, skeleton, player, Vector.zero))
+		case None =>
+			warn(s"Player `${player.skeleton.name.value}` attempted to cancel spell from empty slot")
 	}
 
 	/** Retrieves the sender's UID */
-	def senderUID: UID = uids(sender())
-
-	def addShape(coloredShape: ColoredShape): UID = {
-		val uid = UID.next
-		shapes += (uid -> coloredShape)
-		broadcast ! ServerMessage.DrawShape(uid, coloredShape)
-		uid
-	}
-
-	def deleteShape(uid: UID): Unit = {
-		shapes -= uid
-		broadcast ! ServerMessage.EraseShape(uid)
-	}
+	@inline private def senderUID: UID = actorsUID(sender())
 }
 
 object BasicGame {

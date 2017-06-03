@@ -27,3 +27,7 @@ case class Vector(x: Double, y: Double) {
 	def isZero: Boolean = x == 0 && y == 0
 	def notZero: Boolean = x != 0 || y != 0
 }
+
+object Vector {
+	val zero = Vector(0, 0)
+}

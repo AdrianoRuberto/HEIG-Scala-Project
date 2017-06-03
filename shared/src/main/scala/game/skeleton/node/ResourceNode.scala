@@ -2,8 +2,13 @@ package game.skeleton.node
 
 import game.skeleton.AbstractSkeleton
 
-class ResourceNode (private var maxValue: Double, private var regenRate: Double = 0.0)
-                   (implicit skeleton: AbstractSkeleton) extends InterpolatedNode(maxValue) {
+case class ResourceNode (private var maxValue: Double, private var regenRate: Double = 0.0)
+                        (implicit skeleton: AbstractSkeleton) {
+	private val res = InterpolatedNode(maxValue)
+
+	def max: Double = maxValue
+	def current: Double = res.current
+	def percent: Double = current / max
 
 	def rate: Double = regenRate
 
@@ -12,14 +17,10 @@ class ResourceNode (private var maxValue: Double, private var regenRate: Double 
 		setupInterpolation()
 	}
 
-	def max: Double = maxValue
-
-	def percent: Double = current / maxValue
-
 	def consume(amount: Double): Boolean = {
 		if (amount > current) false
 		else {
-			value = (value - amount) min maxValue
+			res.value = (res.value - amount) min maxValue
 			setupInterpolation()
 			true
 		}
@@ -28,13 +29,7 @@ class ResourceNode (private var maxValue: Double, private var regenRate: Double 
 	def energize(amount: Double): Unit = consume(-amount)
 
 	private def setupInterpolation(): Unit = {
-		if (regenRate > 0) interpolateAtSpeed(maxValue, regenRate)
-		else if (regenRate < 0) interpolateAtSpeed(0.0, regenRate)
-	}
-}
-
-object ResourceNode {
-	def apply(maxValue: Double, regenRate: Double = 0.0)(implicit skeleton: AbstractSkeleton): ResourceNode = {
-		new ResourceNode(maxValue, regenRate)
+		if (regenRate > 0) res.interpolateAtSpeed(maxValue, regenRate)
+		else if (regenRate < 0) res.interpolateAtSpeed(0.0, regenRate)
 	}
 }

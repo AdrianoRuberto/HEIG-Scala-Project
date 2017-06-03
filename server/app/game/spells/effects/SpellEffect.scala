@@ -2,8 +2,7 @@ package game.spells.effects
 
 import game.UID
 import game.protocol.enums.Spell
-import game.server.{BasicGame, Ticker}
-import game.skeleton.concrete.{CharacterSkeleton, SpellSkeleton}
+import game.server.Ticker
 
 abstract class SpellEffect {
 	private var tickers: Map[UID, Ticker] = Map.empty
@@ -11,19 +10,12 @@ abstract class SpellEffect {
 	def cast(implicit ctx: SpellContext): Unit
 	def cancel(implicit ctx: SpellContext): Unit
 
-	@inline protected def game(implicit ctx: SpellContext): BasicGame = ctx.game
-	@inline protected def skeleton(implicit ctx: SpellContext): SpellSkeleton = ctx.skeleton
-	@inline protected def playerSkeleton(implicit ctx: SpellContext): CharacterSkeleton = ctx.playerSkeleton
-	@inline protected def player(implicit ctx: SpellContext): BasicGame#UIDOps = ctx.player
-	@inline protected def initiator(implicit ctx: SpellContext): UID = ctx.initiator
+	@inline protected def activated(implicit ctx: SpellContext): Boolean = ctx.skeleton.activated.value
+	@inline protected def ready(implicit ctx: SpellContext): Boolean = ctx.skeleton.cooldown.ready
 
-	@inline protected def activated(implicit ctx: SpellContext): Boolean = skeleton.activated.value
-	@inline protected def ready(implicit ctx: SpellContext): Boolean = skeleton.cooldown.ready
-
-	@inline protected def activate()(implicit ctx: SpellContext): Unit = skeleton.activated.value = true
-	@inline protected def deactivate()(implicit ctx: SpellContext): Unit = skeleton.activated.value = false
-	@inline protected def cooldown(duration: Double)
-	                              (implicit ctx: SpellContext): Unit = skeleton.cooldown.start(duration)
+	@inline protected def activate()(implicit ctx: SpellContext): Unit = ctx.skeleton.activated.value = true
+	@inline protected def deactivate()(implicit ctx: SpellContext): Unit = ctx.skeleton.activated.value = false
+	@inline protected def cooldown(duration: Double)(implicit ctx: SpellContext): Unit = ctx.skeleton.cooldown.start(duration)
 
 	protected def createTicker(tickImpl: Double => Unit)(implicit ctx: SpellContext): Unit = {
 		cancelTicker()
