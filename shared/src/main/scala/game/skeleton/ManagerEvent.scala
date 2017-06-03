@@ -13,7 +13,7 @@ object ManagerEvent {
 	case class CollectSkeleton(uid: UID) extends ManagerEvent
 
 	/** Notify a node of the given skeleton about an event */
-	case class NotifyNode(uid: UID, nid: NodeId, event: NodeEvent) extends ManagerEvent
+	case class NotifyNode(uid: UID, nid: NodeId, serial: Int, event: NodeEvent) extends ManagerEvent
 
 	private implicit val UIDPickler = UID.pickler
 	private implicit val NodeIdPickler = NodeId.pickler

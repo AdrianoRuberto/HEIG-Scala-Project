@@ -80,8 +80,8 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 			start()
 		case BasicGame.Tick => tickImpl()
 		case PlayerActor.UpdateLatency(latency) => latencies += (senderUID -> latency)
-		case ClientMessage.Moving(x, y) => playerMoving(senderUID, x, y)
-		case ClientMessage.Stopped(x, y) => playerStopped(senderUID, x, y)
+		case ClientMessage.Moving(x, y, xs, ys) => playerMoving(senderUID, x, y, xs, ys)
+		case ClientMessage.Stopped(x, y, xs, ys) => playerStopped(senderUID, x, y, xs, ys)
 		case ClientMessage.SpellCast(slot, point) => castSpell(senderUID, slot, point)
 		case ClientMessage.SpellCancel(slot) => cancelSpell(senderUID, slot)
 	}: Receive) orElse message orElse { case m => warn("Ignored unknown message:", m.toString) }
@@ -196,19 +196,19 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 		}
 	}
 
-	def playerMoving(uid: UID, x: Double, y: Double): Unit = {
+	def playerMoving(uid: UID, x: Double, y: Double, xs: Int, ys: Int): Unit = {
 		val skeleton = uid.skeleton
 		val latency = uid.latency
 		skeleton.moving.value = true
-		skeleton.x.interpolate(x, 1000 - latency)
-		skeleton.y.interpolate(y, 1000 - latency)
+		skeleton.x.commit(xs).interpolate(x, 2000 - latency)
+		skeleton.y.commit(ys).interpolate(y, 2000 - latency)
 	}
 
-	def playerStopped(uid: UID, x: Double, y: Double): Unit = {
+	def playerStopped(uid: UID, x: Double, y: Double, xs: Int, ys: Int): Unit = {
 		val skeleton = uid.skeleton
 		skeleton.moving.value = false
-		skeleton.x.interpolate(x, 200)
-		skeleton.y.interpolate(y, 200)
+		skeleton.x.commit(xs).interpolate(x, 200)
+		skeleton.y.commit(ys).interpolate(y, 200)
 	}
 
 	def castSpell(player: UID, slot: Int, point: Vector): Unit = player.spells(slot) match {

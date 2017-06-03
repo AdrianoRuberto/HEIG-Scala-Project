@@ -38,17 +38,15 @@ object Game {
 		engine.keyboard.registerKey("shift", spellKeyDown(3), spellKeyUp(3))
 	}
 
-	private def spellKeyDown(slot: Int)(): Unit = playerSpells(slot) match {
+	private[client] def spellKeyDown(slot: Int)(): Unit = playerSpells(slot) match {
 		case Some(skeleton) =>
 			if (skeleton.cooldown.ready) skeleton.activated.value = true
 			Server ! ClientMessage.SpellCast(slot, engine.mouse.point)
 		case _ => // Ignore
 	}
 
-	private def spellKeyUp(slot: Int)(): Unit = playerSpells(slot) match {
-		case Some(skeleton) =>
-			skeleton.activated.value = false
-			Server ! ClientMessage.SpellCancel(slot)
+	private[client] def spellKeyUp(slot: Int)(): Unit = playerSpells(slot) match {
+		case Some(_) => Server ! ClientMessage.SpellCancel(slot)
 		case _ => // Ignore
 	}
 
@@ -64,41 +62,6 @@ object Game {
 		if (debugStatsShown) {
 			engine.registerEntity(debugStatsEntity)
 		}
-		/*
-		engine.setWorldSize(2000, 2000)
-
-		val enemy = new Character("Malevolent foe", 0) {
-			setPosition(500, 500)
-		}
-		engine.registerEntity(enemy)
-
-		val a = new Character("A Bot", 0) {
-			healthColor = "#5a5"
-			setPosition(100, 123)
-		}
-
-		val b = new Character("Heregellas", 0) {
-			healthColor = "#5a5"
-			setPosition(248, 46)
-		}
-
-		val c = new Character("0123456789", 0) {
-			healthColor = "#5a5"
-			setPosition(144, 178)
-		}
-
-
-		engine.registerEntity(a)
-		engine.registerEntity(b)
-		engine.registerEntity(c)
-
-		val player = new Player("Blash")
-		engine.registerEntity(player)
-		engine.camera.follow(player)
-
-		engine.registerEntity(new TeamFrame(10, if (debugStatsShown) 35 else 10, Seq(player, a, b, c)))
-
-		engine.registerEntity(new PlayerFrame(85, -80, player))*/
 	}
 
 	def reset(): Unit = {

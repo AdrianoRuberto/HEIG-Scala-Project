@@ -34,9 +34,14 @@ object App extends JSApp {
 		}
 
 		dom.document.on(Event.KeyDown) { ev =>
-			if (!ev.repeat && ev.key == "a" && ev.altKey) {
-				Server.verbose.toggle()
-				dom.console.log("Server verbose mode:", Server.verbose.value)
+			if (!ev.repeat && ev.altKey) {
+				if (ev.key == "a") {
+					Server.verbose.toggle()
+					dom.console.log("Server verbose mode:", Server.verbose.value)
+				} else if (ev.key == "d") {
+					Server.latencyEmulation.toggle()
+					dom.console.log("Server latency emulation:", Server.verbose.value)
+				}
 			}
 		}
 	})

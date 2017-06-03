@@ -1,7 +1,7 @@
 package game.client.entities
 
 import engine.Keyboard
-import game.client.Server
+import game.client.{Game, Server}
 import game.protocol.ClientMessage
 import game.skeleton.concrete.CharacterSkeleton
 import org.scalajs.dom
@@ -17,6 +17,8 @@ class Player (skeleton: CharacterSkeleton) extends Character(skeleton, 1) {
 
 	private var keyH = 0
 	private var keyV = 0
+
+	private var mouseState = false
 
 	override protected def attached(): Unit = {
 		engine.keyboard.registerKey("w", () => keyV -= 1, () => keyV += 1)
@@ -50,20 +52,32 @@ class Player (skeleton: CharacterSkeleton) extends Character(skeleton, 1) {
 				val tx = skeleton.x.current + Math.cos(angle) * speed * 2
 				val ty = skeleton.y.current + Math.sin(angle) * speed * 2
 
-				skeleton.x.interpolate(tx, 2000)
-				skeleton.y.interpolate(ty, 2000)
+				skeleton.x.commit().interpolate(tx, 2000)
+				skeleton.y.commit().interpolate(ty, 2000)
+				skeleton.moving.value = true
 
 				movingDirection = direction
 				movingThrottle = now
 				movingSpeed = speed
-				Server ! ClientMessage.Moving(tx, ty)
+				Server ! ClientMessage.Moving(tx, ty, skeleton.x.serial, skeleton.y.serial)
 			}
 		} else if (moving) {
 			moving = false
 			movingDirection = (0, 0)
-			skeleton.x.stop()
-			skeleton.y.stop()
-			Server ! ClientMessage.Stopped(skeleton.x.current, skeleton.y.current)
+			skeleton.x.commit().stop()
+			skeleton.y.commit().stop()
+			skeleton.moving.value = false
+			Server ! ClientMessage.Stopped(
+				skeleton.x.current, skeleton.y.current,
+				skeleton.x.serial, skeleton.y.serial
+			)
+		}
+
+		val state = engine.mouse.left
+		if (state != mouseState) {
+			if (state) Game.spellKeyDown(0)()
+			else Game.spellKeyUp(0)()
+			mouseState = state
 		}
 
 		super.update(dt)

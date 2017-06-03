@@ -18,7 +18,7 @@ class SkeletonManager {
 			skeletons += (uid -> skeleton)
 		case ManagerEvent.CollectSkeleton(uid) =>
 			skeletons -= uid
-		case n @ ManagerEvent.NotifyNode(uid, _, _) =>
+		case n @ ManagerEvent.NotifyNode(uid, _, _, _) =>
 			get(uid).receive(n)
 	}
 

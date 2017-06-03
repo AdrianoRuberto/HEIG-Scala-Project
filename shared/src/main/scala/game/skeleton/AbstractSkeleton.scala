@@ -27,7 +27,12 @@ class AbstractSkeleton(tpe: SkeletonType[_ <: AbstractSkeleton],
 
 	/** Receives notifications from the server instance of this skeleton */
 	final def receive(notification: ManagerEvent.NotifyNode): Unit = nodes.get(notification.nid) match {
-		case Some(node) => node.asInstanceOf[Node[NodeEvent]].receive(notification.event)
+		case Some(node) =>
+			val span = notification.serial - node.serial
+			if (span >= 0) {
+				if (span > 0) node.commit(notification.serial)
+				node.asInstanceOf[Node[NodeEvent]].receive(notification.event)
+			}
 		case None => throw new IllegalStateException(s"Received notification for unknown node: ${notification.nid}")
 	}
 

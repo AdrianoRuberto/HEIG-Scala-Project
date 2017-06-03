@@ -60,7 +60,7 @@ class InterpolatedNode (private var targetValue: Double)
 		}
 
 		// Update with receiver latency awareness
-		if (shouldEmit) {
+		if (shouldSend) {
 			if (duration <= 0.0) {
 				this send NodeEvent.InterpolatedUpdate(value, duration)
 			} else {

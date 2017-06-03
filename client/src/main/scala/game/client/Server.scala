@@ -15,6 +15,7 @@ object Server {
 	private var socket: dom.WebSocket = null
 
 	val verbose = PersistentBoolean("serverVerbose", default = false)
+	val latencyEmulation = PersistentBoolean("serverLatency", default = false)
 	var latency: Double = 0
 
 	def searchGame(name: String, fast: Boolean): Unit = {
@@ -26,7 +27,9 @@ object Server {
 		socket.on(Event.Error)(socketClosed)
 		socket.on(Event.Message) { event =>
 			val buffer = TypedArrayBuffer.wrap(event.data.asInstanceOf[ArrayBuffer])
-			handleMessage(Unpickle[ServerMessage].fromBytes(buffer))
+			val message = Unpickle[ServerMessage].fromBytes(buffer)
+			if (latencyEmulation) js.timers.setTimeout(100)(handleMessage(message))
+			else handleMessage(message)
 		}
 	}
 
@@ -42,7 +45,8 @@ object Server {
 		//require(socket != null, "Attempted to send message to server while not connected")
 		if (verbose && !message.isInstanceOf[SystemMessage]) dom.console.log(">>", message.toString)
 		val buffer = Pickle.intoBytes(message).toArrayBuffer
-		socket.send(buffer)
+		if (latencyEmulation) js.timers.setTimeout(100)(socket.send(buffer))
+		else socket.send(buffer)
 	}
 
 	def socketClosed(e: dom.Event): Unit = {

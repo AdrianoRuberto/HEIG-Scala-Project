@@ -12,7 +12,10 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) {
 		setDefaultTeamColors()
 		camera.followSelf()
 		camera.setSpeed(250)
-		for (uid <- players.keys) uid gainSpell (3, Spell.Sprint)
+		for (uid <- players.keys) {
+			uid gainSpell (0, Spell.Sword)
+			uid gainSpell (3, Spell.Sprint)
+		}
 	}
 
 	def start(): Unit = {
