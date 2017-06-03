@@ -1,15 +1,11 @@
 package game.client.entities
 
-import engine.Keyboard
 import game.client.{Game, Server}
 import game.protocol.ClientMessage
 import game.skeleton.concrete.CharacterSkeleton
 import org.scalajs.dom
 
 class Player (skeleton: CharacterSkeleton) extends Character(skeleton, 1) {
-	// Keyboard monitor for edge detection in key presses
-	protected implicit val keyboardMonitor = new Keyboard.Monitor
-
 	private var moving = false
 	private var movingSpeed = 0.0
 	private var movingDirection = (0, 0)
