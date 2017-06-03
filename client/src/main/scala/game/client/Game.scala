@@ -46,9 +46,7 @@ object Game {
 	}
 
 	private[client] def spellKeyUp(slot: Int)(): Unit = playerSpells(slot) match {
-		case Some(skeleton) =>
-			skeleton.activated.value = false
-			Server ! ClientMessage.SpellCancel(slot)
+		case Some(_) => Server ! ClientMessage.SpellCancel(slot)
 		case _ => // Ignore
 	}
 
