@@ -9,14 +9,14 @@ import java.util.concurrent.atomic.AtomicInteger
   * A skeleton is an data container that is kept in sync between
   * client and server automatically.
   */
-class AbstractSkeleton(tpe: SkeletonType, val uid: UID = UID.next)
-                      (implicit val transmitter: Transmitter = Transmitter.NoTransmitter) {
+class AbstractSkeleton(tpe: SkeletonType[_ <: AbstractSkeleton],
+                       val remotes: Seq[RemoteManager] = Seq.empty,
+                       val uid: UID = UID.next) {
+	/** Implicit reference to this skeleton */
 	protected implicit val self: this.type = this
 
 	// Notify client-side of this skeleton instantiation
-	if (transmitter != Transmitter.NoTransmitter) {
-		transmitter ! ManagerEvent.InstantiateSkeleton(tpe, uid)
-	}
+	for (remote <- remotes) remote send ManagerEvent.InstantiateSkeleton(tpe, uid)
 
 	// NodeIds generator
 	private val lastNodeId = new AtomicInteger(0)
@@ -29,5 +29,9 @@ class AbstractSkeleton(tpe: SkeletonType, val uid: UID = UID.next)
 	final def receive(notification: ManagerEvent.NotifyNode): Unit = nodes.get(notification.nid) match {
 		case Some(node) => node.asInstanceOf[Node[NodeEvent]].receive(notification.event)
 		case None => throw new IllegalStateException(s"Received notification for unknown node: ${notification.nid}")
+	}
+
+	def collect(): Unit = {
+		for (remote <- remotes) remote send ManagerEvent.CollectSkeleton(uid)
 	}
 }

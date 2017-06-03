@@ -16,6 +16,8 @@ class SkeletonManager {
 		case ManagerEvent.InstantiateSkeleton(tpe, uid) =>
 			val skeleton = tpe.instantiate(uid)
 			skeletons += (uid -> skeleton)
+		case ManagerEvent.CollectSkeleton(uid) =>
+			skeletons -= uid
 		case n @ ManagerEvent.NotifyNode(uid, _, _) =>
 			get(uid).receive(n)
 	}

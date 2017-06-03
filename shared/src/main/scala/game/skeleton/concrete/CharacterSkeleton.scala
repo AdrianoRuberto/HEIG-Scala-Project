@@ -6,9 +6,8 @@ import game.protocol.enums.SkeletonType
 import game.skeleton._
 import game.skeleton.node.{InterpolatedNode, ResourceNode, SimpleNode}
 
-class CharacterSkeleton (uid: UID = UID.next)
-                        (implicit receiver: Transmitter = Transmitter.NoTransmitter)
-		extends AbstractSkeleton(SkeletonType.Character, uid) {
+class CharacterSkeleton (uid: UID, remotes: Seq[RemoteManager])
+	extends AbstractSkeleton(SkeletonType.Character, remotes, uid) {
 
 	val name = SimpleNode("Unknown")
 	val color = SimpleNode("#999")
