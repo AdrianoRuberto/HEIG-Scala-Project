@@ -6,7 +6,7 @@ import engine.geometry._
 import engine.utils.Layer
 
 
-class ShapeDrawer(coloredShape: ColoredShape) extends Entity {
+class ShapeDrawer(val coloredShape: ColoredShape) extends Entity {
 	val layer: Layer = Layer.World
 	val boundingBox: Rectangle = coloredShape.boundingBox
 
