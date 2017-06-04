@@ -2,10 +2,7 @@ package engine.geometry
 
 import java.lang.Math._
 
-case class Vector2D(x: Double, y: Double) {
-	// Alias this as `a` for formulas
-	a =>
-
+case class Vector2D(x: Double, y: Double) { a =>
 	def + (b: Vector2D): Vector2D = Vector2D(a.x + b.x, a.y + b.y)
 	def - (b: Vector2D): Vector2D = Vector2D(a.x - b.x, a.y - b.y)
 
@@ -14,14 +11,15 @@ case class Vector2D(x: Double, y: Double) {
 
 	def unary_-(): Vector2D = Vector2D(-a.x, -a.y)
 
-	def * (b: Vector2D): Double = a.x * b.x + a.y * b.y
+	def dot (b: Vector2D): Double = a.x * b.x + a.y * b.y
 	def cross(b: Vector2D): Double = a.x * b.y - a.y * b.x
 
-	def norm: Double = sqrt(a * a)
+	def norm: Double = sqrt(a dot a)
 	def orthogonal: Vector2D = Vector2D(-a.y, a.x)
 	def normalized: Vector2D = a / norm
 
-	def project(b: Vector2D): Vector2D = (a * b) / (b * b) * b
+	def scalarProject(b: Vector2D): Double = a dot b.normalized
+	def project(b: Vector2D): Vector2D = (a dot b) / (b dot b) * b
 	def reject(b: Vector2D): Vector2D = a - (a project b)
 
 	/** Distance operator, return the norm of the vector `(b - a)` */
