@@ -2,7 +2,6 @@ package game.client
 
 import engine.Engine
 import engine.entity.Entity
-import engine.geometry.{Segment, Shape, Vector}
 import game.client.entities.{Character, DebugStats, Player, PlayerFrame, PlayerSpells, ShapeDrawer}
 import game.protocol.ServerMessage._
 import game.protocol.{ClientMessage, ServerMessage}
