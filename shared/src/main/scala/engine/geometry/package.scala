@@ -2,73 +2,26 @@ package engine
 
 package object geometry {
 	private[geometry] object g {
-		@inline def intersect(a: Rectangle, b: Rectangle): Boolean = {
-			!(a.left > b.right || b.left > a.right || a.top > b.bottom || b.top > a.bottom)
-		}
-
-		@inline def intersect(a: Rectangle, b: Circle): Boolean = {
-			@inline def clamp(a: Double, min: Double, max: Double) = if (a < min) min else if (a > max) max else a
-			val cx = clamp(b.x, a.left, a.right)
-			val cy = clamp(b.y, a.top, a.bottom)
-			squaredDistance(b.x, b.y, cx, cy) <= b.squaredRadius
-		}
-
-		@inline def intersect(a: Circle, b: Circle): Boolean = {
-			squaredDistance(a.x, a.y, b.y, b.y) <= (a.squaredRadius + b.squaredRadius)
-		}
-
-		@inline def intersect(a: Triangle, b: Triangle): Boolean = {
-			a.contains(b) || b.contains(a) ||
-			List(a.AB, a.AC, a.BC).map(line => List(b.AB, b.AC, b.BC).filter(_ intersect line)).nonEmpty
-		}
-
-		@inline def intersect(t: Triangle, r: Rectangle): Boolean = {
-			t.contains(r) || r.contains(t)
-			(Triangle(r.x, r.y, r.x + r.width, r.y, r.x, r.y + r.height) intersect t) ||
-			(Triangle(r.x + r.width, r.y + r.height, r.x + r.width, r.y, r.x, r.y + r.height) intersect t)
-		}
-
-		@inline def intersect(t: Triangle, c: Circle): Boolean = {
-			t.contains(c) || c.contains(t) || intersect(t.AB, c) || intersect(t.AC, c) || intersect(t.BC, c)
-		}
-
-		@inline def intersect(s: Segment, c: Circle): Boolean = {
-			val dx = s.x2 - s.x1
-			val dy = s.y2 - s.y1
-			val dr = math.sqrt(dx * dx + dy * dy)
-			val D = s.x1 * s.y2 - s.x2 * s.y1
-			val discri = (c.radius * c.radius * dr * dr) - (D * D)
-			discri > 0
-		}
-
-		@inline def intersect(s: Segment, r: Rectangle): Boolean = {
-			r.contains(s) || s.contains(r)
-			s.intersect(Segment(r.x, r.y, r.x + r.width, r.y)) ||
-			s.intersect(Segment(r.x, r.y, r.x, r.y + r.height)) ||
-			s.intersect(Segment(r.x + r.width, r.y + r.height, r.x + r.width, r.y)) ||
-			s.intersect(Segment(r.x + r.width, r.y + r.height, r.x, r.y + r.height))
-		}
-
-		@inline def intersect(a: Segment, b: Segment): Boolean = {
-			val det = a.A * b.B - b.A * a.B
-			if (det == 0) false
-			else {
-				val x = (b.B * a.C - a.B * b.C) / det
-				val y = (a.A * b.C - b.A * a.C) / det
-
-				(a.x1 min a.x2) <= x && x <= (a.x1 max a.x2) &&
-				(a.y1 min a.y2) <= y && y <= (a.y1 max a.y2)
+		// http://www.sevenson.com.au/actionscript/sat/
+		def intersect(a: ConvexPolygon, b: ConvexPolygon): Boolean = {
+			val axes = a.axes ++ b.axes
+			!axes.exists { axis =>
+				val ap = a.vertices.map(_ scalarProject axis)
+				val bp = b.vertices.map(_ scalarProject axis)
+				ap.max >= bp.min && bp.max >= ap.min
 			}
 		}
-		@inline def intersect(s: Segment, t: Triangle): Boolean = {
-			s.contains(t) || t.contains(s) ||
-			s.intersect(t.AB) || s.intersect(t.AC) || s.intersect(t.BC)
-		}
 
-		@inline def squaredDistance(ax: Double, ay: Double, bx: Double, by: Double): Double = {
-			val dx = ax - bx
-			val dy = ay - by
-			dx * dx + dy * dy
+		// http://www.sevenson.com.au/actionscript/sat/
+		def intersect(cp: ConvexPolygon, c: Circle): Boolean = {
+			val nearest = cp.vertices.minBy(_ <-> c.center)
+			val circleAxis = (c.center - nearest).normalized
+			val axes = cp.axes + circleAxis
+			!axes.exists { axis =>
+				val a = cp.vertices.map(_ scalarProject axis)
+				val b = c.center scalarProject axis
+				a.max >= b - c.radius && b + c.radius >= a.min
+			}
 		}
 	}
 }

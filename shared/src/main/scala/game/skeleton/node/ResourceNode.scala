@@ -17,16 +17,20 @@ case class ResourceNode (private var maxValue: Double, private var regenRate: Do
 		setupInterpolation()
 	}
 
-	def consume(amount: Double): Boolean = {
-		if (amount > current) false
-		else {
-			res.value = (res.value - amount) min maxValue
+	def consume(amount: Double): Unit = {
+		val updated = (res.value - amount) min maxValue max 0.0
+		if (rate != 0) {
+			res.value = updated
 			setupInterpolation()
-			true
+		} else {
+			res.interpolate(updated, 200)
 		}
 	}
 
 	def energize(amount: Double): Unit = consume(-amount)
+
+	@inline final def += (amount: Double): Unit = energize(amount)
+	@inline final def -= (amount: Double): Unit = consume(amount)
 
 	private def setupInterpolation(): Unit = {
 		if (regenRate > 0) res.interpolateAtSpeed(maxValue, regenRate)

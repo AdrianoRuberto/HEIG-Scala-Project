@@ -1,24 +1,36 @@
 package engine.geometry
 
-case class Rectangle (x: Double, y: Double, width: Double, height: Double) extends Shape {
-	@inline def size: Size = Size(width, height)
+final case class Rectangle (x: Double, y: Double, width: Double, height: Double) extends Shape with ConvexPolygon {
+	@inline def boundingBox: Rectangle = this
+
+	lazy val A: Vector2D = Vector2D(x, y)
+	lazy val B: Vector2D = Vector2D(x, y + height)
+	lazy val C: Vector2D = Vector2D(x + width, y + height)
+	lazy val D: Vector2D = Vector2D(x + width, y)
+
+	lazy val vertices: Seq[Vector2D] = Seq(A, B, C, D)
 
 	@inline def left: Double = x
 	@inline def right: Double = x + width
 	@inline def top: Double = y
 	@inline def bottom: Double = y + height
 
-	@inline def boundingBox: Rectangle = this
+	def contains(point: Vector2D): Boolean = {
+		point.x >= left && point.x <= right && point.y >= top && point.y <= bottom
+	}
 
-	@inline def contains(x: Double, y: Double): Boolean = !(x < left || x > right || y < top || y > bottom)
+	def contains(shape: Shape): Boolean = shape match {
+		case r: Rectangle => r.left >= left && r.right <= right && r.top >= top && r.bottom <= bottom
+		case c: Circle => contains(c.boundingBox)
+		case cp: ConvexPolygon => cp.vertices.forall(this.contains)
+	}
 
-	@inline override def contains(r: Rectangle): Boolean = !(left > r.left || right < r.right || top > r.top || bottom < r.bottom)
-	@inline def contains(c: Circle): Boolean = contains(c.boundingBox)
+	def intersect(shape: Shape): Boolean = shape match {
+		case r: Rectangle => left <= r.right && r.left <= right && top <= r.bottom && r.top <= bottom
+		case c: Circle => g.intersect(this, c)
+		case cp: ConvexPolygon => g.intersect(this, cp)
+	}
 
-	@inline def intersect(r: Rectangle): Boolean = g.intersect(this, r)
-	@inline def intersect(c: Circle): Boolean = g.intersect(this, c)
-	@inline def intersect(t: Triangle): Boolean = g.intersect(t, this)
-	@inline def intersect(s: Segment): Boolean = g.intersect(s, this)
-
-	def scale (k: Double): Shape = Rectangle(x * k, y * k, width * k, height * k)
+	def scale(k: Double): Rectangle = Rectangle(x * k, y * k, width * k, height * k)
+	def translate(dx: Double, dy: Double): Rectangle = Rectangle(x + dx, y + dy, width, height)
 }

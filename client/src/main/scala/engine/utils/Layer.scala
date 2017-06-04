@@ -16,7 +16,5 @@ object Layer {
 	final val HighFx = Layer(8)
 	final val Interface = Layer(10)
 
-	implicit object LayerIsOrdered extends Ordering[Layer] {
-		def compare(x: Layer, y: Layer): Int = x.strata compareTo y.strata
-	}
+	implicit val layerOrdering: Ordering[Layer] = Ordering.by(_.strata)
 }

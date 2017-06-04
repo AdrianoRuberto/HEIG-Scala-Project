@@ -12,12 +12,15 @@ case class SimpleNode[T: Pickler] (private var current: T)
 	def value: T = current
 
 	/** Updates the value of this node */
-	def value_=(newValue: T): Unit = if (newValue != value) {
+	def set(newValue: T, force: Boolean = false): Unit = if (newValue != value || force) {
 		current = newValue
 		if (shouldSend) {
 			this send NodeEvent.SimpleUpdate(pickle(newValue))
 		}
 	}
+
+	/** Alias for set */
+	def value_=(newValue: T): Unit = set(newValue)
 
 	/** Handle reception of update events from server */
 	override def receive(event: NodeEvent.SimpleEvent): Unit = event match {

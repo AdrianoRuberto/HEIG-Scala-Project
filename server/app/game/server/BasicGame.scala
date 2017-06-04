@@ -1,7 +1,7 @@
 package game.server
 
 import akka.actor.ActorRef
-import engine.geometry.{ColoredShape, Shape, Vector}
+import engine.geometry.{ColoredShape, Shape, Vector2D}
 import game.UID
 import game.maps.GameMap
 import game.protocol.enums.SkeletonType
@@ -185,7 +185,7 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 	}
 
 	/** Computes players spawn around a point for a given team */
-	def spawnPlayers(center: Vector, players: Seq[GamePlayer]): Unit = {
+	def spawnPlayers(center: Vector2D, players: Seq[GamePlayer]): Unit = {
 		val alpha = Math.PI * 2 / players.size
 		val radius = if (players.size == 1) 0 else 30 / Math.sin(alpha / 2)
 		val start = Random.nextDouble() * Math.PI * 2
@@ -211,7 +211,7 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 		skeleton.y.commit(ys).interpolate(y, 200)
 	}
 
-	def castSpell(player: UID, slot: Int, point: Vector): Unit = player.spells(slot) match {
+	def castSpell(player: UID, slot: Int, point: Vector2D): Unit = player.spells(slot) match {
 		case Some(skeleton) =>
 			SpellEffect.forSpell(skeleton.spell.value).cast(SpellContext(this, skeleton, player, point))
 		case None =>
@@ -220,7 +220,7 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 
 	def cancelSpell(player: UID, slot: Int): Unit = player.spells(slot) match {
 		case Some(skeleton) =>
-			SpellEffect.forSpell(skeleton.spell.value).cancel(SpellContext(this, skeleton, player, Vector.zero))
+			SpellEffect.forSpell(skeleton.spell.value).cancel(SpellContext(this, skeleton, player, Vector2D.zero))
 		case None =>
 			warn(s"Player `${player.skeleton.name.value}` attempted to cancel spell from empty slot")
 	}
