@@ -10,8 +10,10 @@ object CollisionDetection {
 		val candidates = walls.filter(_.boundingBox intersect path.boundingBox)
 		val intersections = candidates.flatMap(collide(path, _))
 
-		if (intersections.nonEmpty) intersections.minBy(_ <-> path.A)
-		else Vector2D(dx, dy)
+		if (intersections.nonEmpty) {
+			val point = intersections.minBy(_ <-> path.A)
+			point - path.AB.normalized
+		} else Vector2D(dx, dy)
 	}
 
 	private def collide(path: Segment, wall: Shape): List[Vector2D] = wall match {
