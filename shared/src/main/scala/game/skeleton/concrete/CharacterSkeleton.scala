@@ -1,7 +1,7 @@
 package game.skeleton.concrete
 
 import boopickle.DefaultBasic._
-import engine.geometry.Vector
+import engine.geometry.Vector2D
 import game.UID
 import game.protocol.enums.SkeletonType
 import game.skeleton._
@@ -18,7 +18,7 @@ class CharacterSkeleton (uid: UID, remotes: Seq[RemoteManager])
 	val y = InterpolatedNode(0.0)
 	val speed = InterpolatedNode(150.0)
 
-	def position: Vector = Vector(x.current, y.current)
+	def position: Vector2D = Vector2D(x.current, y.current)
 
 	val facingOverride = SimpleNode(false)
 	val facingDirection = SimpleNode(0.0)

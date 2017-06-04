@@ -69,7 +69,7 @@ object SpellEffect {
 		val game: BasicGame = ctx.game
 		val player: ctx.game.UIDOps = ctx.player
 		val skeleton: SpellSkeleton = ctx.skeleton
-		val point: geometry.Vector = ctx.point
+		val point: geometry.Vector2D = ctx.point
 		val initiator: UID = ctx.initiator
 
 		private[SpellEffect] val ticker = new Ticker {

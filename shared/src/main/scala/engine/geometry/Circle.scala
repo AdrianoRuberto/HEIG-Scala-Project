@@ -1,7 +1,7 @@
 package engine.geometry
 
 case class Circle(x: Double, y: Double, radius: Double) extends Shape {
-	@inline def center: Vector = Vector(x, y)
+	@inline def center: Vector2D = Vector2D(x, y)
 
 	lazy val squaredRadius: Double = radius * radius
 	lazy val boundingBox: Rectangle = Rectangle(x - radius, y - radius, radius * 2, radius * 2)

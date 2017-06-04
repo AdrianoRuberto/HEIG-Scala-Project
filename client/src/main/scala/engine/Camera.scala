@@ -1,7 +1,7 @@
 package engine
 
 import engine.entity.Entity
-import engine.geometry.{Vector, Rectangle}
+import engine.geometry.{Rectangle, Vector2D}
 
 final class Camera private[engine] (engine: Engine) {
 	private var following: Entity = null
@@ -58,7 +58,7 @@ final class Camera private[engine] (engine: Engine) {
 		update(0)
 	}
 
-	@inline def setPoint(p: Vector): Unit = setPoint(p.x, p.y)
+	@inline def setPoint(p: Vector2D): Unit = setPoint(p.x, p.y)
 
 	def follow(entity: Entity): Unit = {
 		following = entity

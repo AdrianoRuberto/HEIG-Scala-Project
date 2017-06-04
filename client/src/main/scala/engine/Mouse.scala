@@ -1,7 +1,7 @@
 package engine
 
 import engine.entity.Entity
-import engine.geometry.Vector
+import engine.geometry.Vector2D
 import engine.utils.MouseButtons
 import org.scalajs.dom
 
@@ -12,7 +12,7 @@ final class Mouse private[engine] (engine: Engine) {
 	def x: Double = (rawX + engine.camera.left + 0.5).floor
 	def y: Double = (rawY + engine.camera.top + 0.5).floor
 
-	def point: Vector = Vector(x, y)
+	def point: Vector2D = Vector2D(x, y)
 
 	var left: Boolean = false
 
@@ -27,7 +27,7 @@ final class Mouse private[engine] (engine: Engine) {
 			Mouse.this.y - (box.top + box.height / 2 + 0.5).floor
 		}
 
-		def point(implicit to: Entity): Vector = Vector(x, y)
+		def point(implicit to: Entity): Vector2D = Vector2D(x, y)
 	}
 
 	private[engine] def handler(event: dom.MouseEvent): Unit = {

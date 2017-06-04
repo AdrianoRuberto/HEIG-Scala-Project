@@ -1,6 +1,6 @@
 package engine.quadtree
 
-import engine.geometry.{Vector, Rectangle}
+import engine.geometry.{Rectangle, Vector2D}
 import scala.language.implicitConversions
 
 abstract class QuadTree[T: Bounded] {
@@ -22,7 +22,7 @@ abstract class QuadTree[T: Bounded] {
 	/** Alias for [[remove]] */
 	@inline final def -= (obj: T)(implicit bb: BoundingBox = obj.boundingBox): Unit = remove(obj)
 
-	def query(point: Vector): Iterator[T]
+	def query(point: Vector2D): Iterator[T]
 	def query(box: Rectangle): Iterator[T]
 
 	def iterator: Iterator[T]

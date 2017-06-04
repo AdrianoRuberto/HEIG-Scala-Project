@@ -1,6 +1,6 @@
 package engine.quadtree
 
-import engine.geometry.{Vector, Rectangle}
+import engine.geometry.{Rectangle, Vector2D}
 
 private[quadtree] class Tree[T: Bounded] (val x: Double, val y: Double, val width: Double, val height: Double)
 		extends QuadTree[T] {
@@ -40,7 +40,7 @@ private[quadtree] class Tree[T: Bounded] (val x: Double, val y: Double, val widt
 		}
 	}
 
-	def query(point: Vector): Iterator[T] = {
+	def query(point: Vector2D): Iterator[T] = {
 		lazy val q = quadrant(point)
 		val matching = objects.iterator.filter(o => o.boundingBox.rect contains point)
 		if (split && q >= 0) matching ++ children(q).query(point)
@@ -68,7 +68,7 @@ private[quadtree] class Tree[T: Bounded] (val x: Double, val y: Double, val widt
 	}
 
 	@inline
-	private def quadrant(point: Vector): Int = {
+	private def quadrant(point: Vector2D): Int = {
 		quadrant(top = point.y < midY, bottom = point.y > midY, left = point.x < midX, right = point.x > midX)
 	}
 
