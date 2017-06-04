@@ -1,4 +1,4 @@
-package game.protocol.enums
+package game
 
 sealed trait GameMode {
 	val name: String

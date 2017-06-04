@@ -5,12 +5,11 @@ import engine.entity.Entity
 import engine.entity.feature.AbsolutePosition
 import engine.geometry.Rectangle
 import engine.utils.Layer
+import game.skeleton.concrete.CharacterSkeleton
 
-class PlayerFrame (x: Double, y: Double, player: Player) extends Entity with AbsolutePosition {
+class PlayerFrame (x: Double, y: Double, skeleton: CharacterSkeleton) extends Entity with AbsolutePosition {
 	val layer: Layer = Layer.Interface
 	val boundingBox: Rectangle = Rectangle(x, y, 200, 90)
-
-	private val skeleton = player.skeleton
 
 	def draw(ctx: CanvasCtx): Unit = {
 		ctx.transform(1, -0.05, 0, 1, -0.5, 0)

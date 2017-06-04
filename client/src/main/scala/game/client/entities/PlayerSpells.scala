@@ -4,10 +4,12 @@ import engine.entity.Entity
 import engine.entity.feature.AbsolutePosition
 import engine.geometry.Rectangle
 import engine.utils.Layer
-import game.skeleton.concrete.SpellSkeleton
+import game.skeleton.concrete.{CharacterSkeleton, SpellSkeleton}
 import game.spells.icons.SpellIcon
 
-class PlayerSpells (x: Double, y: Double, playerSpells: => Array[Option[SpellSkeleton]])
+class PlayerSpells (x: Double, y: Double,
+                    playerSkeleton: CharacterSkeleton,
+                    playerSpells: => Array[Option[SpellSkeleton]])
 	extends Entity with AbsolutePosition {
 
 	val layer: Layer = Layer.Interface
@@ -24,7 +26,7 @@ class PlayerSpells (x: Double, y: Double, playerSpells: => Array[Option[SpellSke
 		ctx.fillStyle = "#000"
 
 		for ((Some(skeleton), key) <- playerSpells zip keys) {
-			SpellIcon.forSpell(skeleton.spell.value).draw(ctx, skeleton)
+			SpellIcon.forSpell(skeleton.spell.value).draw(ctx, playerSkeleton, skeleton)
 			ctx.fillText(key, 30, 65)
 			ctx.translate(-75, 0)
 		}

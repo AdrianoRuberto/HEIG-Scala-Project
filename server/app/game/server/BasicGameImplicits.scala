@@ -2,8 +2,9 @@ package game.server
 
 import game.UID
 import game.protocol.ServerMessage
-import game.protocol.enums.{SkeletonType, Spell}
+import game.skeleton.SkeletonType
 import game.skeleton.concrete.{CharacterSkeleton, SpellSkeleton}
+import game.spells.Spell
 import scala.language.implicitConversions
 
 trait BasicGameImplicits {

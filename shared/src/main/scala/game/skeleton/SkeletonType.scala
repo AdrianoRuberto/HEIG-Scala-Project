@@ -1,8 +1,7 @@
-package game.protocol.enums
+package game.skeleton
 
 import game.UID
 import game.skeleton.concrete.{CharacterSkeleton, SpellSkeleton}
-import game.skeleton.{AbstractSkeleton, RemoteManager}
 
 sealed abstract class SkeletonType[+S <: AbstractSkeleton] (ctor: (UID, Seq[RemoteManager]) => S) {
 	def instantiate(uid: UID): S = ctor(uid, Seq.empty)

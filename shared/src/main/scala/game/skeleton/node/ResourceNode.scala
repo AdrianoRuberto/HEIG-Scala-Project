@@ -18,7 +18,7 @@ case class ResourceNode (private var maxValue: Double, private var regenRate: Do
 	}
 
 	def consume(amount: Double): Unit = {
-		val updated = (res.value - amount) min maxValue max 0.0
+		val updated = (res.current - amount) min maxValue max 0.0
 		if (rate != 0) {
 			res.value = updated
 			setupInterpolation()

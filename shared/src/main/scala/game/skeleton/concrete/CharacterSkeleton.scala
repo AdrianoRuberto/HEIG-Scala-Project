@@ -3,9 +3,8 @@ package game.skeleton.concrete
 import boopickle.DefaultBasic._
 import engine.geometry.Vector2D
 import game.UID
-import game.protocol.enums.SkeletonType
-import game.skeleton._
 import game.skeleton.node.{InterpolatedNode, ResourceNode, SimpleNode}
+import game.skeleton.{SkeletonType, _}
 
 class CharacterSkeleton (uid: UID, remotes: Seq[RemoteManager])
 	extends AbstractSkeleton(SkeletonType.Character, remotes, uid) {

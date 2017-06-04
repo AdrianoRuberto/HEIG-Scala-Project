@@ -26,6 +26,7 @@ object Game {
 	private var teams: Seq[TeamInfo] = Nil
 	private var playerUID: UID = UID.zero
 
+	private var playerSkeleton: CharacterSkeleton = null
 	private val playerSpells: Array[Option[SpellSkeleton]] = Array.fill(4)(None)
 
 	def setup(): Unit = {
@@ -40,13 +41,15 @@ object Game {
 
 	private[client] def spellKeyDown(slot: Int)(): Unit = playerSpells(slot) match {
 		case Some(skeleton) =>
-			if (skeleton.cooldown.ready) skeleton.activated.value = true
-			Server ! ClientMessage.SpellCast(slot, engine.mouse.point)
+			if (skeleton.cooldown.ready && (playerSkeleton == null || skeleton.spell.value.cost.forall(playerSkeleton.energy.current >= _))) {
+				skeleton.activated.value = true
+				Server ! ClientMessage.SpellCast(slot, engine.mouse.point)
+			}
 		case _ => // Ignore
 	}
 
 	private[client] def spellKeyUp(slot: Int)(): Unit = playerSpells(slot) match {
-		case Some(_) => Server ! ClientMessage.SpellCancel(slot)
+		case Some(skeleton) => if (skeleton.activated.value) Server ! ClientMessage.SpellCancel(slot)
 		case _ => // Ignore
 	}
 
@@ -83,9 +86,10 @@ object Game {
 	private def instantiateCharacter(characterUID: UID, skeletonUID: UID): Unit = {
 		val skeleton = skeletonManager.getAs[CharacterSkeleton](skeletonUID)
 		val entity = if (characterUID != playerUID) new Character(skeleton) else {
+			playerSkeleton = skeleton
 			val player = new Player(skeleton, walls.values.map(_.coloredShape.shape))
-			engine.registerEntity(new PlayerFrame(85, -80, player))
-			engine.registerEntity(new PlayerSpells(-85, -65, playerSpells))
+			engine.registerEntity(new PlayerFrame(85, -80, skeleton))
+			engine.registerEntity(new PlayerSpells(-85, -65, skeleton, playerSpells))
 			player
 		}
 		characterEntities += (characterUID -> entity)

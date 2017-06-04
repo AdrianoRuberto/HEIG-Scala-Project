@@ -2,9 +2,9 @@ package game.protocol
 
 import boopickle.Default._
 import engine.geometry.{ColoredShape, Shape}
-import game.protocol.enums.GameMode
-import game.skeleton.ManagerEvent
-import game.{TeamInfo, UID}
+import game.skeleton.node.NodeId
+import game.skeleton.{ManagerEvent, SkeletonType}
+import game.{GameMode, TeamInfo, UID}
 
 sealed trait ServerMessage
 
@@ -49,8 +49,9 @@ object ServerMessage {
 	}
 	case class Debug(severity: Severity, args: Seq[String]) extends ServerMessage with SystemMessage
 
-	private implicit val UIDPicker = UID.pickler
-	private implicit val SkeletonPickler = ManagerEvent.pickler
+	private implicit val UIDPickler = UID.pickler
+	private implicit val NodeIdPickler = NodeId.pickler
 	private implicit val ShapePickler =  Shape.pickler
+	private implicit val SkeletonTypePickler = generatePickler[SkeletonType[_]]
 	implicit val pickler: Pickler[ServerMessage] = generatePickler[ServerMessage]
 }

@@ -4,11 +4,10 @@ import akka.actor.ActorRef
 import engine.geometry.{ColoredShape, Shape, Vector2D}
 import game.UID
 import game.maps.GameMap
-import game.protocol.enums.SkeletonType
 import game.protocol.{ClientMessage, ServerMessage}
 import game.server.actors.{Matchmaker, PlayerActor, Watcher}
 import game.skeleton.concrete.{CharacterSkeleton, SpellSkeleton}
-import game.skeleton.{AbstractSkeleton, ManagerEvent, RemoteManager}
+import game.skeleton.{AbstractSkeleton, ManagerEvent, RemoteManager, SkeletonType}
 import game.spells.effects.{SpellContext, SpellEffect}
 import scala.concurrent.duration._
 import scala.util.Random

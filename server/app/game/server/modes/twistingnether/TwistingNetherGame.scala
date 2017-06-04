@@ -1,8 +1,8 @@
 package game.server.modes.twistingnether
 
 import game.maps.GameMap
-import game.protocol.enums.Spell
 import game.server.{BasicGame, GameTeam}
+import game.spells.Spell
 
 class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) {
 
