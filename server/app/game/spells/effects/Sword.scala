@@ -20,15 +20,14 @@ object Sword extends SpellEffect {
 				if (uid == initiator) false
 				else {
 					val q = uid.skeleton.position
-					p distance q match {
+					p <-> q match {
 						case d if d < 30 =>
 							// Orientation does not matter if players are overlapping
 							true
 						case d if d < 80 =>
-							// In range
+							// In range, check orientation
 							val β = atan2(q.y - p.y, q.x - p.x)
-							val δ = abs(atan2(sin(β - α), cos(β - α)))
-							δ <= Math.PI / 4 && (p distance q) <= 80
+							abs(atan2(sin(β - α), cos(β - α))) <= 3 * Math.PI / 4
 						case _ =>
 							// Out of range
 							false
