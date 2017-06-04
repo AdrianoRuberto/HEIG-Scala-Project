@@ -1,11 +1,13 @@
 package game.client.entities
 
+import engine.geometry.Shape
+import engine.utils.CollisionDetection
 import game.client.{Game, Server}
 import game.protocol.ClientMessage
 import game.skeleton.concrete.CharacterSkeleton
 import org.scalajs.dom
 
-class Player (skeleton: CharacterSkeleton) extends Character(skeleton, 1) {
+class Player (skeleton: CharacterSkeleton, walls: => Iterable[Shape]) extends Character(skeleton, 1) {
 	private var moving = false
 	private var movingSpeed = 0.0
 	private var movingDirection = (0, 0)
@@ -45,8 +47,14 @@ class Player (skeleton: CharacterSkeleton) extends Character(skeleton, 1) {
 					case (1, 1) => Math.PI / 4
 				}
 
-				val tx = skeleton.x.current + Math.cos(angle) * speed * 2
-				val ty = skeleton.y.current + Math.sin(angle) * speed * 2
+				val rx = skeleton.x.current + Math.cos(angle) * speed * 2
+				val ry = skeleton.y.current + Math.sin(angle) * speed * 2
+				val dest = CollisionDetection.collide(skeleton.x.current, skeleton.y.current, rx, ry, walls)
+
+				println(rx, ry, dest)
+
+				val tx = dest.x
+				val ty = dest.y
 
 				skeleton.x.commit().interpolate(tx, 2000)
 				skeleton.y.commit().interpolate(ty, 2000)

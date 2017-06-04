@@ -3,7 +3,7 @@ package engine.geometry
 import java.lang.Math._
 
 case class Segment(ax: Double, ay: Double, bx: Double, by: Double) extends Shape with ConvexPolygon {
-	lazy val boundingBox: Rectangle = Rectangle(ax min bx, ay min by, abs(bx - ay), abs(by - ay))
+	lazy val boundingBox: Rectangle = Rectangle(ax min bx, ay min by, abs(bx - ax), abs(by - ay))
 
 	lazy val A: Vector2D = Vector2D(ax, ay)
 	lazy val B: Vector2D = Vector2D(bx, by)
@@ -25,4 +25,8 @@ case class Segment(ax: Double, ay: Double, bx: Double, by: Double) extends Shape
 
 	def translate(dx: Double, dy: Double): Segment = Segment(ax + dx, ay + dy, bx + dx, by + dy)
 	def scale(k: Double): Segment = Segment(ax * k, ay * k, bx * k, by * k)
+}
+
+object Segment {
+	def apply(from: Vector2D, to: Vector2D): Segment = Segment(from.x, from.y, to.x, to.y)
 }

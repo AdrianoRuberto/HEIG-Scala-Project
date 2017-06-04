@@ -6,15 +6,17 @@ import engine.geometry._
 import engine.utils.Layer
 
 
-class ShapeDrawer(coloredShape: ColoredShape) extends Entity {
+class ShapeDrawer(val coloredShape: ColoredShape) extends Entity {
+	val shape: Shape = coloredShape.shape
 	val layer: Layer = Layer.World
-	val boundingBox: Rectangle = coloredShape.boundingBox
+	val boundingBox: Rectangle = shape.boundingBox
 
 	def draw(ctx: CanvasCtx): Unit = {
 		ctx.fillStyle = coloredShape.color
 		ctx.strokeStyle = coloredShape.color
-
-		coloredShape.shape match {
+		//ctx.translate(15, 15)
+		//ctx.scale((boundingBox.width - 30) / boundingBox.width, (boundingBox.height - 30) / boundingBox.height)
+		shape match {
 			case Circle(x, y, radius) =>
 				ctx.beginPath()
 				ctx.arc(radius, radius, radius, 0, 2 * Math.PI)

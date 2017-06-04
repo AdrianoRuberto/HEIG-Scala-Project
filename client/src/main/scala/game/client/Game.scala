@@ -21,7 +21,7 @@ object Game {
 
 	private val skeletonManager = new SkeletonManager
 	private var characterEntities: Map[UID, Entity] = Map.empty
-	private var shapeEntities: Map[UID, Entity] = Map.empty
+	private var walls: Map[UID, ShapeDrawer] = Map.empty
 
 	private var teams: Seq[TeamInfo] = Nil
 	private var playerUID: UID = UID.zero
@@ -83,7 +83,7 @@ object Game {
 	private def instantiateCharacter(characterUID: UID, skeletonUID: UID): Unit = {
 		val skeleton = skeletonManager.getAs[CharacterSkeleton](skeletonUID)
 		val entity = if (characterUID != playerUID) new Character(skeleton) else {
-			val player = new Player(skeleton)
+			val player = new Player(skeleton, walls.values.map(_.coloredShape.shape))
 			engine.registerEntity(new PlayerFrame(85, -80, player))
 			engine.registerEntity(new PlayerSpells(-85, -65, playerSpells))
 			player
@@ -100,11 +100,11 @@ object Game {
 		case LoseSpell(slot) => playerSpells(slot) = None
 		case DrawShape(shapeUID, shape) =>
 			val shapeDrawer = new ShapeDrawer(shape)
-			shapeEntities += (shapeUID -> shapeDrawer)
+			walls += (shapeUID -> shapeDrawer)
 			engine.registerEntity(shapeDrawer)
 		case EraseShape(shapeUID) =>
-			val shape = shapeEntities(shapeUID)
-			shapeEntities -= shapeUID
+			val shape = walls(shapeUID)
+			walls -= shapeUID
 			engine.unregisterEntity(shape)
 
 		// Camera

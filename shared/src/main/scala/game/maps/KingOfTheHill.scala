@@ -15,7 +15,6 @@ private[maps] object KingOfTheHill {
 		Rectangle(-13, -10, 7, 4),
 		Triangle(-7, 7, -10, 7, -7, 5),
 		// Center
-		Circle(0, 0, 3),
 		Segment(-22, -13, 22, -13),
 		Segment(-4, -11, 4, -11),
 		Segment(-4, -11, -4, -9),
