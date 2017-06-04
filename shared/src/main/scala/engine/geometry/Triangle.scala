@@ -1,55 +1,34 @@
 package engine.geometry
 
-case class Triangle(ax: Double, ay: Double, bx: Double, by: Double, cx: Double, cy: Double) extends Shape {
-
-	lazy val AB: Segment = Segment(ax, ay, bx, by)
-	lazy val AC: Segment = Segment(ax, ay, cx, cy)
-	lazy val BC: Segment = Segment(bx, by, cx, cy)
-
-	lazy val area: Double = {
-		val s = (AB.length + AC.length + BC.length) / 2
-		math.sqrt(s * (s - AB.length) * (s - AC.length) * (s - BC.length))
-	}
-
-	lazy val height: Double = 2 * area / BC.length
+final case class Triangle(ax: Double, ay: Double,
+                          bx: Double, by: Double,
+                          cx: Double, cy: Double) extends Shape with ConvexPolygon {
 
 	lazy val boundingBox: Rectangle = {
-		@inline def max(a: Double, b: Double, c: Double): Double = math.max(math.max(a, b), c)
-		@inline def min(a: Double, b: Double, c: Double): Double = math.min(math.min(a, b), c)
-
-		val left = min(ax, bx, cx)
-		val right = max(ax, bx, cx)
-		val top = min(ay, by, cy)
-		val bot = max(ay, by, cy)
-
-		Rectangle(left, top, right - left, bot - top)
+		val xmin = ax min bx min cx
+		val xmax = ax max bx max cx
+		val ymin = ay min by min cy
+		val ymax = ay max by max cy
+		Rectangle(xmin, ymin, xmax - xmin, ymax - ymin)
 	}
 
-	@inline def contains(x: Double, y: Double): Boolean = {
-		val dx = x - cx
-		val dy = y - cy
-		val det = (by - cy) * (ax - cx) - (cx - bx) * (cy - ay)
-		val minD = math.min(det, 0)
-		val maxD = math.max(det, 0)
-		val a = (by - cy) * dx + (cx - bx) * dy
-		val b = (cy - ay) * dx + (ax - cx) * dy
-		val c = det - a - b
+	lazy val A: Vector2D = Vector2D(ax, ay)
+	lazy val B: Vector2D = Vector2D(bx, by)
+	lazy val C: Vector2D = Vector2D(cx, cy)
+	lazy val vertices: Seq[Vector2D] = Seq(A, B, C)
 
-		(a >= minD && a <= maxD) || (b >= minD && b <= maxD) || (c >= minD && c <= maxD)
+	lazy val AB: Vector2D = B - A
+	lazy val AC: Vector2D = C - A
+	lazy val BC: Vector2D = C - B
+
+	def contains(point: Vector2D): Boolean = ???
+	def contains(shape: Shape): Boolean = ???
+
+	def intersect(shape: Shape): Boolean = shape match {
+		case c: Circle => g.intersect(this, c)
+		case cp: ConvexPolygon => g.intersect(this, cp)
 	}
 
-	@inline def contains(c: Circle): Boolean = {
-		if (!contains(c.center)) false
-		else
-			c.radius <= Triangle(c.center.x, c.center.y, ax, ay, bx, by).height &&
-			c.radius <= Triangle(c.center.x, c.center.y, ax, ay, cx, cy).height &&
-			c.radius <= Triangle(c.center.x, c.center.y, bx, by, cx, cy).height
-	}
-
-	@inline def intersect(r: Rectangle): Boolean = g.intersect(this, r)
-	@inline def intersect(c: Circle): Boolean = g.intersect(this, c)
-	@inline def intersect(t: Triangle): Boolean = g.intersect(this, t)
-	@inline def intersect(s: Segment): Boolean = g.intersect(s, this)
-
-	def scale (k: Double): Shape = Triangle(ax * k, ay * k, bx * k, by * k, cx * k, cy * k)
+	def translate(dx: Double, dy: Double): Triangle = Triangle(ax + dx, ay + dy, bx + dx, by + dy, cx + dx, cy + dy)
+	def scale(k: Double): Triangle = Triangle(ax * k, ay * k, bx * k, by * k, cx *k, cy *k)
 }

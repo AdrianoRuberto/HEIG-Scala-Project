@@ -1,24 +1,22 @@
 package engine.geometry
 
 case class Circle(x: Double, y: Double, radius: Double) extends Shape {
-	@inline def center: Vector = Vector(x, y)
-
-	lazy val squaredRadius: Double = radius * radius
 	lazy val boundingBox: Rectangle = Rectangle(x - radius, y - radius, radius * 2, radius * 2)
 
-	/** A circle contains a point if the distance of this point from its center is smaller than the radius */
-	@inline def contains(u: Double, v: Double): Boolean = g.squaredDistance(x, y, u, v) <= squaredRadius
+	lazy val center: Vector2D = Vector2D(x, y)
 
-	/**
-	  * A circle contains another circle if the distance of its center
-	  * plus its radius is lower than the radius of the former circle
-	  */
-	@inline def contains(c: Circle): Boolean = g.squaredDistance(x, y, c.x, c.y) + c.squaredRadius <= squaredRadius
+	def contains(point: Vector2D): Boolean = center <-> point <= radius
 
-	@inline def intersect(r: Rectangle): Boolean = g.intersect(r, this)
-	@inline def intersect(c: Circle): Boolean = g.intersect(this, c)
-	@inline def intersect(t: Triangle): Boolean = g.intersect(t, this)
-	@inline def intersect(s: Segment): Boolean = g.intersect(s, this)
+	def contains(shape: Shape): Boolean = shape match {
+		case c: Circle => (center <-> c.center) + c.radius <= radius
+		case cp: ConvexPolygon => cp.vertices.forall(this.contains)
+	}
 
-	def scale (k: Double): Shape = Circle(x * k, y * k, radius * k)
+	def intersect(shape: Shape): Boolean = shape match {
+		case c: Circle => c.center <-> center <= radius + c.radius
+		case cp: ConvexPolygon => g.intersect(cp, this)
+	}
+
+	def translate(dx: Double, dy: Double): Circle = Circle(x + dx, y + dy, radius)
+	def scale(k: Double): Circle = Circle(x * k, y * k, radius * k)
 }

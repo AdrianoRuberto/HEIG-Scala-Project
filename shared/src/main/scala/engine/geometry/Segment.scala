@@ -1,20 +1,28 @@
 package engine.geometry
 
-case class Segment(x1: Double, y1: Double, x2: Double, y2: Double) extends Shape {
-	val A: Double = y2 - y1
-	val B: Double = x1 - x2
-	val C: Double = A * x1 + B * y1
+import java.lang.Math._
 
-	@inline def length: Double = math.sqrt(g.squaredDistance(x1, y1, x2, y2))
+case class Segment(ax: Double, ay: Double, bx: Double, by: Double) extends Shape with ConvexPolygon {
+	lazy val boundingBox: Rectangle = Rectangle(ax min bx, ay min by, abs(bx - ay), abs(by - ay))
 
-	def intersect(s: Segment): Boolean = g.intersect(this, s)
-	def intersect(r: Rectangle): Boolean = g.intersect(this, r)
-	def intersect(c: Circle): Boolean = g.intersect(this, c)
-	def intersect(t: Triangle): Boolean = g.intersect(this, t)
+	lazy val A: Vector2D = Vector2D(ax, ay)
+	lazy val B: Vector2D = Vector2D(bx, by)
+	def vertices: Seq[Vector2D] = Seq(A, B)
 
-	def boundingBox: Rectangle = Rectangle(x1 min x2, y1 min y2, Math.abs(x2 - x1), Math.abs(y2 - y1))
-	def contains(x: Double, y: Double): Boolean = Vector(x - x1, y - y1).cross(Vector(x2 - x, y2 - y)) == 0
-	def contains(c: Circle): Boolean = c.radius == 0 && contains(c.x, c.y)
+	lazy val AB: Vector2D = B - A
 
-	def scale (k: Double): Shape = Segment(x1 * k, y1 * k, x2 * k, y2 * k)
+	def contains(c: Vector2D): Boolean = c.x >= (ax min bx) && c.x <= (ax max bx) && (AB cross c - A) == 0
+
+	def contains(shape: Shape): Boolean = shape match {
+		case c: Circle => c.radius == 0 && contains(c.center)
+		case cp: ConvexPolygon => cp.vertices.forall(this.contains)
+	}
+
+	def intersect(shape: Shape): Boolean = shape match {
+		case c: Circle => g.intersect(this, c)
+		case cp: ConvexPolygon => g.intersect(this, cp)
+	}
+
+	def translate(dx: Double, dy: Double): Segment = Segment(ax + dx, ay + dy, bx + dx, by + dy)
+	def scale(k: Double): Segment = Segment(ax * k, ay * k, bx * k, by * k)
 }

@@ -1,27 +1,32 @@
 package game.spells.effects
 
+import game.spells.effects.SpellEffect.EffectInstance
+
 object Sprint extends SpellEffect {
-	def cast(implicit ctx: SpellContext): Unit = {
-		val ps = ctx.player.skeleton
-		if (!activated && ps.energy.current > 1 && ready) {
-			ps.speed.value *= 2
-			ps.energy.rate -= 45
-			createTicker { _ =>
-				if (ps.energy.current < 1) cancel(ctx)
-			}
-			activate()
-		} else {
-			deactivate()
-		}
+	type Instance = SprintInstance
+	def instantiate(ctx: SpellContext): SprintInstance = new SprintInstance(this, ctx)
+
+	override def available(ctx: SpellContext): Boolean = {
+		ctx.skeleton.cooldown.ready && ctx.player.skeleton.energy.current > 1
 	}
 
-	def cancel(implicit ctx: SpellContext): Unit = {
-		if (activated) {
-			ctx.player.skeleton.speed.value /= 2
-			ctx.player.skeleton.energy.rate += 45
-			cancelTicker()
-			deactivate()
-			cooldown(1000)
+	class SprintInstance(e: SpellEffect, c: SpellContext)
+		extends EffectInstance(e: SpellEffect, c: SpellContext) {
+
+		cooldown = 1000
+
+		override def gain(): Unit = {
+			player.skeleton.speed.value *= 2
+			player.skeleton.energy.rate -= 45
+		}
+
+		override def tick(dt: Double): Unit = {
+			if (player.skeleton.energy.current < 1) cancel()
+		}
+
+		override def lose(): Unit = {
+			player.skeleton.speed.value /= 2
+			player.skeleton.energy.rate += 45
 		}
 	}
 }
