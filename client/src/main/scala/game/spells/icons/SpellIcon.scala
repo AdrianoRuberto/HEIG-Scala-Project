@@ -67,5 +67,6 @@ object SpellIcon {
 	def forSpell(spell: Spell): SpellIcon = spell match {
 		case Spell.Sprint => Sprint
 		case Spell.Sword => Sword
+		case other => Dummy(other.toString)
 	}
 }

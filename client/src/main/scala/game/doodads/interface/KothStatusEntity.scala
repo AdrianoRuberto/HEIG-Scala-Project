@@ -1,4 +1,4 @@
-package game.doodads.status
+package game.doodads.interface
 
 import engine.CanvasCtx
 import engine.entity.Entity

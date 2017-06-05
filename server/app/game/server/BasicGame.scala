@@ -132,6 +132,11 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 		def setSpeed(pps: Double): Unit = broadcast ! ServerMessage.SetCameraSpeed(pps)
 	}
 
+	object engine {
+		def enableInputs(): Unit = broadcast ! ServerMessage.EnableInputs
+		def disableInputs(): Unit = broadcast ! ServerMessage.DisableInputs
+	}
+
 	def setTeamColors(colors: String*): Unit = {
 		for ((team, color) <- teamFromUID.values zip colors; player <- team.players) {
 			skeletons(player.info.uid).color.value = color

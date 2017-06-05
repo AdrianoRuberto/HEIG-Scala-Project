@@ -25,6 +25,8 @@ object ServerMessage {
 	sealed trait GameMessage extends ServerMessage
 	case object GameStart extends GameMessage
 	case class SkeletonEvent(event: ManagerEvent) extends GameMessage
+	case object EnableInputs extends GameMessage
+	case object DisableInputs extends GameMessage
 
 	// Entities
 	case class InstantiateCharacter(characterUID: UID, skeletonUID: UID) extends GameMessage

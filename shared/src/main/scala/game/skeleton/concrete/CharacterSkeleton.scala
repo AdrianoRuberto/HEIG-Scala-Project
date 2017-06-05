@@ -1,6 +1,5 @@
 package game.skeleton.concrete
 
-import boopickle.DefaultBasic._
 import engine.geometry.Vector2D
 import game.UID
 import game.skeleton.node.{InterpolatedNode, ResourceNode, SimpleNode}
@@ -24,4 +23,5 @@ class CharacterSkeleton (uid: UID, remotes: Seq[RemoteManager])
 
 	val health = ResourceNode(200)
 	val energy = ResourceNode(100, 15)
+	val dead = SimpleNode(false)
 }

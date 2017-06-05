@@ -61,6 +61,7 @@ object SpellEffect {
 	def forSpell(spell: Spell): SpellEffect = spell match {
 		case Spell.Sprint => Sprint
 		case Spell.Sword => Sword
+		case Spell.Flagellation => Flagellation
 	}
 
 	class EffectInstance(effect: SpellEffect, val ctx: SpellContext) { self =>

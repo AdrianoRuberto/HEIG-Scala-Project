@@ -13,8 +13,9 @@ object Doodad {
 		case class Point(skeleton: UID) extends Doodad
 	}
 
-	object Status {
+	object Interface {
 		case class Koth(skeleton: UID) extends Doodad
+		case class DeathScreen(duration: Double) extends Doodad
 	}
 
 	object Spell {
