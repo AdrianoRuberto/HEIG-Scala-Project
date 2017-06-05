@@ -23,6 +23,7 @@ trait BasicGameImplicits { game: BasicGame =>
 		@inline def team: UID = game.teamForPlayer(uid)
 
 		@inline def hostile(other: UID): Boolean = game.hostile(uid, other)
+		@inline def friendly(other: UID): Boolean = game.friendly(uid, other)
 
 		@inline def gainSpell(slot: Int, spell: Spell): Unit = {
 			require(slot >= 0 && slot <= 3, s"Slot must be between 0-3: $slot given")

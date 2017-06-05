@@ -107,6 +107,7 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	def start(): Unit
 
 	def hostile(a: UID, b: UID): Boolean = a != b && a.team != b.team
+	def friendly(a: UID, b: UID): Boolean = a == b || a.team == b.team
 
 	// --------------------------------
 	// Common Game API
