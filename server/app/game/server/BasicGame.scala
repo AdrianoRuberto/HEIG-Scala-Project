@@ -10,6 +10,7 @@ import game.server.actors.{Matchmaker, PlayerActor, Watcher}
 import game.skeleton.concrete.{CharacterSkeleton, SpellSkeleton}
 import game.skeleton.{AbstractSkeleton, ManagerEvent, RemoteManager, SkeletonType}
 import game.spells.effects.{SpellContext, SpellEffect}
+import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.util.Random
 import utils.ActorGroup
@@ -81,6 +82,9 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 
 	/** Wall shapes */
 	var shapes: Map[UID, Shape] = Map.empty
+
+	/** Scheduled timers */
+	val tasks: mutable.PriorityQueue[ScheduledTask] = mutable.PriorityQueue.empty
 
 	context.system.scheduler.scheduleOnce(20.millis, self, BasicGame.Tick) // 50 Hz ticks
 	override final def postStop(): Unit = tickers.foreach(_.remove())
@@ -208,6 +212,13 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	def registerTicker(ticker: Ticker): Unit = tickers += ticker
 	def unregisterTicker(ticker: Ticker): Unit = tickers -= ticker
 
+	// Timers
+	def schedule(delay: Double)(action: => Unit): ScheduledTask = {
+		val task = ScheduledTask(time + delay, () => action)
+		tasks += task
+		task
+	}
+
 	// Shapes
 	def addShape(coloredShape: ColoredShape): UID = {
 		val uid = UID.next
@@ -231,12 +242,18 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	// --------------------------------
 
 	// Ticks
+	private var time = 0.0
 	private var lastTick = Double.NaN
 	private def tick(): Unit = {
 		context.system.scheduler.scheduleOnce(20.millis, self, BasicGame.Tick)
 		val now = System.nanoTime() / 1000000.0
 		val dt = if (lastTick.isNaN) 0.0 else now - lastTick
 		lastTick = now
+		time += dt
+		while (tasks.nonEmpty && tasks.head.time <= time) {
+			val task = tasks.dequeue()
+			if (!task.canceled) task.action()
+		}
 		for (region <- regions) {
 			val inside = playersInArea(region.shape)
 			for (player <- inside diff region.inside) region.playerEnters(player)
