@@ -134,6 +134,10 @@ object Game {
 			walls -= shapeUID
 			engine.unregisterEntity(shape)
 
+		// Inputs
+		case EnableInputs => engine.unlock()
+		case DisableInputs => engine.lock()
+
 		// Camera
 		case SetCameraLocation(x, y) => engine.camera.setPoint(x, y)
 		case SetCameraFollow(characterUID) =>

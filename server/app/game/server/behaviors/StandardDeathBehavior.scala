@@ -21,14 +21,21 @@ trait StandardDeathBehavior extends BasicGame { behavior =>
 
 				player.dead.value = true
 				player.health.rate = player.health.max / time * 1000
-				player.x.value = position.x
-				player.y.value = position.y
+				uid.engine.disableInputs()
+				uid.camera.move(position.x, position.y)
+
+				player.x.value = -10000
+				player.y.value = -10000
 
 				schedule(time) {
 					player.health.rate = 0
 					player.health.energize(player.health.max)
 					player.dead.value = false
 					destroyDoodad(deathScreen)
+					uid.engine.enableInputs()
+					uid.camera.followSelf()
+					player.x.value = position.x
+					player.y.value = position.y
 				}
 			}
 	}

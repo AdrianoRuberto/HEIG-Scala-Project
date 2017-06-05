@@ -37,6 +37,20 @@ trait BasicGameImplicits { game: BasicGame =>
 			spells(slot) = None
 			uid ! ServerMessage.LoseSpell(slot)
 		}
+
+		object engine {
+			@inline def enableInputs(): Unit = uid ! ServerMessage.EnableInputs
+			@inline def disableInputs(): Unit = uid ! ServerMessage.DisableInputs
+		}
+
+		object camera {
+			def move(x: Double, y: Double): Unit = uid ! ServerMessage.SetCameraLocation(x, y)
+			def follow(uid: UID): Unit = uid ! ServerMessage.SetCameraFollow(uid)
+			def followSelf(): Unit = uid ! ServerMessage.SetCameraFollow(uid)
+			def detach(): Unit = uid ! ServerMessage.SetCameraFollow(UID.zero)
+			def setSmoothing(smoothing: Boolean): Unit = uid ! ServerMessage.SetCameraSmoothing(smoothing)
+			def setSpeed(pps: Double): Unit = uid ! ServerMessage.SetCameraSpeed(pps)
+		}
 	}
 
 	implicit final class TraversableUIDSend(private val uids: TraversableOnce[UID]) {
