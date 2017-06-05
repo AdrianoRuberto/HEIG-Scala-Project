@@ -1,6 +1,7 @@
 package game.skeleton.node
 
 import game.skeleton.AbstractSkeleton
+import java.lang.Math.abs
 
 class InterpolatedNode (private var targetValue: Double)
                        (implicit skeleton: AbstractSkeleton) extends Node[NodeEvent.InterpolatedEvent] {
@@ -75,7 +76,7 @@ class InterpolatedNode (private var targetValue: Double)
 	/** Interpolates this node value at the given speed */
 	def interpolateAtSpeed(value: Double, speed: Double): Unit = {
 		if (speed == 0) stop()
-		else interpolate(value, 1000.0 * (value - current) / speed)
+		else interpolate(value, 1000.0 * abs(value - current) / abs(speed))
 	}
 
 	/** Interrupts the interpolation */
