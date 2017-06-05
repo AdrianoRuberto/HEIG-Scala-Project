@@ -76,7 +76,6 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	/** Wall shapes */
 	var shapes: Map[UID, Shape] = Map.empty
 
-	init()
 	context.system.scheduler.scheduleOnce(20.millis, self, BasicGame.Tick) // 50 Hz ticks
 	override final def postStop(): Unit = tickers.foreach(_.unregister())
 
@@ -90,13 +89,12 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 			start()
 		case BasicGame.Tick => tickImpl()
 		case PlayerActor.UpdateLatency(latency) => latencies += (senderUID -> latency)
-		case ClientMessage.Moving(x, y, xs, ys) => playerMoving(senderUID, x, y, xs, ys)
+		case ClientMessage.Moving(x, y, duration, xs, ys) => playerMoving(senderUID, x, y, duration, xs, ys)
 		case ClientMessage.Stopped(x, y, xs, ys) => playerStopped(senderUID, x, y, xs, ys)
 		case ClientMessage.SpellCast(slot, point) => castSpell(senderUID, slot, point)
 		case ClientMessage.SpellCancel(slot) => cancelSpell(senderUID, slot)
 	}: Receive) orElse message orElse { case m => warn("Ignored unknown message:", m.toString) }
 
-	def init(): Unit
 	def start(): Unit
 	def message: Receive
 	def tick(dt: Double): Unit
@@ -174,9 +172,9 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	}
 
 	// Ticker
-	def createTicker(tick: Double => Unit): Ticker = {
+	def createTicker(impl: Double => Unit): Ticker = {
 		val ticker = new Ticker() {
-			def tick(dt: Double): Unit = tick(dt)
+			def tick(dt: Double): Unit = impl(dt)
 			def unregister(): Unit = unregisterTicker(this)
 		}
 		registerTicker(ticker)
@@ -229,12 +227,12 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 		}
 	}
 
-	def playerMoving(uid: UID, x: Double, y: Double, xs: Int, ys: Int): Unit = {
+	def playerMoving(uid: UID, x: Double, y: Double, duration: Double, xs: Int, ys: Int): Unit = {
 		val skeleton = uid.skeleton
 		val latency = uid.latency
 		skeleton.moving.value = true
-		skeleton.x.commit(xs).interpolate(x, 2000 - latency)
-		skeleton.y.commit(ys).interpolate(y, 2000 - latency)
+		skeleton.x.commit(xs).interpolate(x, duration - latency)
+		skeleton.y.commit(ys).interpolate(y, duration - latency)
 	}
 
 	def playerStopped(uid: UID, x: Double, y: Double, xs: Int, ys: Int): Unit = {

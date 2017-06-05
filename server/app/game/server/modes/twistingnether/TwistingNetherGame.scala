@@ -6,16 +6,15 @@ import game.spells.Spell
 
 class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) {
 
-	def init(): Unit = {
-		log("TN: Game init")
-		loadMap(GameMap.Illios)
-		setDefaultTeamColors()
-		camera.followSelf()
-		camera.setSpeed(250)
-		for (uid <- players.keys) {
-			uid gainSpell (0, Spell.Sword)
-			uid gainSpell (3, Spell.Sprint)
-		}
+	log("TN: Game init")
+	loadMap(GameMap.Illios)
+	setDefaultTeamColors()
+	camera.followSelf()
+	camera.setSpeed(250)
+
+	for (player <- playersUID) {
+		player gainSpell (0, Spell.Sword)
+		player gainSpell (3, Spell.Sprint)
 	}
 
 	def start(): Unit = {
