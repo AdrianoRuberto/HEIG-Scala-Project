@@ -1,14 +1,15 @@
 package game.spells.icons
 
 import engine.CanvasCtx
-import game.protocol.enums.Spell
-import game.skeleton.concrete.SpellSkeleton
+import game.skeleton.concrete.{CharacterSkeleton, SpellSkeleton}
+import game.spells.Spell
 import game.spells.icons.SpellIcon._
 
 trait SpellIcon {
-	final def draw(ctx: CanvasCtx, skeleton: SpellSkeleton): Unit = {
+	final def draw(ctx: CanvasCtx, player: CharacterSkeleton, skeleton: SpellSkeleton): Unit = {
 		val activated = skeleton.activated.value
 		val ready = skeleton.cooldown.ready
+		val available = skeleton.spell.value.cost.forall(player.energy.current >= _)
 
 		ctx.translate(2, 2)
 		if (!activated) {
@@ -23,6 +24,7 @@ trait SpellIcon {
 		drawButton(ctx)
 		ctx.fillStyle =
 			if (activated) "rgba(255, 240, 191, 0.9)"
+			else if (!available) "rgba(230, 200, 200, 0.9)"
 			else "rgba(255, 255, 255, 0.9)"
 		ctx.fill()
 		if (!ready) {

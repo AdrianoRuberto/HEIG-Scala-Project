@@ -1,6 +1,6 @@
 package game.client.entities
 
-import engine.geometry.Shape
+import engine.geometry.{Shape, Vector2D}
 import engine.utils.CollisionDetection
 import game.client.{Game, Server}
 import game.protocol.ClientMessage
@@ -47,34 +47,18 @@ class Player (skeleton: CharacterSkeleton, walls: => Iterable[Shape]) extends Ch
 					case (1, 1) => Math.PI / 4
 				}
 
-				val rx = skeleton.x.current + Math.cos(angle) * speed * 2
-				val ry = skeleton.y.current + Math.sin(angle) * speed * 2
-				val dest = CollisionDetection.collide(skeleton.x.current, skeleton.y.current, rx, ry, walls)
-
-				println(rx, ry, dest)
-
-				val tx = dest.x
-				val ty = dest.y
-
-				skeleton.x.commit().interpolate(tx, 2000)
-				skeleton.y.commit().interpolate(ty, 2000)
-				skeleton.moving.value = true
+				val from = skeleton.position
+				val tx = from.x + Math.cos(angle) * speed * 1.2
+				val ty = from.y + Math.sin(angle) * speed * 1.2
+				val dest = CollisionDetection.collide(from.x, from.y, tx, ty, walls)
 
 				movingDirection = direction
 				movingThrottle = now
 				movingSpeed = speed
-				Server ! ClientMessage.Moving(tx, ty, skeleton.x.serial, skeleton.y.serial)
+				move(from, dest, speed)
 			}
 		} else if (moving) {
-			moving = false
-			movingDirection = (0, 0)
-			skeleton.x.commit().stop()
-			skeleton.y.commit().stop()
-			skeleton.moving.value = false
-			Server ! ClientMessage.Stopped(
-				skeleton.x.current, skeleton.y.current,
-				skeleton.x.serial, skeleton.y.serial
-			)
+			stop()
 		}
 
 		val state = engine.mouse.left
@@ -85,5 +69,25 @@ class Player (skeleton: CharacterSkeleton, walls: => Iterable[Shape]) extends Ch
 		}
 
 		super.update(dt)
+	}
+
+	private def move(from: Vector2D, to: Vector2D, speed: Double): Unit = {
+		val duration = (from <-> to) / speed * 1000
+		skeleton.x.commit().interpolate(to.x, duration)
+		skeleton.y.commit().interpolate(to.y, duration)
+		skeleton.moving.value = true
+		Server ! ClientMessage.Moving(to.x, to.y, duration, skeleton.x.serial, skeleton.y.serial)
+	}
+
+	private def stop(): Unit = {
+		moving = false
+		movingDirection = (0, 0)
+		skeleton.x.commit().stop()
+		skeleton.y.commit().stop()
+		skeleton.moving.value = false
+		Server ! ClientMessage.Stopped(
+			skeleton.x.current, skeleton.y.current,
+			skeleton.x.serial, skeleton.y.serial
+		)
 	}
 }

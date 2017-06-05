@@ -11,7 +11,7 @@ object ClientMessage {
 	case class SearchGame(name: String, fast: Boolean) extends ClientMessage
 
 	sealed trait GameMessage extends ClientMessage
-	case class Moving(x: Double, y: Double, xs: Int, ys: Int) extends GameMessage
+	case class Moving(x: Double, y: Double, duration: Double, xs: Int, ys: Int) extends GameMessage
 	case class Stopped(x: Double, y: Double, xs: Int, ys: Int) extends GameMessage
 	case class SpellCast(slot: Int, point: Vector2D) extends GameMessage
 	case class SpellCancel(slot: Int) extends GameMessage

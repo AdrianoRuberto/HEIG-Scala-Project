@@ -2,9 +2,9 @@ package game.skeleton.concrete
 
 import boopickle.Default._
 import game.UID
-import game.protocol.enums.{SkeletonType, Spell}
 import game.skeleton.node.{CooldownNode, SimpleNode}
-import game.skeleton.{AbstractSkeleton, RemoteManager}
+import game.skeleton.{AbstractSkeleton, RemoteManager, SkeletonType}
+import game.spells.Spell
 
 class SpellSkeleton (uid: UID, remotes: Seq[RemoteManager])
 	extends AbstractSkeleton(SkeletonType.Spell, remotes, uid) {

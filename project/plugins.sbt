@@ -17,4 +17,4 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.0.6")
 addSbtPlugin("com.vmunier" % "sbt-web-scalajs" % "1.0.4")
 
 // ScalaJS
-addSbtPlugin("org.scala-js" % "sbt-scalajs" % "0.6.16")
+addSbtPlugin("org.scala-js" % "sbt-scalajs" % "0.6.17")

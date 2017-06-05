@@ -1,7 +1,6 @@
 package game.client
 
-import game.protocol.enums.GameMode
-import game.{TeamInfo, UID}
+import game.{GameMode, TeamInfo, UID}
 import org.scalajs.dom
 import org.scalajs.dom.html
 import scala.scalajs.js

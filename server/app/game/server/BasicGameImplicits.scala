@@ -1,24 +1,28 @@
 package game.server
 
+import akka.actor.ActorRef
 import game.UID
 import game.protocol.ServerMessage
-import game.protocol.enums.{SkeletonType, Spell}
+import game.skeleton.SkeletonType
 import game.skeleton.concrete.{CharacterSkeleton, SpellSkeleton}
+import game.spells.Spell
 import scala.language.implicitConversions
 
-trait BasicGameImplicits {
-	this: BasicGame =>
-
+trait BasicGameImplicits { game: BasicGame =>
 	/** Some quality of life operations on UIDs */
 	implicit final class UIDOps(private val uid: UID) {
-		@inline def ! (msg: Any): Unit = actors.get(uid) match {
+		@inline def ! (msg: Any): Unit = game.actorsFromUID.get(uid) match {
 			case Some(ag) => ag ! msg
 			case None => throw new IllegalArgumentException(s"No actor target found for UID `$uid`")
 		}
 
-		@inline def skeleton: CharacterSkeleton = BasicGameImplicits.this.skeletons(uid)
-		@inline def latency: Double = BasicGameImplicits.this.latencies(uid)
-		@inline def spells: Array[Option[SpellSkeleton]] = BasicGameImplicits.this.spells(uid)
+		@inline def skeleton: CharacterSkeleton = game.skeletons(uid)
+		@inline def latency: Double = game.latencies(uid)
+		@inline def spells: Array[Option[SpellSkeleton]] = game.playerSpells(uid)
+		@inline def actor: ActorRef = game.playersFromUID(uid).actor
+		@inline def team: UID = game.teamForPlayer(uid)
+
+		@inline def hostile(other: UID): Boolean = game.hostile(uid, other)
 
 		@inline def gainSpell(slot: Int, spell: Spell): Unit = {
 			require(slot >= 0 && slot <= 3, s"Slot must be between 0-3: $slot given")
@@ -33,5 +37,9 @@ trait BasicGameImplicits {
 			spells(slot) = None
 			uid ! ServerMessage.LoseSpell(slot)
 		}
+	}
+
+	implicit final class TraversableUIDSend(private val uids: TraversableOnce[UID]) {
+		@inline def ! (msg: Any): Unit = for (uid <- uids) uid ! msg
 	}
 }

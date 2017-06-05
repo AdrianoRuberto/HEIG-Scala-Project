@@ -3,18 +3,18 @@ package game.server
 import akka.actor.ActorRef
 import engine.geometry.{ColoredShape, Shape, Vector2D}
 import game.UID
+import game.doodads.Doodad
 import game.maps.GameMap
-import game.protocol.enums.SkeletonType
 import game.protocol.{ClientMessage, ServerMessage}
 import game.server.actors.{Matchmaker, PlayerActor, Watcher}
 import game.skeleton.concrete.{CharacterSkeleton, SpellSkeleton}
-import game.skeleton.{AbstractSkeleton, ManagerEvent, RemoteManager}
+import game.skeleton.{AbstractSkeleton, ManagerEvent, RemoteManager, SkeletonType}
 import game.spells.effects.{SpellContext, SpellEffect}
 import scala.concurrent.duration._
 import scala.util.Random
 import utils.ActorGroup
 
-abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with BasicGameImplicits {
+abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") with BasicGameImplicits {
 	import context._
 
 	// --------------------------------
@@ -22,30 +22,40 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 	// --------------------------------
 
 	/** A map from UID to GameTeam */
-	val teams: Map[UID, GameTeam] = roster.map(t => (t.info.uid, t)).toMap
+	val teamFromUID: Map[UID, GameTeam] = roster.map(t => (t.info.uid, t)).toMap
 
 	/** A map from UID to GamePlayer */
-	val players: Map[UID, GamePlayer] = roster.flatMap(_.players).map(p => (p.info.uid, p)).toMap
+	val playersFromUID: Map[UID, GamePlayer] = roster.flatMap(_.players).map(p => (p.info.uid, p)).toMap
 
 	/** The reverse mapping from Actors to players */
-	val actorsUID: Map[ActorRef, UID] = players.map { case (uid, player) => (player.actor, uid) }
-
-	/** An actor group composed from every players in the game */
-	val broadcast = ActorGroup(players.values.map(_.actor))
+	val uidFromActor: Map[ActorRef, UID] = playersFromUID.map { case (uid, player) => (player.actor, uid) }
 
 	/**
 	  * A map from UID to an suitable ActorGroup instance.
 	  * - For team UID, the actor group is the combination of every players in the team;
 	  * - For player UID, the actor group contain only a single actor: the player themselves
 	  */
-	val actors: Map[UID, ActorGroup] = {
-		val ts = teams.view.map { case (uid, team) => (uid, ActorGroup(team.players.map(_.actor))) }
-		val ps = players.view.map { case (uid, player) => (uid, ActorGroup(List(player.actor))) }
+	val actorsFromUID: Map[UID, ActorGroup] = {
+		val ts = teamFromUID.view.map { case (uid, team) => (uid, ActorGroup(team.players.map(_.actor))) }
+		val ps = playersFromUID.view.map { case (uid, player) => (uid, ActorGroup(List(player.actor))) }
 		(ts ++ ps).toMap
 	}
 
+	val teamForPlayer: Map[UID, UID] = {
+		(for (team <- teamFromUID.values; player <- team.players) yield (player.info.uid, team.info.uid)).toMap
+	}
+
+	/** The sequence of every team's UID */
+	val teams: Seq[UID] = teamFromUID.keys.toSeq
+
+	/** The sequence of every player's UID */
+	val players: Seq[UID] = playersFromUID.keys.toSeq
+
+	/** An actor group composed from every players in the game */
+	val broadcast = ActorGroup(playersFromUID.values.map(_.actor))
+
 	/** The map of every character skeletons */
-	val skeletons: Map[UID, CharacterSkeleton] = players.map { case (uid, player) =>
+	val skeletons: Map[UID, CharacterSkeleton] = playersFromUID.map { case (uid, player) =>
 		val skeleton = createGlobalSkeleton(SkeletonType.Character)
 		skeleton.name.value = player.info.name
 		broadcast ! ServerMessage.InstantiateCharacter(player.info.uid, skeleton.uid)
@@ -56,9 +66,15 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 	var latencies: Map[UID, Double] = Map.empty.withDefaultValue(0.0)
 
 	/** Players spells */
-	var spells: Map[UID, Array[Option[SpellSkeleton]]] = players.keys.map { uid =>
+	var playerSpells: Map[UID, Array[Option[SpellSkeleton]]] = playersFromUID.keys.map { uid =>
 		(uid, Array.fill[Option[SpellSkeleton]](4)(None))
 	}.toMap
+
+	/** Registered tickers */
+	var doodads: Map[UID, Seq[UID]] = Map.empty
+
+	/** Registered regions */
+	var regions: Set[Region] = Set.empty
 
 	/** Registered tickers */
 	var tickers: Set[Ticker] = Set.empty
@@ -66,33 +82,27 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 	/** Wall shapes */
 	var shapes: Map[UID, Shape] = Map.empty
 
-	init()
 	context.system.scheduler.scheduleOnce(20.millis, self, BasicGame.Tick) // 50 Hz ticks
-	override final def postStop(): Unit = tickers.foreach(_.unregister())
+	override final def postStop(): Unit = tickers.foreach(_.remove())
 
 	// --------------------------------
 	// Implementation-defined behaviors
 	// --------------------------------
 
-	final def receive: Receive = ({
-		case Matchmaker.Start =>
-			broadcast ! ServerMessage.GameStart
-			start()
-		case BasicGame.Tick => tickImpl()
+	final def receive: Receive = {
+		case Matchmaker.Start => broadcast ! ServerMessage.GameStart; start()
+		case BasicGame.Tick => tick()
 		case PlayerActor.UpdateLatency(latency) => latencies += (senderUID -> latency)
-		case ClientMessage.Moving(x, y, xs, ys) => playerMoving(senderUID, x, y, xs, ys)
+		case ClientMessage.Moving(x, y, duration, xs, ys) => playerMoving(senderUID, x, y, duration, xs, ys)
 		case ClientMessage.Stopped(x, y, xs, ys) => playerStopped(senderUID, x, y, xs, ys)
 		case ClientMessage.SpellCast(slot, point) => castSpell(senderUID, slot, point)
 		case ClientMessage.SpellCancel(slot) => cancelSpell(senderUID, slot)
-	}: Receive) orElse message orElse { case m => warn("Ignored unknown message:", m.toString) }
+		case m => warn("Ignored unknown message:", m.toString)
+	}
 
-	def init(): Unit
 	def start(): Unit
-	def message: Receive
-	def tick(dt: Double): Unit
 
-	/** Terminates the game, stopping every related actors and closing sockets */
-	def terminate(): Unit = context.parent ! Watcher.Terminate
+	def hostile(a: UID, b: UID): Boolean = a != b && a.team != b.team
 
 	// --------------------------------
 	// Common Game API
@@ -112,19 +122,24 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 	object camera {
 		def move(x: Double, y: Double): Unit = broadcast ! ServerMessage.SetCameraLocation(x, y)
 		def follow(uid: UID): Unit = broadcast ! ServerMessage.SetCameraFollow(uid)
-		def followSelf(): Unit = for (uid <- players.keys) uid ! ServerMessage.SetCameraFollow(uid)
+		def followSelf(): Unit = for (uid <- playersFromUID.keys) uid ! ServerMessage.SetCameraFollow(uid)
 		def detach(): Unit = broadcast ! ServerMessage.SetCameraFollow(UID.zero)
 		def setSmoothing(smoothing: Boolean): Unit = broadcast ! ServerMessage.SetCameraSmoothing(smoothing)
 		def setSpeed(pps: Double): Unit = broadcast ! ServerMessage.SetCameraSpeed(pps)
 	}
 
 	def setTeamColors(colors: String*): Unit = {
-		for ((team, color) <- teams.values zip colors; player <- team.players) {
+		for ((team, color) <- teamFromUID.values zip colors; player <- team.players) {
 			skeletons(player.info.uid).color.value = color
 		}
 	}
 
 	def setDefaultTeamColors(): Unit = setTeamColors("#77f", "#f55")
+
+	def setDefaultCamera(): Unit = {
+		camera.followSelf()
+		camera.setSpeed(250)
+	}
 
 	// Skeleton
 	def createSkeleton[T <: AbstractSkeleton](tpe: SkeletonType[T], remotes: Seq[UID]): T = {
@@ -141,13 +156,50 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 	}
 
 	def createSkeleton[T <: AbstractSkeleton](tpe: SkeletonType[T], remote: UID): T = createSkeleton(tpe, Seq(remote))
-	def createGlobalSkeleton[T <: AbstractSkeleton](tpe: SkeletonType[T]): T = createSkeleton(tpe, players.keys.toSeq)
+	def createGlobalSkeleton[T <: AbstractSkeleton](tpe: SkeletonType[T]): T = createSkeleton(tpe, players)
+
+	// Doodads
+	def createDoodad(doodad: Doodad, remotes: Seq[UID]): UID = {
+		val uid = UID.next
+		doodads += (uid -> remotes)
+		remotes ! ServerMessage.CreateDoodad(uid, doodad)
+		uid
+	}
+
+	def createDoodad(doodad: Doodad, remote: UID): UID = createDoodad(doodad, Seq(remote))
+	def createGlobalDoodad(doodad: Doodad): UID = createDoodad(doodad, players)
+
+	def destroyDoodad(uid: UID): Unit = {
+		doodads.get(uid) match {
+			case Some(group) =>
+				group ! ServerMessage.DestroyDoodad(uid)
+				doodads -= uid
+			case None =>
+				warn(s"Attempted to remove unknown doodad: $uid")
+		}
+	}
+
+	// Regions
+	def createRegion(shape: Shape,
+	                 enters: UID => Unit = (_) => (),
+	                 exits: UID => Unit = (_) => ()): Region = {
+		val region = new Region(shape) {
+			def playerEnters(uid: UID): Unit = enters(uid)
+			def playerExits(uid: UID): Unit = exits(uid)
+			def remove(): Unit = unregisterRegion(this)
+		}
+		registerRegion(region)
+		region
+	}
+
+	def registerRegion(region: Region): Unit = regions += region
+	def unregisterRegion(region: Region): Unit = regions -= region
 
 	// Ticker
-	def createTicker(tick: Double => Unit): Ticker = {
+	def createTicker(impl: Double => Unit): Ticker = {
 		val ticker = new Ticker() {
-			def tick(dt: Double): Unit = tick(dt)
-			def unregister(): Unit = unregisterTicker(this)
+			def tick(dt: Double): Unit = impl(dt)
+			def remove(): Unit = unregisterTicker(this)
 		}
 		registerTicker(ticker)
 		ticker
@@ -169,18 +221,28 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 		broadcast ! ServerMessage.EraseShape(uid)
 	}
 
+	def playersInArea(area: Shape): Set[UID] = players.filter(player => area.contains(player.skeleton.position)).toSet
+
+	/** Terminates the game, stopping every related actors and closing sockets */
+	def terminate(): Unit = context.parent ! Watcher.Terminate
+
 	// --------------------------------
 	// Internal API
 	// --------------------------------
 
 	// Ticks
 	private var lastTick = Double.NaN
-	private def tickImpl(): Unit = {
+	private def tick(): Unit = {
 		context.system.scheduler.scheduleOnce(20.millis, self, BasicGame.Tick)
 		val now = System.nanoTime() / 1000000.0
 		val dt = if (lastTick.isNaN) 0.0 else now - lastTick
 		lastTick = now
-		tick(dt)
+		for (region <- regions) {
+			val inside = playersInArea(region.shape)
+			for (player <- inside diff region.inside) region.playerEnters(player)
+			for (player <- region.inside diff inside) region.playerExits(player)
+			region.inside = inside
+		}
 		for (ticker <- tickers) ticker.tick(dt)
 	}
 
@@ -196,12 +258,12 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 		}
 	}
 
-	def playerMoving(uid: UID, x: Double, y: Double, xs: Int, ys: Int): Unit = {
+	def playerMoving(uid: UID, x: Double, y: Double, duration: Double, xs: Int, ys: Int): Unit = {
 		val skeleton = uid.skeleton
 		val latency = uid.latency
 		skeleton.moving.value = true
-		skeleton.x.commit(xs).interpolate(x, 2000 - latency)
-		skeleton.y.commit(ys).interpolate(y, 2000 - latency)
+		skeleton.x.commit(xs).interpolate(x, duration - latency)
+		skeleton.y.commit(ys).interpolate(y, duration - latency)
 	}
 
 	def playerStopped(uid: UID, x: Double, y: Double, xs: Int, ys: Int): Unit = {
@@ -226,7 +288,7 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 	}
 
 	/** Retrieves the sender's UID */
-	@inline private def senderUID: UID = actorsUID(sender())
+	@inline private def senderUID: UID = uidFromActor(sender())
 }
 
 object BasicGame {

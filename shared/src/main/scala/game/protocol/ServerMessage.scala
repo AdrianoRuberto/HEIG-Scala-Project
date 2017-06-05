@@ -2,9 +2,10 @@ package game.protocol
 
 import boopickle.Default._
 import engine.geometry.{ColoredShape, Shape}
-import game.protocol.enums.GameMode
-import game.skeleton.ManagerEvent
-import game.{TeamInfo, UID}
+import game.doodads.Doodad
+import game.skeleton.node.NodeId
+import game.skeleton.{ManagerEvent, SkeletonType}
+import game.{GameMode, TeamInfo, UID}
 
 sealed trait ServerMessage
 
@@ -31,6 +32,8 @@ object ServerMessage {
 	case class EraseShape(shapeUID: UID) extends GameMessage
 	case class GainSpell(slot: Int, skeletonUID: UID) extends GameMessage
 	case class LoseSpell(slot: Int) extends GameMessage
+	case class CreateDoodad(uid: UID, doodad: Doodad) extends GameMessage
+	case class DestroyDoodad(uid: UID) extends GameMessage
 
 	// Camera
 	case class SetCameraLocation(x: Double, y: Double) extends GameMessage
@@ -49,8 +52,9 @@ object ServerMessage {
 	}
 	case class Debug(severity: Severity, args: Seq[String]) extends ServerMessage with SystemMessage
 
-	private implicit val UIDPicker = UID.pickler
-	private implicit val SkeletonPickler = ManagerEvent.pickler
+	private implicit val UIDPickler = UID.pickler
+	private implicit val NodeIdPickler = NodeId.pickler
 	private implicit val ShapePickler =  Shape.pickler
+	private implicit val SkeletonTypePickler = generatePickler[SkeletonType[_]]
 	implicit val pickler: Pickler[ServerMessage] = generatePickler[ServerMessage]
 }

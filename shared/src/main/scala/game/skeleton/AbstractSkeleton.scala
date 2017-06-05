@@ -1,7 +1,6 @@
 package game.skeleton
 
 import game.UID
-import game.protocol.enums.SkeletonType
 import game.skeleton.node.{Node, NodeEvent, NodeId}
 import java.util.concurrent.atomic.AtomicInteger
 

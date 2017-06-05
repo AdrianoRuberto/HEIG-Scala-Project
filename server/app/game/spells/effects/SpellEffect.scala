@@ -2,9 +2,9 @@ package game.spells.effects
 
 import engine.geometry
 import game.UID
-import game.protocol.enums.Spell
 import game.server.{BasicGame, Ticker}
 import game.skeleton.concrete.SpellSkeleton
+import game.spells.Spell
 import game.spells.effects.SpellEffect._
 import scala.language.implicitConversions
 
@@ -23,6 +23,9 @@ abstract class SpellEffect {
 			if (!ctx.skeleton.activated.value) {
 				ctx.skeleton.activated.value = true
 				val instance = createInstance(ctx)
+				for (cost <- ctx.skeleton.spell.value.cost) {
+					ctx.player.skeleton.energy.consume(cost)
+				}
 				instance.gain()
 			}
 		} else {
@@ -48,7 +51,7 @@ abstract class SpellEffect {
 
 	private def collectInstance(ctx: SpellContext): Unit = {
 		for (instance <- instances.get(ctx.initiator)) {
-			instance.ticker.unregister()
+			instance.ticker.remove()
 			instances -= ctx.initiator
 		}
 	}
@@ -79,7 +82,7 @@ object SpellEffect {
 				else self.tick(dt)
 			}
 
-			def unregister(): Unit = {
+			def remove(): Unit = {
 				ctx.game.unregisterTicker(this)
 			}
 		}

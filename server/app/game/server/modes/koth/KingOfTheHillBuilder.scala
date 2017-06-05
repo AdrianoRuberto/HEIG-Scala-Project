@@ -1,7 +1,7 @@
 package game.server.modes.koth
 
 import akka.actor.Props
-import game.protocol.enums.GameMode
+import game.GameMode
 import game.server.GameBuilder
 import game.server.modes.dummy.DummyBot
 import game.server.modes.twistingnether.TwistingNetherGame
