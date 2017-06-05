@@ -45,47 +45,58 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 		else if (uid.team == teamB) playerFromBOnPoint -= 1
 	}
 
-	private final val TimeForCapture = 1000
-	private final val TimePerPercent = 1000
+	private final val CapturePerSecond = 20.0
+	private final val ProgressPerSecond = 1.0
+
+	// Capture progress
+	private var currentCapture = 0
+	private def interpolateCapture(direction: Int): Unit = if (currentCapture != direction) {
+		currentCapture = direction
+		status.capture.interpolateAtSpeed(direction * 100, CapturePerSecond)
+	}
 
 	private val areaTicker = createTicker { dt =>
+		// Current point controller
 		val controlling = status.controlling.value
-		val capture = status.capture.value
 
-		// Capture progress
-		def captureProgress(delta: Double): Unit = {
-			val updated = status.capture.value + 100 * delta / TimeForCapture
-			status.capture.value = if (delta < 0) updated max -100 else updated min 100
-		}
-
+		// Capture cases
 		if (playerFromAOnPoint > 0 && playerFromBOnPoint == 0 && controlling != teamA) {
-			captureProgress(dt)
+			// Team A captures the point
+			interpolateCapture(1)
 		} else if (playerFromBOnPoint > 0 && playerFromAOnPoint == 0 && controlling != teamB) {
-			captureProgress(-dt)
-		} else if (playerFromBOnPoint == 0 && controlling == teamA && capture != 100) {
-			captureProgress(dt)
-		} else if (playerFromAOnPoint == 0 && controlling == teamB && capture != -100) {
-			captureProgress(-dt)
-		} else if (playerFromAOnPoint == 0 && playerFromBOnPoint == 0 && controlling == UID.zero && capture != 0) {
-			val cap = -capture * TimeForCapture / 100
-			if (capture < 0) captureProgress(dt min cap) else captureProgress(-dt max cap)
+			// Team B captures the point
+			interpolateCapture(-1)
+		} else if (playerFromBOnPoint == 0 && controlling == teamA) {
+			// Capture decays toward team A
+			interpolateCapture(1)
+		} else if (playerFromAOnPoint == 0 && controlling == teamB) {
+			// Capture decays toward team B
+			interpolateCapture(-1)
+		} else if (playerFromAOnPoint == 0 && playerFromBOnPoint == 0 && controlling == UID.zero) {
+			// Capture decays toward neutral
+			interpolateCapture(0)
+		} else {
+			// The point is contested in any way
+			status.capture.stop()
 		}
 
-		// Point captured
-		val captureValue = status.capture.value
-		if (captureValue == 100) {
+		// Point capture triggers
+		val captureValue = status.capture.current
+		if (captureValue == 100 && controlling != teamA) {
+			// Team A took the point
 			status.controlling.value = teamA
 			areaSkeleton.fillColor.value = "rgba(119, 119, 255, 0.1)"
 			areaSkeleton.strokeColor.value = "rgba(119, 119, 255, 0.8)"
-		} else if (captureValue == -100) {
+			status.progressA.interpolateAtSpeed(100, ProgressPerSecond)
+			status.progressB.stop()
+		} else if (captureValue == -100 && controlling != teamB) {
+			// Team B took the point
 			status.controlling.value = teamB
 			areaSkeleton.fillColor.value = "rgba(255, 85, 85, 0.1)"
 			areaSkeleton.strokeColor.value = "rgba(255, 85, 85, 0.8)"
+			status.progressB.interpolateAtSpeed(100, ProgressPerSecond)
+			status.progressA.stop()
 		}
-
-		// Score progression
-		if (status.controlling.value == teamA) status.progressA.value += dt / TimePerPercent
-		else if (status.controlling.value == teamB) status.progressB.value += dt / TimePerPercent
 
 		// Win condition
 		if (status.progressA.value >= 100) win(teamA)

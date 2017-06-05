@@ -1,6 +1,5 @@
 package game.doodads.interface
 
-import engine.CanvasCtx
 import engine.entity.Entity
 import engine.entity.feature.AbsolutePosition
 import engine.geometry.Rectangle
@@ -19,7 +18,7 @@ class KothStatusEntity (skeleton: KothStatusSkeleton) extends Entity with Absolu
 	private val teamA: UID = skeleton.teamA.value
 	private val teamB: UID = skeleton.teamB.value
 
-	private def capture: Double = skeleton.capture.value
+	private def capture: Double = skeleton.capture.current
 	private def controlling: UID = skeleton.controlling.value
 	private def uncontrolled: Boolean = controlling == UID.zero
 	private def controllingColor: String = if (controlling == teamA) colorA else colorB
@@ -40,7 +39,7 @@ class KothStatusEntity (skeleton: KothStatusSkeleton) extends Entity with Absolu
 		ctx.fill()
 		ctx.stroke()
 		ctx.fillStyle = if (controlling == teamA) "#fff" else colorA
-		ctx.fillText(skeleton.progressA.value.floor + "%", 50, 25)
+		ctx.fillText(skeleton.progressA.current.floor + "%", 50, 25)
 
 		// Team B
 		ctx.beginPath()
@@ -50,7 +49,7 @@ class KothStatusEntity (skeleton: KothStatusSkeleton) extends Entity with Absolu
 		ctx.fill()
 		ctx.stroke()
 		ctx.fillStyle = if (controlling == teamB) "#fff" else colorB
-		ctx.fillText(skeleton.progressB.value.floor + "%", 210, 25)
+		ctx.fillText(skeleton.progressB.current.floor + "%", 210, 25)
 
 		// Center
 		ctx.beginPath()
