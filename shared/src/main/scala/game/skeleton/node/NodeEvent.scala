@@ -1,5 +1,7 @@
 package game.skeleton.node
 
+import game.UID
+
 sealed trait NodeEvent
 
 object NodeEvent {
@@ -8,6 +10,7 @@ object NodeEvent {
 	case class SimpleUpdateInt(value: Int) extends SimpleEvent
 	case class SimpleUpdateDouble(value: Double) extends SimpleEvent
 	case class SimpleUpdateString(value: String) extends SimpleEvent
+	case class SimpleUpdateUID(value: UID) extends SimpleEvent
 	case class SimpleUpdateGeneric(value: Array[Byte]) extends SimpleEvent
 
 	sealed trait InterpolatedEvent extends NodeEvent

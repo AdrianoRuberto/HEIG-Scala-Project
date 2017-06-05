@@ -45,6 +45,9 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 		(for (team <- teamFromUID.values; player <- team.players) yield (player.info.uid, team.info.uid)).toMap
 	}
 
+	/** The sequence of every team's UID */
+	val teams: Seq[UID] = teamFromUID.keys.toSeq
+
 	/** The sequence of every player's UID */
 	val players: Seq[UID] = playersFromUID.keys.toSeq
 
@@ -70,6 +73,9 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	/** Registered tickers */
 	var doodads: Map[UID, Seq[UID]] = Map.empty
 
+	/** Registered regions */
+	var regions: Set[Region] = Set.empty
+
 	/** Registered tickers */
 	var tickers: Set[Ticker] = Set.empty
 
@@ -77,27 +83,24 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	var shapes: Map[UID, Shape] = Map.empty
 
 	context.system.scheduler.scheduleOnce(20.millis, self, BasicGame.Tick) // 50 Hz ticks
-	override final def postStop(): Unit = tickers.foreach(_.unregister())
+	override final def postStop(): Unit = tickers.foreach(_.remove())
 
 	// --------------------------------
 	// Implementation-defined behaviors
 	// --------------------------------
 
-	final def receive: Receive = ({
-		case Matchmaker.Start =>
-			broadcast ! ServerMessage.GameStart
-			start()
-		case BasicGame.Tick => tickImpl()
+	final def receive: Receive = {
+		case Matchmaker.Start => broadcast ! ServerMessage.GameStart; start()
+		case BasicGame.Tick => tick()
 		case PlayerActor.UpdateLatency(latency) => latencies += (senderUID -> latency)
 		case ClientMessage.Moving(x, y, duration, xs, ys) => playerMoving(senderUID, x, y, duration, xs, ys)
 		case ClientMessage.Stopped(x, y, xs, ys) => playerStopped(senderUID, x, y, xs, ys)
 		case ClientMessage.SpellCast(slot, point) => castSpell(senderUID, slot, point)
 		case ClientMessage.SpellCancel(slot) => cancelSpell(senderUID, slot)
-	}: Receive) orElse message orElse { case m => warn("Ignored unknown message:", m.toString) }
+		case m => warn("Ignored unknown message:", m.toString)
+	}
 
 	def start(): Unit
-	def message: Receive
-	def tick(dt: Double): Unit
 
 	def hostile(a: UID, b: UID): Boolean = a != b && a.team != b.team
 
@@ -132,6 +135,11 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	}
 
 	def setDefaultTeamColors(): Unit = setTeamColors("#77f", "#f55")
+
+	def setDefaultCamera(): Unit = {
+		camera.followSelf()
+		camera.setSpeed(250)
+	}
 
 	// Skeleton
 	def createSkeleton[T <: AbstractSkeleton](tpe: SkeletonType[T], remotes: Seq[UID]): T = {
@@ -171,11 +179,27 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 		}
 	}
 
+	// Regions
+	def createRegion(shape: Shape,
+	                 enters: UID => Unit = (_) => (),
+	                 exits: UID => Unit = (_) => ()): Region = {
+		val region = new Region(shape) {
+			def playerEnters(uid: UID): Unit = enters(uid)
+			def playerExits(uid: UID): Unit = exits(uid)
+			def remove(): Unit = unregisterRegion(this)
+		}
+		registerRegion(region)
+		region
+	}
+
+	def registerRegion(region: Region): Unit = regions += region
+	def unregisterRegion(region: Region): Unit = regions -= region
+
 	// Ticker
 	def createTicker(impl: Double => Unit): Ticker = {
 		val ticker = new Ticker() {
 			def tick(dt: Double): Unit = impl(dt)
-			def unregister(): Unit = unregisterTicker(this)
+			def remove(): Unit = unregisterTicker(this)
 		}
 		registerTicker(ticker)
 		ticker
@@ -197,6 +221,8 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 		broadcast ! ServerMessage.EraseShape(uid)
 	}
 
+	def playersInArea(area: Shape): Set[UID] = players.filter(player => area.contains(player.skeleton.position)).toSet
+
 	/** Terminates the game, stopping every related actors and closing sockets */
 	def terminate(): Unit = context.parent ! Watcher.Terminate
 
@@ -206,12 +232,17 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 
 	// Ticks
 	private var lastTick = Double.NaN
-	private def tickImpl(): Unit = {
+	private def tick(): Unit = {
 		context.system.scheduler.scheduleOnce(20.millis, self, BasicGame.Tick)
 		val now = System.nanoTime() / 1000000.0
 		val dt = if (lastTick.isNaN) 0.0 else now - lastTick
 		lastTick = now
-		tick(dt)
+		for (region <- regions) {
+			val inside = playersInArea(region.shape)
+			for (player <- inside diff region.inside) region.playerEnters(player)
+			for (player <- region.inside diff inside) region.playerExits(player)
+			region.inside = inside
+		}
 		for (ticker <- tickers) ticker.tick(dt)
 	}
 

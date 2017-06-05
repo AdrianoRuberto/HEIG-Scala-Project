@@ -11,6 +11,7 @@ object Sword extends SpellEffect {
 
 	class SwordInstance(e: SpellEffect, c: SpellContext)
 		extends EffectInstance(e: SpellEffect, c: SpellContext) {
+
 		duration = 500
 		cooldown = 1000
 
@@ -24,7 +25,7 @@ object Sword extends SpellEffect {
 			player.skeleton.facingOverride.value = true
 			swordDoodad = ctx.game.createGlobalDoodad(Doodad.Spell.Sword(p.x, p.y, α))
 
-			val targets = game.playersFromUID.keys.filter(_ hostile initiator).filter { uid =>
+			val targets = game.players.filter(_ hostile initiator).filter { uid =>
 				val q = uid.skeleton.position
 				p <-> q match {
 					case d if d < 25 =>

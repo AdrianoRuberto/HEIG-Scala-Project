@@ -51,7 +51,7 @@ abstract class SpellEffect {
 
 	private def collectInstance(ctx: SpellContext): Unit = {
 		for (instance <- instances.get(ctx.initiator)) {
-			instance.ticker.unregister()
+			instance.ticker.remove()
 			instances -= ctx.initiator
 		}
 	}
@@ -82,7 +82,7 @@ object SpellEffect {
 				else self.tick(dt)
 			}
 
-			def unregister(): Unit = {
+			def remove(): Unit = {
 				ctx.game.unregisterTicker(this)
 			}
 		}

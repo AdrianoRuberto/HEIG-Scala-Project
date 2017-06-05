@@ -1,6 +1,7 @@
 package game.skeleton.node
 
 import boopickle.DefaultBasic._
+import game.UID
 import game.skeleton.AbstractSkeleton
 import game.skeleton.node.NodeEvent.SimpleEvent
 
@@ -30,6 +31,7 @@ object SimpleNode {
 	def apply(value: Int)(implicit skeleton: AbstractSkeleton): SimpleNode[Int] = SimpleNodeInt(value)
 	def apply(value: Double)(implicit skeleton: AbstractSkeleton): SimpleNode[Double] = SimpleNodeDouble(value)
 	def apply(value: String)(implicit skeleton: AbstractSkeleton): SimpleNode[String] = SimpleNodeString(value)
+	def apply(value: UID)(implicit skeleton: AbstractSkeleton, dummyImplicit: DummyImplicit): SimpleNode[UID] = SimpleNodeUID(value)
 	def apply[T: Pickler](value: T)(implicit skeleton: AbstractSkeleton): SimpleNode[T] = SimpleNodeGeneric(value)
 
 	private abstract class SpecializedSimpleNode[T] (c: T, event: T => SimpleEvent)
@@ -53,6 +55,9 @@ object SimpleNode {
 
 	private case class SimpleNodeString(c: String)(implicit s: AbstractSkeleton)
 		extends SpecializedSimpleNode(c, NodeEvent.SimpleUpdateString)
+
+	private case class SimpleNodeUID(c: UID)(implicit s: AbstractSkeleton)
+		extends SpecializedSimpleNode(c, NodeEvent.SimpleUpdateUID)
 
 	private case class SimpleNodeGeneric[T: Pickler] (c: T)(implicit s: AbstractSkeleton) extends SimpleNode[T](c) {
 		protected def send(value: T): Unit = this send NodeEvent.SimpleUpdateGeneric(pickle(value))
