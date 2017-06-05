@@ -11,16 +11,16 @@ import scala.language.implicitConversions
 trait BasicGameImplicits { game: BasicGame =>
 	/** Some quality of life operations on UIDs */
 	implicit final class UIDOps(private val uid: UID) {
-		@inline def ! (msg: Any): Unit = game.actors.get(uid) match {
+		@inline def ! (msg: Any): Unit = game.actorsFromUID.get(uid) match {
 			case Some(ag) => ag ! msg
 			case None => throw new IllegalArgumentException(s"No actor target found for UID `$uid`")
 		}
 
 		@inline def skeleton: CharacterSkeleton = game.skeletons(uid)
 		@inline def latency: Double = game.latencies(uid)
-		@inline def spells: Array[Option[SpellSkeleton]] = game.spells(uid)
-		@inline def actor: ActorRef = game.players(uid).actor
-		@inline def team: UID = game.playersTeam(uid)
+		@inline def spells: Array[Option[SpellSkeleton]] = game.playerSpells(uid)
+		@inline def actor: ActorRef = game.playersFromUID(uid).actor
+		@inline def team: UID = game.teamForPlayer(uid)
 
 		@inline def hostile(other: UID): Boolean = game.hostile(uid, other)
 

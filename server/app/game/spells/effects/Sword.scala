@@ -24,13 +24,13 @@ object Sword extends SpellEffect {
 			player.skeleton.facingOverride.value = true
 			swordDoodad = ctx.game.createGlobalDoodad(Doodad.Spell.Sword(p.x, p.y, α))
 
-			val targets = game.players.keys.filter(_ hostile initiator).filter { uid =>
+			val targets = game.playersFromUID.keys.filter(_ hostile initiator).filter { uid =>
 				val q = uid.skeleton.position
 				p <-> q match {
-					case d if d < 30 =>
+					case d if d < 25 =>
 						// Orientation does not matter if players are overlapping
 						true
-					case d if d < 80 =>
+					case d if d < 90 =>
 						// In range, check orientation
 						val β = atan2(q.y - p.y, q.x - p.x)
 						abs(atan2(sin(β - α), cos(β - α))) <= 3 * Math.PI / 8

@@ -1,7 +1,7 @@
 package game.skeleton
 
 import game.UID
-import game.skeleton.concrete.{CharacterSkeleton, SpellSkeleton}
+import game.skeleton.concrete.{CharacterSkeleton, PointSkeleton, SpellSkeleton}
 
 sealed abstract class SkeletonType[+S <: AbstractSkeleton] (ctor: (UID, Seq[RemoteManager]) => S) {
 	def instantiate(uid: UID): S = ctor(uid, Seq.empty)
@@ -10,5 +10,6 @@ sealed abstract class SkeletonType[+S <: AbstractSkeleton] (ctor: (UID, Seq[Remo
 
 object SkeletonType {
 	case object Character extends SkeletonType(new CharacterSkeleton(_, _))
+	case object Point extends SkeletonType(new PointSkeleton(_, _))
 	case object Spell extends SkeletonType(new SpellSkeleton(_, _))
 }

@@ -22,37 +22,37 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	// --------------------------------
 
 	/** A map from UID to GameTeam */
-	val teams: Map[UID, GameTeam] = roster.map(t => (t.info.uid, t)).toMap
+	val teamFromUID: Map[UID, GameTeam] = roster.map(t => (t.info.uid, t)).toMap
 
 	/** A map from UID to GamePlayer */
-	val players: Map[UID, GamePlayer] = roster.flatMap(_.players).map(p => (p.info.uid, p)).toMap
-
-	/** The sequence of every player's UID */
-	val playersUID: Seq[UID] = players.keys.toSeq
+	val playersFromUID: Map[UID, GamePlayer] = roster.flatMap(_.players).map(p => (p.info.uid, p)).toMap
 
 	/** The reverse mapping from Actors to players */
-	val actorsUID: Map[ActorRef, UID] = players.map { case (uid, player) => (player.actor, uid) }
+	val uidFromActor: Map[ActorRef, UID] = playersFromUID.map { case (uid, player) => (player.actor, uid) }
 
 	/**
 	  * A map from UID to an suitable ActorGroup instance.
 	  * - For team UID, the actor group is the combination of every players in the team;
 	  * - For player UID, the actor group contain only a single actor: the player themselves
 	  */
-	val actors: Map[UID, ActorGroup] = {
-		val ts = teams.view.map { case (uid, team) => (uid, ActorGroup(team.players.map(_.actor))) }
-		val ps = players.view.map { case (uid, player) => (uid, ActorGroup(List(player.actor))) }
+	val actorsFromUID: Map[UID, ActorGroup] = {
+		val ts = teamFromUID.view.map { case (uid, team) => (uid, ActorGroup(team.players.map(_.actor))) }
+		val ps = playersFromUID.view.map { case (uid, player) => (uid, ActorGroup(List(player.actor))) }
 		(ts ++ ps).toMap
 	}
 
-	val playersTeam: Map[UID, UID] = {
-		(for (team <- teams.values; player <- team.players) yield (player.info.uid, team.info.uid)).toMap
+	val teamForPlayer: Map[UID, UID] = {
+		(for (team <- teamFromUID.values; player <- team.players) yield (player.info.uid, team.info.uid)).toMap
 	}
 
+	/** The sequence of every player's UID */
+	val players: Seq[UID] = playersFromUID.keys.toSeq
+
 	/** An actor group composed from every players in the game */
-	val broadcast = ActorGroup(players.values.map(_.actor))
+	val broadcast = ActorGroup(playersFromUID.values.map(_.actor))
 
 	/** The map of every character skeletons */
-	val skeletons: Map[UID, CharacterSkeleton] = players.map { case (uid, player) =>
+	val skeletons: Map[UID, CharacterSkeleton] = playersFromUID.map { case (uid, player) =>
 		val skeleton = createGlobalSkeleton(SkeletonType.Character)
 		skeleton.name.value = player.info.name
 		broadcast ! ServerMessage.InstantiateCharacter(player.info.uid, skeleton.uid)
@@ -63,7 +63,7 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	var latencies: Map[UID, Double] = Map.empty.withDefaultValue(0.0)
 
 	/** Players spells */
-	var spells: Map[UID, Array[Option[SpellSkeleton]]] = players.keys.map { uid =>
+	var playerSpells: Map[UID, Array[Option[SpellSkeleton]]] = playersFromUID.keys.map { uid =>
 		(uid, Array.fill[Option[SpellSkeleton]](4)(None))
 	}.toMap
 
@@ -119,14 +119,14 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	object camera {
 		def move(x: Double, y: Double): Unit = broadcast ! ServerMessage.SetCameraLocation(x, y)
 		def follow(uid: UID): Unit = broadcast ! ServerMessage.SetCameraFollow(uid)
-		def followSelf(): Unit = for (uid <- players.keys) uid ! ServerMessage.SetCameraFollow(uid)
+		def followSelf(): Unit = for (uid <- playersFromUID.keys) uid ! ServerMessage.SetCameraFollow(uid)
 		def detach(): Unit = broadcast ! ServerMessage.SetCameraFollow(UID.zero)
 		def setSmoothing(smoothing: Boolean): Unit = broadcast ! ServerMessage.SetCameraSmoothing(smoothing)
 		def setSpeed(pps: Double): Unit = broadcast ! ServerMessage.SetCameraSpeed(pps)
 	}
 
 	def setTeamColors(colors: String*): Unit = {
-		for ((team, color) <- teams.values zip colors; player <- team.players) {
+		for ((team, color) <- teamFromUID.values zip colors; player <- team.players) {
 			skeletons(player.info.uid).color.value = color
 		}
 	}
@@ -148,7 +148,7 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	}
 
 	def createSkeleton[T <: AbstractSkeleton](tpe: SkeletonType[T], remote: UID): T = createSkeleton(tpe, Seq(remote))
-	def createGlobalSkeleton[T <: AbstractSkeleton](tpe: SkeletonType[T]): T = createSkeleton(tpe, playersUID)
+	def createGlobalSkeleton[T <: AbstractSkeleton](tpe: SkeletonType[T]): T = createSkeleton(tpe, players)
 
 	// Doodads
 	def createDoodad(doodad: Doodad, remotes: Seq[UID]): UID = {
@@ -159,7 +159,7 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	}
 
 	def createDoodad(doodad: Doodad, remote: UID): UID = createDoodad(doodad, Seq(remote))
-	def createGlobalDoodad(doodad: Doodad): UID = createDoodad(doodad, playersUID)
+	def createGlobalDoodad(doodad: Doodad): UID = createDoodad(doodad, players)
 
 	def destroyDoodad(uid: UID): Unit = {
 		doodads.get(uid) match {
@@ -257,7 +257,7 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	}
 
 	/** Retrieves the sender's UID */
-	@inline private def senderUID: UID = actorsUID(sender())
+	@inline private def senderUID: UID = uidFromActor(sender())
 }
 
 object BasicGame {

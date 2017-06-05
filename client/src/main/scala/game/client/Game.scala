@@ -6,8 +6,8 @@ import game.client.entities.{Character, DebugStats, Player, PlayerFrame, PlayerS
 import game.doodads.DoodadFactory
 import game.protocol.ServerMessage._
 import game.protocol.{ClientMessage, ServerMessage}
-import game.skeleton.SkeletonManager
 import game.skeleton.concrete.{CharacterSkeleton, SpellSkeleton}
+import game.skeleton.{AbstractSkeleton, SkeletonManager}
 import game.{TeamInfo, UID}
 import org.scalajs.dom
 import org.scalajs.dom.html
@@ -78,6 +78,8 @@ object Game {
 	def unlock(): Unit = engine.unlock()
 	def lock(): Unit = engine.lock()
 	def stop(): Unit = engine.stop()
+
+	def getSkeleton[T <: AbstractSkeleton](uid: UID): T = skeletonManager.getAs[T](uid)
 
 	private def toggleDebugStats(): Unit = {
 		if (debugStatsShown) engine.unregisterEntity(debugStatsEntity)

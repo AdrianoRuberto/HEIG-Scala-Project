@@ -30,6 +30,7 @@ trait EngineScene {
 				ctx.strokeRect(0, 0, box.width, box.height)
 				ctx.strokeStyle = "black"
 			}
+			ctx.beginPath()
 			entity.draw(ctx)
 			ctx.restore()
 		}
