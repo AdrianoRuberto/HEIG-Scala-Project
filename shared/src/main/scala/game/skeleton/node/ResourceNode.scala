@@ -28,12 +28,13 @@ case class ResourceNode (private var maxValue: Double, private var regenRate: Do
 	}
 
 	def energize(amount: Double): Unit = consume(-amount)
-
+	
 	@inline final def += (amount: Double): Unit = energize(amount)
 	@inline final def -= (amount: Double): Unit = consume(amount)
 
 	private def setupInterpolation(): Unit = {
 		if (regenRate > 0) res.interpolateAtSpeed(maxValue, regenRate)
 		else if (regenRate < 0) res.interpolateAtSpeed(0.0, regenRate)
+		else res.stop()
 	}
 }

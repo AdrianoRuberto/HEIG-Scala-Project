@@ -11,8 +11,6 @@ import game.skeleton.concrete.PointSkeleton
 import game.spells.Spell
 
 class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with StandardDeathBehavior {
-	log("TN: Game init")
-
 	loadMap(GameMap.Illios)
 	setDefaultTeamColors()
 	setDefaultCamera()
@@ -53,11 +51,13 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 	private val areaTicker = createTicker { dt =>
 		val controlling = status.controlling.value
 		val capture = status.capture.value
+
 		// Capture progress
 		def captureProgress(delta: Double): Unit = {
 			val updated = status.capture.value + 100 * delta / TimeForCapture
 			status.capture.value = if (delta < 0) updated max -100 else updated min 100
 		}
+
 		if (playerFromAOnPoint > 0 && playerFromBOnPoint == 0 && controlling != teamA) {
 			captureProgress(dt)
 		} else if (playerFromBOnPoint > 0 && playerFromAOnPoint == 0 && controlling != teamB) {
@@ -122,8 +122,6 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 		}
 	}*/
 
-	def start(): Unit = {
-		log("TN: Game start")
-	}
+	def start(): Unit = ()
 	def respawnLocationForPlayer(player: UID): Vector2D = Vector2D(0, 0)
 }

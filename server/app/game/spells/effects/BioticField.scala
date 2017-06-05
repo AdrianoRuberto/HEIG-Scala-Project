@@ -18,12 +18,10 @@ object BioticField extends SpellEffect {
 		val effectArea = Circle(player.skeleton.x.current, player.skeleton.y.current, 50)
 
 		def enter(uid: UID): Unit = {
-			game.log("Enter " + uid)
 			uid.skeleton.health.rate += 40
 		}
 
 		def exit (uid: UID): Unit = {
-			game.log("Exit " + uid)
 			uid.skeleton.health.rate -= 40
 		}
 
@@ -43,6 +41,5 @@ object BioticField extends SpellEffect {
 			visualSkeleton.collect()
 			game.destroyDoodad(visual)
 		}
-
 	}
 }
