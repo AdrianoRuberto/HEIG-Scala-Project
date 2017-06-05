@@ -1,15 +1,16 @@
 package game.server.modes.twistingnether
 
-import engine.geometry.Rectangle
+import engine.geometry.{Rectangle, Vector2D}
 import game.UID
 import game.doodads.Doodad
 import game.maps.GameMap
+import game.server.behaviors.StandardDeathBehavior
 import game.server.{BasicGame, GameTeam}
 import game.skeleton.SkeletonType
 import game.skeleton.concrete.PointSkeleton
 import game.spells.Spell
 
-class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) {
+class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with StandardDeathBehavior {
 	log("TN: Game init")
 
 	loadMap(GameMap.Illios)
@@ -22,7 +23,7 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) {
 	status.teamA.value = teamA
 	status.teamB.value = teamB
 
-	createGlobalDoodad(Doodad.Status.Koth(status.uid))
+	createGlobalDoodad(Doodad.Interface.Koth(status.uid))
 
 	private var playerFromAOnPoint = 0
 	private var playerFromBOnPoint = 0
@@ -52,13 +53,11 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) {
 	private val areaTicker = createTicker { dt =>
 		val controlling = status.controlling.value
 		val capture = status.capture.value
-
 		// Capture progress
 		def captureProgress(delta: Double): Unit = {
 			val updated = status.capture.value + 100 * delta / TimeForCapture
 			status.capture.value = if (delta < 0) updated max -100 else updated min 100
 		}
-
 		if (playerFromAOnPoint > 0 && playerFromBOnPoint == 0 && controlling != teamA) {
 			captureProgress(dt)
 		} else if (playerFromBOnPoint > 0 && playerFromAOnPoint == 0 && controlling != teamB) {
@@ -103,6 +102,7 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) {
 	for (player <- players) {
 		player gainSpell (0, Spell.Sword)
 		player gainSpell (3, Spell.Sprint)
+		player gainSpell (1, Spell.Flagellation)
 
 		// DEBUG
 		/*val ps = createGlobalSkeleton(SkeletonType.Point)
@@ -124,4 +124,5 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) {
 	def start(): Unit = {
 		log("TN: Game start")
 	}
+	def respawnLocationForPlayer(player: UID): Vector2D = Vector2D(0, 0)
 }

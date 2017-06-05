@@ -15,6 +15,7 @@ object Layer {
 	final val Nameplates = Layer(6)
 	final val HighFx = Layer(8)
 	final val Interface = Layer(10)
+	final val Overlay = Layer(20)
 	final val Debug = Layer(99)
 
 	implicit val layerOrdering: Ordering[Layer] = Ordering.by(_.strata)
