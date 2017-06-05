@@ -6,4 +6,5 @@ object Spell {
 	case object Sprint extends Spell
 	case object Sword extends Spell(cost = Some(30))
 	case object Flagellation extends Spell
+	case object BioticField extends Spell(cost = Some(50))
 }

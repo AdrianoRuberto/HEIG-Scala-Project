@@ -202,7 +202,11 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	}
 
 	def registerRegion(region: Region): Unit = regions += region
-	def unregisterRegion(region: Region): Unit = regions -= region
+	def unregisterRegion(region: Region): Unit = {
+		regions -= region
+		region.inside.foreach(region.playerExits)
+		region.inside = Set.empty
+	}
 
 	// Ticker
 	def createTicker(impl: Double => Unit): Ticker = {

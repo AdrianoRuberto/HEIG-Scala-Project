@@ -103,6 +103,7 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 		player gainSpell (0, Spell.Sword)
 		player gainSpell (3, Spell.Sprint)
 		player gainSpell (1, Spell.Flagellation)
+		player gainSpell (2, Spell.BioticField)
 
 		// DEBUG
 		/*val ps = createGlobalSkeleton(SkeletonType.Point)
