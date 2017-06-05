@@ -3,6 +3,7 @@ package game.client
 import engine.Engine
 import engine.entity.Entity
 import game.client.entities.{Character, DebugStats, Player, PlayerFrame, PlayerSpells, ShapeDrawer}
+import game.doodads.DoodadFactory
 import game.protocol.ServerMessage._
 import game.protocol.{ClientMessage, ServerMessage}
 import game.skeleton.SkeletonManager
@@ -21,6 +22,7 @@ object Game {
 
 	private val skeletonManager = new SkeletonManager
 	private var characterEntities: Map[UID, Entity] = Map.empty
+	private var doodadEntities: Map[UID, Entity] = Map.empty
 	private var walls: Map[UID, ShapeDrawer] = Map.empty
 
 	private var teams: Seq[TeamInfo] = Nil
@@ -100,8 +102,27 @@ object Game {
 		// Builders
 		case SkeletonEvent(event) => skeletonManager.receive(event)
 		case InstantiateCharacter(characterUID, skeletonUID) => instantiateCharacter(characterUID, skeletonUID)
+
+		// Spells
 		case GainSpell(slot, uid) => playerSpells(slot) = Some(skeletonManager.getAs[SpellSkeleton](uid))
 		case LoseSpell(slot) => playerSpells(slot) = None
+
+		// Doodads
+		case CreateDoodad(uid, doodad) =>
+			val entity = DoodadFactory.create(doodad)
+			engine.registerEntity(entity)
+			doodadEntities += (uid -> entity)
+
+		case DestroyDoodad(uid) =>
+			doodadEntities.get(uid) match {
+				case Some(entity) =>
+					entity.unregister()
+					doodadEntities -= uid
+				case None =>
+					dom.console.warn(s"Attempted to destroy unknown doodad: $uid")
+			}
+
+		// Walls
 		case DrawShape(shapeUID, shape) =>
 			val shapeDrawer = new ShapeDrawer(shape)
 			walls += (shapeUID -> shapeDrawer)

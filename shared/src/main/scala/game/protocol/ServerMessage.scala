@@ -2,6 +2,7 @@ package game.protocol
 
 import boopickle.Default._
 import engine.geometry.{ColoredShape, Shape}
+import game.doodads.Doodad
 import game.skeleton.node.NodeId
 import game.skeleton.{ManagerEvent, SkeletonType}
 import game.{GameMode, TeamInfo, UID}
@@ -31,6 +32,8 @@ object ServerMessage {
 	case class EraseShape(shapeUID: UID) extends GameMessage
 	case class GainSpell(slot: Int, skeletonUID: UID) extends GameMessage
 	case class LoseSpell(slot: Int) extends GameMessage
+	case class CreateDoodad(uid: UID, doodad: Doodad) extends GameMessage
+	case class DestroyDoodad(uid: UID) extends GameMessage
 
 	// Camera
 	case class SetCameraLocation(x: Double, y: Double) extends GameMessage

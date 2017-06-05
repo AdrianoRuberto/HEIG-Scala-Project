@@ -3,6 +3,7 @@ package game.server
 import akka.actor.ActorRef
 import engine.geometry.{ColoredShape, Shape, Vector2D}
 import game.UID
+import game.doodads.Doodad
 import game.maps.GameMap
 import game.protocol.{ClientMessage, ServerMessage}
 import game.server.actors.{Matchmaker, PlayerActor, Watcher}
@@ -13,7 +14,7 @@ import scala.concurrent.duration._
 import scala.util.Random
 import utils.ActorGroup
 
-abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with BasicGameImplicits {
+abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") with BasicGameImplicits {
 	import context._
 
 	// --------------------------------
@@ -26,11 +27,11 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 	/** A map from UID to GamePlayer */
 	val players: Map[UID, GamePlayer] = roster.flatMap(_.players).map(p => (p.info.uid, p)).toMap
 
+	/** The sequence of every player's UID */
+	val playersUID: Seq[UID] = players.keys.toSeq
+
 	/** The reverse mapping from Actors to players */
 	val actorsUID: Map[ActorRef, UID] = players.map { case (uid, player) => (player.actor, uid) }
-
-	/** An actor group composed from every players in the game */
-	val broadcast = ActorGroup(players.values.map(_.actor))
 
 	/**
 	  * A map from UID to an suitable ActorGroup instance.
@@ -42,6 +43,13 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 		val ps = players.view.map { case (uid, player) => (uid, ActorGroup(List(player.actor))) }
 		(ts ++ ps).toMap
 	}
+
+	val playersTeam: Map[UID, UID] = {
+		(for (team <- teams.values; player <- team.players) yield (player.info.uid, team.info.uid)).toMap
+	}
+
+	/** An actor group composed from every players in the game */
+	val broadcast = ActorGroup(players.values.map(_.actor))
 
 	/** The map of every character skeletons */
 	val skeletons: Map[UID, CharacterSkeleton] = players.map { case (uid, player) =>
@@ -58,6 +66,9 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 	var spells: Map[UID, Array[Option[SpellSkeleton]]] = players.keys.map { uid =>
 		(uid, Array.fill[Option[SpellSkeleton]](4)(None))
 	}.toMap
+
+	/** Registered tickers */
+	var doodads: Map[UID, Seq[UID]] = Map.empty
 
 	/** Registered tickers */
 	var tickers: Set[Ticker] = Set.empty
@@ -90,8 +101,7 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 	def message: Receive
 	def tick(dt: Double): Unit
 
-	/** Terminates the game, stopping every related actors and closing sockets */
-	def terminate(): Unit = context.parent ! Watcher.Terminate
+	def hostile(a: UID, b: UID): Boolean = a != b && a.team != b.team
 
 	// --------------------------------
 	// Common Game API
@@ -140,7 +150,28 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 	}
 
 	def createSkeleton[T <: AbstractSkeleton](tpe: SkeletonType[T], remote: UID): T = createSkeleton(tpe, Seq(remote))
-	def createGlobalSkeleton[T <: AbstractSkeleton](tpe: SkeletonType[T]): T = createSkeleton(tpe, players.keys.toSeq)
+	def createGlobalSkeleton[T <: AbstractSkeleton](tpe: SkeletonType[T]): T = createSkeleton(tpe, playersUID)
+
+	// Doodads
+	def createDoodad(doodad: Doodad, remotes: Seq[UID]): UID = {
+		val uid = UID.next
+		doodads += (uid -> remotes)
+		remotes ! ServerMessage.CreateDoodad(uid, doodad)
+		uid
+	}
+
+	def createDoodad(doodad: Doodad, remote: UID): UID = createDoodad(doodad, Seq(remote))
+	def createGlobalDoodad(doodad: Doodad): UID = createDoodad(doodad, playersUID)
+
+	def destroyDoodad(uid: UID): Unit = {
+		doodads.get(uid) match {
+			case Some(group) =>
+				group ! ServerMessage.DestroyDoodad(uid)
+				doodads -= uid
+			case None =>
+				warn(s"Attempted to remove unknown doodad: $uid")
+		}
+	}
 
 	// Ticker
 	def createTicker(tick: Double => Unit): Ticker = {
@@ -167,6 +198,9 @@ abstract class BasicGame(roster: Seq[GameTeam]) extends BasicActor("Game") with 
 		shapes -= uid
 		broadcast ! ServerMessage.EraseShape(uid)
 	}
+
+	/** Terminates the game, stopping every related actors and closing sockets */
+	def terminate(): Unit = context.parent ! Watcher.Terminate
 
 	// --------------------------------
 	// Internal API

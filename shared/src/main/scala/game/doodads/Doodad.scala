@@ -4,6 +4,6 @@ sealed abstract class Doodad ()
 
 object Doodad {
 	object Spell {
-		case object Sword extends Doodad
+		case class Sword(x: Double, y: Double, angle: Double) extends Doodad
 	}
 }
