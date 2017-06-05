@@ -34,3 +34,14 @@ final case class Rectangle (x: Double, y: Double, width: Double, height: Double)
 	def scale(k: Double): Rectangle = Rectangle(x * k, y * k, width * k, height * k)
 	def translate(dx: Double, dy: Double): Rectangle = Rectangle(x + dx, y + dy, width, height)
 }
+
+object Rectangle {
+	def apply(corner: Vector2D, width: Double, height: Double): Rectangle = {
+		Rectangle(corner.x, corner.y, width, height)
+	}
+
+	def apply(topLeft: Vector2D, bottomRight: Vector2D): Rectangle = {
+		val delta = bottomRight - topLeft
+		Rectangle(topLeft.x, topLeft.y, delta.x, delta.y)
+	}
+}

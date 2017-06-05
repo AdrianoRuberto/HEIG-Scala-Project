@@ -32,3 +32,7 @@ final case class Triangle(ax: Double, ay: Double,
 	def translate(dx: Double, dy: Double): Triangle = Triangle(ax + dx, ay + dy, bx + dx, by + dy, cx + dx, cy + dy)
 	def scale(k: Double): Triangle = Triangle(ax * k, ay * k, bx * k, by * k, cx *k, cy *k)
 }
+
+object Triangle {
+	def apply(a: Vector2D, b: Vector2D, c: Vector2D): Triangle = Triangle(a.x, a.y, b.x, b.y, c.x, c.y)
+}

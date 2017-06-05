@@ -20,3 +20,7 @@ case class Circle(x: Double, y: Double, radius: Double) extends Shape {
 	def translate(dx: Double, dy: Double): Circle = Circle(x + dx, y + dy, radius)
 	def scale(k: Double): Circle = Circle(x * k, y * k, radius * k)
 }
+
+object Circle {
+	def apply(center: Vector2D, radius: Double): Circle = Circle(center.x, center.y, radius)
+}
