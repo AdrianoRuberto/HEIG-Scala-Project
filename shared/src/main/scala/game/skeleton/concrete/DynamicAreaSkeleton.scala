@@ -15,5 +15,5 @@ class DynamicAreaSkeleton (uid: UID, remotes: Seq[RemoteManager])
 
 	val stroke = SimpleNode(true)
 	val strokeColor = SimpleNode("rgba(85, 170, 85, 0.8)")
-	val strokeWidth = SimpleNode(1)
+	val strokeWidth = SimpleNode(2)
 }

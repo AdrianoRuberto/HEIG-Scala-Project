@@ -1,17 +1,12 @@
 package game.spells.effects
 
-import engine.geometry
 import game.UID
-import game.server.{BasicGame, Ticker}
-import game.skeleton.concrete.SpellSkeleton
 import game.spells.Spell
-import game.spells.effects.SpellEffect._
 import scala.language.implicitConversions
 
 abstract class SpellEffect {
-	type Instance <: EffectInstance
-	private var instances: Map[UID, Instance] = Map.empty
-	def instantiate(ctx: SpellContext): Instance
+	private[effects] var instances: Map[UID, SpellEffectInstance] = Map.empty
+	def instantiate(ctx: SpellContext): SpellEffectInstance
 
 	def available(ctx: SpellContext): Boolean = {
 		// Cooldown is ready and player has enough energy
@@ -21,12 +16,23 @@ abstract class SpellEffect {
 	final def cast(ctx: SpellContext): Unit = {
 		if (available(ctx)) {
 			if (!ctx.skeleton.activated.value) {
+				// Remove previous instance
+				for (instance <- instances.get(ctx.initiator)) {
+					instance.remove()
+				}
+
+				// Activate spell
 				ctx.skeleton.activated.value = true
-				val instance = createInstance(ctx)
+
+				// Remove spell cost from player energy
 				for (cost <- ctx.skeleton.spell.value.cost) {
 					ctx.player.skeleton.energy.consume(cost)
 				}
-				instance.gain()
+
+				// Create new instance
+				val instance = instantiate(ctx)
+				instances += (ctx.initiator -> instance)
+				ctx.game.registerTicker(instance.ticker)
 			}
 		} else {
 			ctx.skeleton.activated.set(false, force = true)
@@ -36,25 +42,6 @@ abstract class SpellEffect {
 	final def cancel(ctx: SpellContext): Unit = {
 		for (instance <- instances.get(ctx.initiator)) instance.cancel()
 	}
-
-	private def createInstance(ctx: SpellContext): Instance = {
-		collectInstance(ctx)
-		instances.get(ctx.initiator) match {
-			case Some(instance) => instance
-			case None =>
-				val instance = instantiate(ctx)
-				instances += (ctx.initiator -> instance)
-				ctx.game.registerTicker(instance.ticker)
-				instance
-		}
-	}
-
-	private def collectInstance(ctx: SpellContext): Unit = {
-		for (instance <- instances.get(ctx.initiator)) {
-			instance.ticker.remove()
-			instances -= ctx.initiator
-		}
-	}
 }
 
 object SpellEffect {
@@ -63,43 +50,5 @@ object SpellEffect {
 		case Spell.Sword => Sword
 		case Spell.BioticField => BioticField
 		case Spell.Flagellation => Flagellation
-	}
-
-	class EffectInstance(effect: SpellEffect, val ctx: SpellContext) { self =>
-		private val timestamp = ctx.game.time
-
-		protected var duration: Double = 0.0
-		protected var cooldown: Double = 0.0
-
-		val game: BasicGame = ctx.game
-		val player: ctx.game.UIDOps = ctx.player
-		val skeleton: SpellSkeleton = ctx.skeleton
-		val point: geometry.Vector2D = ctx.point
-		val initiator: UID = ctx.initiator
-
-		private[SpellEffect] val ticker = new Ticker {
-			def tick(dt: Double): Unit = {
-				if (duration > 0.0 && (game.time - timestamp) >= duration) cancel()
-				else self.tick(dt)
-			}
-
-			def remove(): Unit = {
-				ctx.game.unregisterTicker(this)
-			}
-		}
-
-		def gain(): Unit = ()
-		def tick(dt: Double): Unit = ()
-		def lose(): Unit = ()
-
-		def cancel(): Unit = if (duration <= 0 || (game.time - timestamp) >= duration) remove()
-		final def remove(): Unit = {
-			lose()
-			if (cooldown > 0.0) skeleton.cooldown.start(cooldown)
-			skeleton.activated.value = false
-			effect.collectInstance(ctx)
-		}
-
-		@inline protected implicit final def uidToOps(uid: UID): ctx.game.UIDOps = new ctx.game.UIDOps(uid)
 	}
 }

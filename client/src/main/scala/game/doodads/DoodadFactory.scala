@@ -4,7 +4,7 @@ import engine.entity.Entity
 import game.UID
 import game.client.Game
 import game.doodads.Doodad.{Area, Debug, Interface, Spell}
-import game.doodads.area.DynamicAreaEntity
+import game.doodads.area.{DynamicAreaEntity, StaticAreaEntity}
 import game.doodads.debug.PointEntity
 import game.doodads.interface.{DeathScreenEntity, KothStatusEntity}
 import game.doodads.spell.SwordEntity
@@ -13,6 +13,8 @@ import scala.language.implicitConversions
 
 object DoodadFactory {
 	def create(doodad: Doodad): Entity = doodad match {
+		case Area.StaticArea(shape, fill, fillColor, stroke, strokeColor, strokeWidth) =>
+			new StaticAreaEntity(shape, fill, fillColor, stroke, strokeColor, strokeWidth)
 		case Area.DynamicArea(skeleton) => new DynamicAreaEntity(skeleton)
 		case Debug.Point(skeleton) => new PointEntity(skeleton)
 		case Interface.Koth(skeleton) => new KothStatusEntity(skeleton)

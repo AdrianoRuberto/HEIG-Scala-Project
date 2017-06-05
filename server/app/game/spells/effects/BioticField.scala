@@ -3,42 +3,29 @@ package game.spells.effects
 import engine.geometry.Circle
 import game.UID
 import game.doodads.Doodad
-import game.server.Region
-import game.skeleton.SkeletonType
-import game.skeleton.concrete.DynamicAreaSkeleton
-import game.spells.effects.SpellEffect.EffectInstance
 
 object BioticField extends SpellEffect {
-	type Instance = BioticFieldInstance
-	def instantiate(ctx: SpellContext): BioticFieldInstance = new BioticFieldInstance(this, ctx)
+	def instantiate(ctx: SpellContext) = new SpellEffectInstance(this, ctx) {
+		override val duration: Double = 5000
+		override val cooldown: Double = duration * 2
 
-	class BioticFieldInstance(e: SpellEffect, c: SpellContext)
-		extends EffectInstance(e: SpellEffect, c: SpellContext) {
+		/** Effect area */
+		private val area = Circle(player.skeleton.position, 80)
 
-		val effectArea = Circle(player.skeleton.x.current, player.skeleton.y.current, 50)
+		/** Trigger region */
+		private val region = game.createRegion(area, enter, exit, filter = _ friendly initiator)
+		private def enter(uid: UID): Unit = uid.skeleton.health.rate += 40
+		private def exit(uid: UID): Unit = uid.skeleton.health.rate -= 40
 
-		def enter(uid: UID): Unit = {
-			uid.skeleton.health.rate += 40
-		}
+		/** Visual doodad */
+		private val visual = game.createGlobalDoodad(Doodad.Area.StaticArea(
+			shape = area,
+			fillColor = "rgba(255, 200, 127, 0.1)",
+			strokeColor = "rgba(255, 200, 127, 0.8)"
+		))
 
-		def exit (uid: UID): Unit = {
-			uid.skeleton.health.rate -= 40
-		}
-
-		val visualSkeleton: DynamicAreaSkeleton = game.createGlobalSkeleton(SkeletonType.DynamicArea)
-		visualSkeleton.shape.value = effectArea
-		visualSkeleton.strokeWidth.value = 2
-
-		val visual: UID = game.createGlobalDoodad(Doodad.Area.DynamicArea(visualSkeleton.uid))
-
-		duration = 5000
-		cooldown = duration * 2
-
-		val region: Region = game.createRegion(effectArea, enter, exit)
-
-		override def lose(): Unit = {
+		override def end(): Unit = {
 			region.remove()
-			visualSkeleton.collect()
 			game.destroyDoodad(visual)
 		}
 	}

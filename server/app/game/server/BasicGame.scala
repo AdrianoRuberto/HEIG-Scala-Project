@@ -192,10 +192,12 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	// Regions
 	def createRegion(shape: Shape,
 	                 enters: UID => Unit = (_) => (),
-	                 exits: UID => Unit = (_) => ()): Region = {
+	                 exits: UID => Unit = (_) => (),
+	                 filter: UID => Boolean = (_) => true): Region = {
 		val region = new Region(shape) {
 			def playerEnters(uid: UID): Unit = enters(uid)
 			def playerExits(uid: UID): Unit = exits(uid)
+			def playerAccepted(uid: UID): Boolean = filter(uid)
 			def remove(): Unit = unregisterRegion(this)
 		}
 		registerRegion(region)
@@ -242,7 +244,7 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 		broadcast ! ServerMessage.EraseShape(uid)
 	}
 
-	def playersInArea(area: Shape): Set[UID] = players.filter(player => area.contains(player.skeleton.position)).toSet
+	def queryArea(area: Shape): Set[UID] = players.filter(player => area.contains(player.skeleton.position)).toSet
 
 	/** Terminates the game, stopping every related actors and closing sockets */
 	def terminate(): Unit = context.parent ! Watcher.Terminate
@@ -254,6 +256,7 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	// Ticks
 	private var timestamp = 0.0
 	private var lastTick = Double.NaN
+
 	private def tick(): Unit = {
 		context.system.scheduler.scheduleOnce(20.millis, self, BasicGame.Tick)
 		val now = System.nanoTime() / 1000000.0
@@ -265,7 +268,7 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 			if (!task.canceled) task.action()
 		}
 		for (region <- regions) {
-			val inside = playersInArea(region.shape)
+			val inside = queryArea(region.shape).filter(region.playerAccepted)
 			for (player <- inside diff region.inside) region.playerEnters(player)
 			for (player <- region.inside diff inside) region.playerExits(player)
 			region.inside = inside
