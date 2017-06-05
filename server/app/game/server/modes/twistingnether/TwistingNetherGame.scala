@@ -24,40 +24,77 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) {
 
 	createGlobalDoodad(Doodad.Status.Koth(status.uid))
 
-	var playerFromAOnPoint = 0
-	var playerFromBOnPoint = 0
+	private var playerFromAOnPoint = 0
+	private var playerFromBOnPoint = 0
 
-	val captureArea = Rectangle(-150, 350, 300, 300)
+	private val captureArea = Rectangle(-145, 355, 290, 290)
+	createRegion(captureArea, enterArea, leaveArea)
 
-	def enterArea(uid: UID): Unit = {
+	private val areaSkeleton = createGlobalSkeleton(SkeletonType.DynamicArea)
+	areaSkeleton.shape.value = captureArea
+	areaSkeleton.strokeWidth.value = 2
+
+	private val areaDoodad = createGlobalDoodad(Doodad.Area.DynamicArea(areaSkeleton.uid))
+
+	private def enterArea(uid: UID): Unit = {
 		if (uid.team == teamA) playerFromAOnPoint += 1
 		else if (uid.team == teamB) playerFromBOnPoint += 1
 	}
 
-	def leaveArea(uid: UID): Unit = {
+	private def leaveArea(uid: UID): Unit = {
 		if (uid.team == teamA) playerFromAOnPoint -= 1
 		else if (uid.team == teamB) playerFromBOnPoint -= 1
 	}
 
-	createRegion(captureArea, enterArea, leaveArea)
+	private final val TimeForCapture = 1000
+	private final val TimePerPercent = 1000
 
-	createTicker { dt =>
-		if (playerFromAOnPoint > 0 && playerFromBOnPoint == 0) {
-			if (status.controlling.value != teamA) {
-				status.capture.value = (status.capture.value + dt / 50 ) min 100
-			}
-		} else if (playerFromBOnPoint > 0 && playerFromAOnPoint == 0) {
-			if (status.controlling.value != teamB) {
-				status.capture.value = (status.capture.value - dt / 50) max -100
-			}
+	private val areaTicker = createTicker { dt =>
+		val controlling = status.controlling.value
+		val capture = status.capture.value
+
+		// Capture progress
+		def captureProgress(delta: Double): Unit = {
+			val updated = status.capture.value + 100 * delta / TimeForCapture
+			status.capture.value = if (delta < 0) updated max -100 else updated min 100
 		}
 
-		val captureValue = status.capture.value
-		if (captureValue == 100) status.controlling.value = teamA
-		else if (captureValue == -100) status.controlling.value = teamB
+		if (playerFromAOnPoint > 0 && playerFromBOnPoint == 0 && controlling != teamA) {
+			captureProgress(dt)
+		} else if (playerFromBOnPoint > 0 && playerFromAOnPoint == 0 && controlling != teamB) {
+			captureProgress(-dt)
+		} else if (playerFromBOnPoint == 0 && controlling == teamA && capture != 100) {
+			captureProgress(dt)
+		} else if (playerFromAOnPoint == 0 && controlling == teamB && capture != -100) {
+			captureProgress(-dt)
+		} else if (playerFromAOnPoint == 0 && playerFromBOnPoint == 0 && controlling == UID.zero && capture != 0) {
+			val cap = -capture * TimeForCapture / 100
+			if (capture < 0) captureProgress(dt min cap) else captureProgress(-dt max cap)
+		}
 
-		if (status.controlling.value == teamA) status.progressA.value += dt / 1000
-		else if (status.controlling.value == teamB) status.progressB.value += dt / 1000
+		// Point captured
+		val captureValue = status.capture.value
+		if (captureValue == 100) {
+			status.controlling.value = teamA
+			areaSkeleton.fillColor.value = "rgba(119, 119, 255, 0.1)"
+			areaSkeleton.strokeColor.value = "rgba(119, 119, 255, 0.8)"
+		} else if (captureValue == -100) {
+			status.controlling.value = teamB
+			areaSkeleton.fillColor.value = "rgba(255, 85, 85, 0.1)"
+			areaSkeleton.strokeColor.value = "rgba(255, 85, 85, 0.8)"
+		}
+
+		// Score progression
+		if (status.controlling.value == teamA) status.progressA.value += dt / TimePerPercent
+		else if (status.controlling.value == teamB) status.progressB.value += dt / TimePerPercent
+
+		// Win condition
+		if (status.progressA.value >= 100) win(teamA)
+		else if (status.progressB.value >= 100) win(teamB)
+	}
+
+	def win(team: UID): Unit = {
+		areaTicker.remove()
 	}
 
 	// DEBUG
@@ -68,21 +105,21 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) {
 		player gainSpell (3, Spell.Sprint)
 
 		// DEBUG
-		val ps = createGlobalSkeleton(SkeletonType.Point)
+		/*val ps = createGlobalSkeleton(SkeletonType.Point)
 		ps.color.value = player.skeleton.color.value
 		points += (player -> ps)
-		createGlobalDoodad(Doodad.Debug.Point(ps.uid))
+		createGlobalDoodad(Doodad.Debug.Point(ps.uid))*/
 	}
 
 	// DEBUG
-	createTicker { _ =>
+	/*createTicker { _ =>
 		for (player <- players) {
 			val ps = points(player)
 			val pos = player.skeleton.position
 			ps.x.value = pos.x
 			ps.y.value = pos.y
 		}
-	}
+	}*/
 
 	def start(): Unit = {
 		log("TN: Game start")

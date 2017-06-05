@@ -64,7 +64,7 @@ object SpellEffect {
 	}
 
 	class EffectInstance(effect: SpellEffect, val ctx: SpellContext) { self =>
-		private var time = 0.0
+		private val timestamp = ctx.game.time
 
 		protected var duration: Double = 0.0
 		protected var cooldown: Double = 0.0
@@ -77,8 +77,7 @@ object SpellEffect {
 
 		private[SpellEffect] val ticker = new Ticker {
 			def tick(dt: Double): Unit = {
-				time += dt
-				if (duration > 0.0 && time >= duration) cancel()
+				if (duration > 0.0 && (game.time - timestamp) >= duration) cancel()
 				else self.tick(dt)
 			}
 
@@ -91,7 +90,7 @@ object SpellEffect {
 		def tick(dt: Double): Unit = ()
 		def lose(): Unit = ()
 
-		def cancel(): Unit = if (duration <= 0 || time >= duration) remove()
+		def cancel(): Unit = if (duration <= 0 || (game.time - timestamp) >= duration) remove()
 		final def remove(): Unit = {
 			lose()
 			if (cooldown > 0.0) skeleton.cooldown.start(cooldown)

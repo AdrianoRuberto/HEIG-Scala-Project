@@ -2,9 +2,13 @@ package game.doodads
 
 import game.UID
 
-sealed abstract class Doodad ()
+sealed trait Doodad
 
 object Doodad {
+	object Area {
+		case class DynamicArea(skeleton: UID) extends Doodad
+	}
+
 	object Debug {
 		case class Point(skeleton: UID) extends Doodad
 	}

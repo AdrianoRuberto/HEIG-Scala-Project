@@ -214,7 +214,7 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 
 	// Timers
 	def schedule(delay: Double)(action: => Unit): ScheduledTask = {
-		val task = ScheduledTask(time + delay, () => action)
+		val task = ScheduledTask(timestamp + delay, () => action)
 		tasks += task
 		task
 	}
@@ -242,15 +242,15 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	// --------------------------------
 
 	// Ticks
-	private var time = 0.0
+	private var timestamp = 0.0
 	private var lastTick = Double.NaN
 	private def tick(): Unit = {
 		context.system.scheduler.scheduleOnce(20.millis, self, BasicGame.Tick)
 		val now = System.nanoTime() / 1000000.0
 		val dt = if (lastTick.isNaN) 0.0 else now - lastTick
 		lastTick = now
-		time += dt
-		while (tasks.nonEmpty && tasks.head.time <= time) {
+		timestamp += dt
+		while (tasks.nonEmpty && tasks.head.time <= timestamp) {
 			val task = tasks.dequeue()
 			if (!task.canceled) task.action()
 		}
@@ -262,6 +262,8 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 		}
 		for (ticker <- tickers) ticker.tick(dt)
 	}
+
+	def time: Double = timestamp
 
 	/** Computes players spawn around a point for a given team */
 	def spawnPlayers(center: Vector2D, players: Seq[GamePlayer]): Unit = {

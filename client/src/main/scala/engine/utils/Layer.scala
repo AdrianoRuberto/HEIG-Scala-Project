@@ -9,8 +9,8 @@ case class Layer(strata: Double) extends AnyVal {
 }
 
 object Layer {
-	final val World = Layer(1)
-	final val LowFx = Layer(3)
+	final val LowFx = Layer(1)
+	final val World = Layer(3)
 	final val Players = Layer(5)
 	final val Nameplates = Layer(6)
 	final val HighFx = Layer(8)
