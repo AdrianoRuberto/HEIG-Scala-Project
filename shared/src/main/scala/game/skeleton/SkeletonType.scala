@@ -13,5 +13,6 @@ object SkeletonType {
 	case object DynamicArea extends SkeletonType(new DynamicAreaSkeleton(_, _))
 	case object KothStatus extends SkeletonType(new KothStatusSkeleton(_, _))
 	case object Point extends SkeletonType(new PointSkeleton(_, _))
+	case object Progress extends SkeletonType(new ProgressSkeleton(_, _))
 	case object Spell extends SkeletonType(new SpellSkeleton(_, _))
 }

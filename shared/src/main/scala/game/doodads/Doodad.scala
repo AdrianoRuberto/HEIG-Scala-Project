@@ -23,6 +23,7 @@ object Doodad {
 	object Interface {
 		case class Koth(skeleton: UID) extends Doodad
 		case class DeathScreen(duration: Double) extends Doodad
+		case class VictoryScreen(msg: String, color: String, skeleton: UID) extends Doodad
 	}
 
 	object Spell {

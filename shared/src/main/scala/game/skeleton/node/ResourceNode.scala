@@ -7,9 +7,17 @@ case class ResourceNode (private var maxValue: Double, private var regenRate: Do
 	private val res = InterpolatedNode(maxValue)
 	private var rateInterpolated = false
 
-	def max: Double = maxValue
 	def current: Double = res.current
 	def percent: Double = current / max
+
+	def max: Double = maxValue
+
+	def max_= (newMax: Double): Unit = {
+		val base = if (rateInterpolated) res.current else res.value
+		maxValue = newMax
+		res.value = base / max * newMax
+		setupInterpolation()
+	}
 
 	def rate: Double = regenRate
 

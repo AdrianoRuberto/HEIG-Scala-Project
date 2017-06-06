@@ -7,7 +7,6 @@ import game.maps.GameMap
 import game.server.behaviors.StandardDeathBehavior
 import game.server.{BasicGame, GameTeam}
 import game.skeleton.SkeletonType
-import game.skeleton.concrete.PointSkeleton
 import game.spells.Spell
 
 class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with StandardDeathBehavior {
@@ -15,25 +14,34 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 	setDefaultTeamColors()
 	setDefaultCamera()
 
+	// Teams
 	private val Seq(teamA, teamB) = teams
 
+	// Game constants
+	private final val CapturePerSecond = 20.0
+	private final val ProgressPerSecond = 20.0
+
+	// Base spells
+	for (player <- players) {
+		player gainSpell (0, Spell.Sword)
+		player gainSpell (3, Spell.Sprint)
+		player gainSpell (1, Spell.Flagellation)
+		player gainSpell (2, Spell.BioticField)
+	}
+
+	// Status
 	private val status = createGlobalSkeleton(SkeletonType.KothStatus)
 	status.teamA.value = teamA
 	status.teamB.value = teamB
 
 	createGlobalDoodad(Doodad.Interface.Koth(status.uid))
 
-	private var playerFromAOnPoint = 0
-	private var playerFromBOnPoint = 0
-
+	// Capture Area
 	private val captureArea = Rectangle(-145, 355, 290, 290)
 	createRegion(captureArea, enterArea, leaveArea)
 
-	private val areaSkeleton = createGlobalSkeleton(SkeletonType.DynamicArea)
-	areaSkeleton.shape.value = captureArea
-	areaSkeleton.strokeWidth.value = 2
-
-	private val areaDoodad = createGlobalDoodad(Doodad.Area.DynamicArea(areaSkeleton.uid))
+	private var playerFromAOnPoint = 0
+	private var playerFromBOnPoint = 0
 
 	private def enterArea(uid: UID): Unit = {
 		if (uid.team == teamA) playerFromAOnPoint += 1
@@ -45,8 +53,12 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 		else if (uid.team == teamB) playerFromBOnPoint -= 1
 	}
 
-	private final val CapturePerSecond = 20.0
-	private final val ProgressPerSecond = 1.0
+	// Capture Area Doodad
+	private val areaSkeleton = createGlobalSkeleton(SkeletonType.DynamicArea)
+	areaSkeleton.shape.value = captureArea
+	areaSkeleton.strokeWidth.value = 2
+
+	createGlobalDoodad(Doodad.Area.DynamicArea(areaSkeleton.uid))
 
 	// Capture progress
 	private var currentCapture = 0
@@ -55,6 +67,7 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 		status.capture.interpolateAtSpeed(direction * 100, CapturePerSecond)
 	}
 
+	// Area implementation
 	private val areaTicker = createTicker { dt =>
 		// Current point controller
 		val controlling = status.controlling.value
@@ -99,32 +112,41 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 		}
 
 		// Win condition
-		if (status.progressA.value >= 100) win(teamA)
-		else if (status.progressB.value >= 100) win(teamB)
+		if (status.progressA.current >= 100) win(teamA)
+		else if (status.progressB.current >= 100) win(teamB)
 	}
 
+	// Win handler
 	def win(team: UID): Unit = {
 		areaTicker.remove()
+		engine.disableInputs()
+
+		val progress = createGlobalSkeleton(SkeletonType.Progress)
+		createGlobalDoodad(Doodad.Interface.VictoryScreen(
+			if (team == teamA) "Blue team wins!" else "Red team wins!",
+			if (team == teamA) "rgb(119, 119, 255)" else "rgb(255, 85, 85)",
+			progress.uid))
+		progress.begin(0, 100, 5000)
+
+		schedule(5000) {
+			terminate()
+		}
 	}
 
+	def start(): Unit = ()
+	def respawnLocationForPlayer(player: UID): Vector2D = Vector2D(0, 0)
+
 	// DEBUG
-	private var points = Map.empty[UID, PointSkeleton]
+	/*private var points = Map.empty[UID, PointSkeleton]
 
 	for (player <- players) {
-		player gainSpell (0, Spell.Sword)
-		player gainSpell (3, Spell.Sprint)
-		player gainSpell (1, Spell.Flagellation)
-		player gainSpell (2, Spell.BioticField)
-
-		// DEBUG
-		/*val ps = createGlobalSkeleton(SkeletonType.Point)
+		val ps = createGlobalSkeleton(SkeletonType.Point)
 		ps.color.value = player.skeleton.color.value
 		points += (player -> ps)
-		createGlobalDoodad(Doodad.Debug.Point(ps.uid))*/
+		createGlobalDoodad(Doodad.Debug.Point(ps.uid))
 	}
 
-	// DEBUG
-	/*createTicker { _ =>
+	createTicker { _ =>
 		for (player <- players) {
 			val ps = points(player)
 			val pos = player.skeleton.position
@@ -132,7 +154,4 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 			ps.y.value = pos.y
 		}
 	}*/
-
-	def start(): Unit = ()
-	def respawnLocationForPlayer(player: UID): Vector2D = Vector2D(0, 0)
 }

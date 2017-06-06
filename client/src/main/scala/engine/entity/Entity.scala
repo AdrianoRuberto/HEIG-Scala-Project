@@ -24,10 +24,10 @@ abstract class Entity {
 	/** Called by the engine when the entity is unregistered */
 	private[engine] def unregisterFrom(engine: Engine): Unit = {
 		require(engine == owner.orNull, "Attempt to unregister from foreign engine")
-		engine.entities -= this
-		owner = js.undefined
 		detached()
 		for (child <- children) child.unregister(soft = true)
+		engine.entities -= this
+		owner = js.undefined
 	}
 
 	/** Unregisters the entity from the engine */
