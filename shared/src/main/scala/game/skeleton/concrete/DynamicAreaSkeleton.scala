@@ -3,10 +3,10 @@ package game.skeleton.concrete
 import engine.geometry.Shape
 import game.UID
 import game.skeleton.node.SimpleNode
-import game.skeleton.{AbstractSkeleton, RemoteManager, SkeletonType}
+import game.skeleton.{AbstractSkeleton, RemoteManagerAgent, Skeleton}
 
-class DynamicAreaSkeleton (uid: UID, remotes: Seq[RemoteManager])
-	extends AbstractSkeleton(SkeletonType.DynamicArea, remotes, uid) {
+class DynamicAreaSkeleton (uid: UID, remotes: Seq[RemoteManagerAgent])
+	extends AbstractSkeleton(Skeleton.DynamicArea, remotes, uid) {
 
 	val shape = SimpleNode(null: Shape)
 

@@ -2,13 +2,13 @@ package game.skeleton.concrete
 
 import game.UID
 import game.skeleton.node.{InterpolatedNode, SimpleNode}
-import game.skeleton.{AbstractSkeleton, RemoteManager, SkeletonType}
+import game.skeleton.{AbstractSkeleton, RemoteManagerAgent, Skeleton}
 
 /**
   * A generic Skeleton encoding a progress bar
   */
-class ProgressSkeleton (uid: UID, remotes: Seq[RemoteManager])
-	extends AbstractSkeleton(SkeletonType.Progress, remotes, uid) {
+class ProgressSkeleton (uid: UID, remotes: Seq[RemoteManagerAgent])
+	extends AbstractSkeleton(Skeleton.Progress, remotes, uid) {
 
 	val from = SimpleNode(0.0)
 	val to = SimpleNode(1.0)

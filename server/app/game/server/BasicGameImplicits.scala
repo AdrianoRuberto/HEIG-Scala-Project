@@ -3,7 +3,7 @@ package game.server
 import akka.actor.ActorRef
 import game.UID
 import game.protocol.ServerMessage
-import game.skeleton.SkeletonType
+import game.skeleton.Skeleton
 import game.skeleton.concrete.{CharacterSkeleton, SpellSkeleton}
 import game.spells.Spell
 import scala.language.implicitConversions
@@ -34,7 +34,7 @@ trait BasicGameImplicits { game: BasicGame =>
 
 		@inline def gainSpell(slot: Int, spell: Spell): Unit = {
 			require(slot >= 0 && slot <= 3, s"Slot must be between 0-3: $slot given")
-			val skeleton = createSkeleton(SkeletonType.Spell, uid)
+			val skeleton = createSkeleton(Skeleton.Spell, uid)
 			skeleton.spell.value = spell
 			spells(slot) = Some(skeleton)
 			uid ! ServerMessage.GainSpell(slot, skeleton.uid)

@@ -3,8 +3,7 @@ package game.protocol
 import boopickle.Default._
 import engine.geometry.{ColoredShape, Shape}
 import game.doodads.Doodad
-import game.skeleton.node.NodeId
-import game.skeleton.{ManagerEvent, SkeletonType}
+import game.skeleton.{ManagerEvent, NodeId, Skeleton}
 import game.{GameMode, TeamInfo, UID}
 
 sealed trait ServerMessage
@@ -57,6 +56,6 @@ object ServerMessage {
 	private implicit val UIDPickler = UID.pickler
 	private implicit val NodeIdPickler = NodeId.pickler
 	private implicit val ShapePickler =  Shape.pickler
-	private implicit val SkeletonTypePickler = generatePickler[SkeletonType[_]]
+	private implicit val SkeletonTypePickler = generatePickler[Skeleton[_]]
 	implicit val pickler: Pickler[ServerMessage] = generatePickler[ServerMessage]
 }

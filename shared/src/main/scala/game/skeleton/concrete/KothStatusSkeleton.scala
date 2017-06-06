@@ -2,10 +2,10 @@ package game.skeleton.concrete
 
 import game.UID
 import game.skeleton.node.{InterpolatedNode, SimpleNode}
-import game.skeleton.{AbstractSkeleton, RemoteManager, SkeletonType}
+import game.skeleton.{AbstractSkeleton, RemoteManagerAgent, Skeleton}
 
-class KothStatusSkeleton (uid: UID, remotes: Seq[RemoteManager])
-	extends AbstractSkeleton(SkeletonType.KothStatus, remotes, uid) {
+class KothStatusSkeleton (uid: UID, remotes: Seq[RemoteManagerAgent])
+	extends AbstractSkeleton(Skeleton.KothStatus, remotes, uid) {
 
 	val teamA = SimpleNode(UID.zero)
 	val teamB = SimpleNode(UID.zero)

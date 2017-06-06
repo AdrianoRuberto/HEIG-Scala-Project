@@ -3,13 +3,13 @@ package game.skeleton.concrete
 import engine.geometry.Vector2D
 import game.UID
 import game.skeleton.node.{InterpolatedNode, SimpleNode}
-import game.skeleton.{AbstractSkeleton, RemoteManager, SkeletonType}
+import game.skeleton.{AbstractSkeleton, RemoteManagerAgent, Skeleton}
 
 /**
   * A generic Skeleton encoding a point position
   */
-class PointSkeleton (uid: UID, remotes: Seq[RemoteManager])
-	extends AbstractSkeleton(SkeletonType.Point, remotes, uid) {
+class PointSkeleton (uid: UID, remotes: Seq[RemoteManagerAgent])
+	extends AbstractSkeleton(Skeleton.Point, remotes, uid) {
 
 	val color = SimpleNode("black")
 	val x = InterpolatedNode(0.0)

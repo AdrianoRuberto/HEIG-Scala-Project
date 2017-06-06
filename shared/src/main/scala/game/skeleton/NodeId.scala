@@ -1,6 +1,4 @@
-package game.skeleton.node
-
-import boopickle.DefaultBasic._
+package game.skeleton
 
 /**
   * Node IDs are used to identify nodes inside a skeleton.
@@ -13,7 +11,3 @@ import boopickle.DefaultBasic._
   * @param value the value of this ID
   */
 case class NodeId(value: Int) extends AnyVal
-
-object NodeId {
-	implicit val pickler: Pickler[NodeId] = transformPickler(NodeId.apply)(_.value)
-}

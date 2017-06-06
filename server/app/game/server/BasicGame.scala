@@ -8,7 +8,7 @@ import game.maps.GameMap
 import game.protocol.{ClientMessage, ServerMessage}
 import game.server.actors.{Matchmaker, PlayerActor, Watcher}
 import game.skeleton.concrete.{CharacterSkeleton, SpellSkeleton}
-import game.skeleton.{AbstractSkeleton, ManagerEvent, RemoteManager, SkeletonType}
+import game.skeleton.{AbstractSkeleton, ManagerEvent, RemoteManagerAgent, Skeleton}
 import game.spells.effects.{SpellContext, SpellEffect}
 import scala.collection.mutable
 import scala.concurrent.duration._
@@ -63,7 +63,7 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 
 	/** The map of every character skeletons */
 	val skeletons: Map[UID, CharacterSkeleton] = playersFromUID.map { case (uid, player) =>
-		val skeleton = createGlobalSkeleton(SkeletonType.Character)
+		val skeleton = createGlobalSkeleton(Skeleton.Character)
 		skeleton.name.value = player.info.name
 		broadcast ! ServerMessage.InstantiateCharacter(player.info.uid, skeleton.uid)
 		(uid, skeleton)
@@ -159,9 +159,9 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	}
 
 	// Skeleton
-	def createSkeleton[T <: AbstractSkeleton](tpe: SkeletonType[T], remotes: Seq[UID]): T = {
+	def createSkeleton[T <: AbstractSkeleton](tpe: Skeleton[T], remotes: Seq[UID]): T = {
 		tpe.instantiate(remotes.map { remote =>
-			new RemoteManager {
+			new RemoteManagerAgent {
 				def send(event: ManagerEvent): Unit = {
 					remote ! ServerMessage.SkeletonEvent(event)
 				}
@@ -172,8 +172,8 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 		})
 	}
 
-	def createSkeleton[T <: AbstractSkeleton](tpe: SkeletonType[T], remote: UID): T = createSkeleton(tpe, Seq(remote))
-	def createGlobalSkeleton[T <: AbstractSkeleton](tpe: SkeletonType[T]): T = createSkeleton(tpe, players)
+	def createSkeleton[T <: AbstractSkeleton](tpe: Skeleton[T], remote: UID): T = createSkeleton(tpe, Seq(remote))
+	def createGlobalSkeleton[T <: AbstractSkeleton](tpe: Skeleton[T]): T = createSkeleton(tpe, players)
 
 	// Doodads
 	def createDoodad(doodad: Doodad, remotes: Seq[UID]): UID = {

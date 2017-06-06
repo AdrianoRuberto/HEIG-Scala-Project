@@ -1,4 +1,4 @@
-package game.server.modes.twistingnether
+package game.server.modes.koth
 
 import engine.geometry.{Rectangle, Vector2D}
 import game.UID
@@ -9,7 +9,10 @@ import game.server.{BasicGame, GameTeam}
 import game.skeleton.Skeleton
 import game.spells.Spell
 
-class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with StandardDeathBehavior {
+/**
+  * Take control of the objective and defend it against the enemy team
+  */
+class KingOfTheHillGame (roster: Seq[GameTeam]) extends BasicGame(roster) with StandardDeathBehavior {
 	private val map = GameMap.Illios
 
 	loadMap(map)

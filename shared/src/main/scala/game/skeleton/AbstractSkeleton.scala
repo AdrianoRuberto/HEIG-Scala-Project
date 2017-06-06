@@ -1,15 +1,15 @@
 package game.skeleton
 
 import game.UID
-import game.skeleton.node.{Node, NodeEvent, NodeId}
+import game.skeleton.node.{Node, NodeEvent}
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
   * A skeleton is an data container that is kept in sync between
   * client and server automatically.
   */
-class AbstractSkeleton(tpe: SkeletonType[_ <: AbstractSkeleton],
-                       val remotes: Seq[RemoteManager] = Seq.empty,
+class AbstractSkeleton(tpe: Skeleton[_ <: AbstractSkeleton],
+                       val remotes: Seq[RemoteManagerAgent] = Seq.empty,
                        val uid: UID = UID.next) {
 	/** Implicit reference to this skeleton */
 	protected implicit val self: this.type = this
