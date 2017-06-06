@@ -92,6 +92,7 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 			interpolateCapture(0)
 		} else {
 			// The point is contested in any way
+			currentCapture = 0
 			status.capture.stop()
 		}
 

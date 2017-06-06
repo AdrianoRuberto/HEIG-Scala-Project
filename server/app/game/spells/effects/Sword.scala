@@ -32,7 +32,7 @@ object Sword extends SpellEffect {
 		}
 
 		for (target <- targets) {
-			target.skeleton.health -= 30
+			target.skeleton.health -= 50
 		}
 
 		override def end(): Unit = {
