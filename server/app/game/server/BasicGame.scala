@@ -46,8 +46,14 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 		(for (team <- teamFromUID.values; player <- team.players) yield (player.info.uid, team.info.uid)).toMap
 	}
 
+	/** Color mapping of teams */
+	var teamsColor: Map[UID, String] = Map.empty
+
 	/** The sequence of every team's UID */
-	val teams: Seq[UID] = teamFromUID.keys.toSeq
+	val teams: Seq[UID] = roster.map(_.info.uid)
+
+	/** A Map from team UID to its roster index */
+	var teamsIndex: Map[UID, Int] = teams.zipWithIndex.toMap
 
 	/** The sequence of every player's UID */
 	val players: Seq[UID] = playersFromUID.keys.toSeq
@@ -139,8 +145,9 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	}
 
 	def setTeamColors(colors: String*): Unit = {
-		for ((team, color) <- teamFromUID.values zip colors; player <- team.players) {
-			skeletons(player.info.uid).color.value = color
+		for ((uid, color) <- teams zip colors; team = teamFromUID(uid)) {
+			teamsColor += (uid -> color)
+			for (player <- team.players) skeletons(player.info.uid).color.value = color
 		}
 	}
 

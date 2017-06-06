@@ -11,7 +11,7 @@ sealed abstract class GameMap(val geometry: Seq[ColoredShape],
 object GameMap {
 	case object Illios extends GameMap(
 		geometry = KingOfTheHill.illios,
-		spawns = List(Vector2D(100, 300), Vector2D(500, 300))
+		spawns = List(Vector2D(-880, -400), Vector2D(880, -400))
 	)
 
 	implicit val pickler: Pickler[GameMap] = generatePickler[GameMap]

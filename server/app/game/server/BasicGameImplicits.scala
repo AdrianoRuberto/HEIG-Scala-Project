@@ -22,6 +22,13 @@ trait BasicGameImplicits { game: BasicGame =>
 		@inline def actor: ActorRef = game.playersFromUID(uid).actor
 		@inline def team: UID = game.teamForPlayer(uid)
 
+		@inline def color: String = {
+			skeletons.get(uid).map(_.color.value).orElse(teamsColor.get(uid)) match {
+				case Some(c) => c
+				case None => throw new IllegalArgumentException(s"Cannot determine color for UID: $uid")
+			}
+		}
+
 		@inline def hostile(other: UID): Boolean = game.hostile(uid, other)
 		@inline def friendly(other: UID): Boolean = game.friendly(uid, other)
 

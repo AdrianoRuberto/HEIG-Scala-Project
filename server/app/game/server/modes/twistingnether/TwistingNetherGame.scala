@@ -10,7 +10,9 @@ import game.skeleton.SkeletonType
 import game.spells.Spell
 
 class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with StandardDeathBehavior {
-	loadMap(GameMap.Illios)
+	private val map = GameMap.Illios
+
+	loadMap(map)
 	setDefaultTeamColors()
 	setDefaultCamera()
 
@@ -19,7 +21,7 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 
 	// Game constants
 	private final val CapturePerSecond = 20.0
-	private final val ProgressPerSecond = 20.0
+	private final val ProgressPerSecond = 1.0
 
 	// Base spells
 	for (player <- players) {
@@ -134,7 +136,6 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 	}
 
 	def start(): Unit = ()
-	def respawnLocationForPlayer(player: UID): Vector2D = Vector2D(0, 0)
 
 	// DEBUG
 	/*private var points = Map.empty[UID, PointSkeleton]
@@ -154,4 +155,6 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 			ps.y.value = pos.y
 		}
 	}*/
+
+	def respawnLocationForPlayer(player: UID): Vector2D = map.spawns(teamsIndex(player.team))
 }
