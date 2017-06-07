@@ -1,10 +1,12 @@
 package game.spells
 
-sealed abstract class Spell (val cost: Option[Double] = None)
+import macros.pickle
+
+@pickle sealed abstract class Spell (val cost: Option[Double] = None)
 
 object Spell {
-	case object Sprint extends Spell
-	case object Sword extends Spell(cost = Some(30))
-	case object Flagellation extends Spell
-	case object BioticField extends Spell(cost = Some(50))
+	@pickle case object Sprint extends Spell
+	@pickle case object Sword extends Spell(cost = Some(30))
+	@pickle case object Flagellation extends Spell
+	@pickle case object BioticField extends Spell(cost = Some(50))
 }

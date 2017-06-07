@@ -30,7 +30,7 @@ abstract class SimpleNode[T] (private var current: T)
 	  * @param value the new value of this node
 	  * @param force whether a notification should be sent even if the value did not change
 	  */
-	def set(value: T, force: Boolean = false): Unit = if (value != value || force) {
+	def set(value: T, force: Boolean = false): Unit = if (value != current || force) {
 		current = value
 		if (shouldSend) send(value)
 	}
@@ -128,10 +128,6 @@ object SimpleNode {
 		}
 
 		/** Unpickles a value of type T from an array of bytes. */
-		private def unpickle(buffer: Array[Byte]): T = {
-			val value = Unpickle[T].fromBytes(ByteBuffer.wrap(buffer))
-			println("received", value)
-			value
-		}
+		private def unpickle(buffer: Array[Byte]): T = Unpickle[T].fromBytes(ByteBuffer.wrap(buffer))
 	}
 }

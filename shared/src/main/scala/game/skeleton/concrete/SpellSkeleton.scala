@@ -1,6 +1,5 @@
 package game.skeleton.concrete
 
-import boopickle.Default._
 import game.UID
 import game.skeleton.node.{CooldownNode, SimpleNode}
 import game.skeleton.{AbstractSkeleton, RemoteManagerAgent, Skeleton}
