@@ -23,6 +23,7 @@ class pickle extends StaticAnnotation {
 				pickle.augmentCaseObject(obj)
 
 			case _ =>
+				println(defn.syntax)
 				println(defn.structure)
 				abort("@pickleable must annotate a sealed trait or a case class.")
 		}
@@ -54,11 +55,11 @@ object pickle {
 				val placeholders = list.map { case Type.Param(_, _, _, bounds, _, _) => Type.Placeholder(bounds) }
 				Type.Apply(tpe, placeholders)
 		}
-		val res = q"""
-		implicit val ${Pat.Var.Term(Term.Name(name + "Pickler"))}: _root_.boopickle.Pickler[$fullType] = {
-			import _root_.boopickle.DefaultBasic._
-			PicklerGenerator.generatePickler[$fullType]
-		}"""
-		res
+		q"""
+			implicit val ${Pat.Var.Term(Term.Name(name + "Pickler"))}: _root_.boopickle.Pickler[$fullType] = {
+				import _root_.boopickle.DefaultBasic._
+				PicklerGenerator.generatePickler[$fullType]
+			}
+		"""
 	}
 }

@@ -1,6 +1,6 @@
 package engine
 
-import boopickle.DefaultBasic._
+import boopickle.DefaultBasic.{Pickler, compositePickler}
 
 package object geometry {
 	private[geometry] object g {

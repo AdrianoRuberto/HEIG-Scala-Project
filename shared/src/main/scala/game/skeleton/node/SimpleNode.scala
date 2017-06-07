@@ -1,6 +1,7 @@
 package game.skeleton.node
 
-import boopickle.DefaultBasic._
+import boopickle.DefaultBasic.{Pickle, Pickler, Unpickle}
+import boopickle._
 import game.UID
 import game.skeleton.AbstractSkeleton
 import game.skeleton.node.NodeEvent.SimpleEvent
@@ -121,13 +122,18 @@ object SimpleNode {
 
 		/** Pickles a value of type T into an array of bytes. */
 		private def pickle(value: T): Array[Byte] = {
+			implicit def pickleState = new PickleState(new EncoderSize, false, false)
 			val buffer = Pickle.intoBytes(value)
 			val array = new Array[Byte](buffer.remaining)
 			buffer.get(array)
+			BufferPool.release(buffer)
 			array
 		}
 
 		/** Unpickles a value of type T from an array of bytes. */
-		private def unpickle(buffer: Array[Byte]): T = Unpickle[T].fromBytes(ByteBuffer.wrap(buffer))
+		private def unpickle(buffer: Array[Byte]): T = {
+			implicit val unpickleState = (bb: ByteBuffer) => new UnpickleState(new DecoderSize(bb), false, false)
+			Unpickle[T].fromBytes(ByteBuffer.wrap(buffer))
+		}
 	}
 }
