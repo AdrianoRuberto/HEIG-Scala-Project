@@ -1,4 +1,4 @@
-package game.doodads.interface
+package game.doodads.hud
 
 import engine.CanvasCtx
 import engine.entity.Entity

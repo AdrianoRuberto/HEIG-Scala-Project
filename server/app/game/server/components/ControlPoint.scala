@@ -3,9 +3,9 @@ package game.server.components
 import engine.geometry.Shape
 import game.UID
 import game.doodads.Doodad
+import game.doodads.area.DynamicAreaSkeleton
 import game.server.BasicGame
 import game.skeleton.Skeleton
-import game.skeleton.concrete.DynamicAreaSkeleton
 
 case class ControlPoint (shape: Shape)(implicit game: BasicGame) {
 	// Doodad

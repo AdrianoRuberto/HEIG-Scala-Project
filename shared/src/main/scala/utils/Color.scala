@@ -40,5 +40,5 @@ object Color {
 		Color(r, g, b, a)
 	}
 
-	implicit val pickler: Pickler[Color] = transformPickler((v: Int) => Color(v))(_.value)
+	implicit val ColorPickler: Pickler[Color] = transformPickler((v: Int) => Color(v))(_.value)
 }

@@ -8,8 +8,6 @@ final case class UID private (value: Int) extends AnyVal {
 }
 
 object UID {
-	implicit val pickler: Pickler[UID] = transformPickler(UID.apply)(_.value)
-
 	private val lastUID = new AtomicInteger(0)
 	def next: UID = {
 		val id = lastUID.incrementAndGet()
@@ -18,4 +16,6 @@ object UID {
 	}
 
 	val zero = UID(0)
+
+	implicit val UIDPickler: Pickler[UID] = transformPickler(UID.apply)(_.value)
 }

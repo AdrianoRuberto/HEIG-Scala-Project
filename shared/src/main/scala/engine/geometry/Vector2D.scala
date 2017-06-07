@@ -1,7 +1,9 @@
 package engine.geometry
 
 import java.lang.Math._
+import macros.pickle
 
+@pickle
 case class Vector2D(x: Double, y: Double) { a =>
 	def + (b: Vector2D): Vector2D = Vector2D(a.x + b.x, a.y + b.y)
 	def - (b: Vector2D): Vector2D = Vector2D(a.x - b.x, a.y - b.y)

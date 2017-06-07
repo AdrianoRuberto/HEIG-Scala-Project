@@ -1,5 +1,7 @@
 package engine
 
+import boopickle.DefaultBasic._
+
 package object geometry {
 	private[geometry] object g {
 		// http://www.sevenson.com.au/actionscript/sat/
@@ -24,4 +26,10 @@ package object geometry {
 			}
 		}
 	}
+
+	implicit val ShapePickler: Pickler[Shape] = compositePickler[Shape]
+		.addConcreteType[Segment]
+		.addConcreteType[Triangle]
+		.addConcreteType[Rectangle]
+		.addConcreteType[Circle]
 }

@@ -1,5 +1,8 @@
 package engine.geometry
 
+import macros.pickle
+
+@pickle
 final case class Triangle(ax: Double, ay: Double,
                           bx: Double, by: Double,
                           cx: Double, cy: Double) extends Shape with ConvexPolygon {

@@ -5,6 +5,7 @@ import game.UID
 import game.skeleton.AbstractSkeleton
 import game.skeleton.node.NodeEvent.SimpleEvent
 import java.nio.ByteBuffer
+import utils.Color
 
 /**
   * A simple node holds a single value of type [[T]].
@@ -56,6 +57,7 @@ object SimpleNode {
 	def apply(value: Double)(implicit skeleton: AbstractSkeleton): SimpleNode[Double] = SimpleNodeDouble(value)
 	def apply(value: String)(implicit skeleton: AbstractSkeleton): SimpleNode[String] = SimpleNodeString(value)
 	def apply(value: UID)(implicit skeleton: AbstractSkeleton, dummyImplicit: DummyImplicit): SimpleNode[UID] = SimpleNodeUID(value)
+	def apply(value: Color)(implicit skeleton: AbstractSkeleton): SimpleNode[Color] = SimpleNodeColor(value)
 	def apply[T: Pickler](value: T)(implicit skeleton: AbstractSkeleton): SimpleNode[T] = SimpleNodeGeneric(value)
 
 	/**
@@ -86,23 +88,27 @@ object SimpleNode {
 
 	/** The version of SimpleNode specialized for Boolean values */
 	private case class SimpleNodeBoolean(c: Boolean)(implicit s: AbstractSkeleton)
-		extends SpecializedSimpleNode(c, NodeEvent.SimpleUpdateBoolean)
+		extends SpecializedSimpleNode(c, NodeEvent.SimpleUpdateBoolean.apply)
 
 	/** The version of SimpleNode specialized for Int values */
 	private case class SimpleNodeInt(c: Int)(implicit s: AbstractSkeleton)
-		extends SpecializedSimpleNode(c, NodeEvent.SimpleUpdateInt)
+		extends SpecializedSimpleNode(c, NodeEvent.SimpleUpdateInt.apply)
 
 	/** The version of SimpleNode specialized for Double values */
 	private case class SimpleNodeDouble(c: Double)(implicit s: AbstractSkeleton)
-		extends SpecializedSimpleNode(c, NodeEvent.SimpleUpdateDouble)
+		extends SpecializedSimpleNode(c, NodeEvent.SimpleUpdateDouble.apply)
 
 	/** The version of SimpleNode specialized for String values */
 	private case class SimpleNodeString(c: String)(implicit s: AbstractSkeleton)
-		extends SpecializedSimpleNode(c, NodeEvent.SimpleUpdateString)
+		extends SpecializedSimpleNode(c, NodeEvent.SimpleUpdateString.apply)
 
 	/** The version of SimpleNode specialized for UID values */
 	private case class SimpleNodeUID(c: UID)(implicit s: AbstractSkeleton)
-		extends SpecializedSimpleNode(c, NodeEvent.SimpleUpdateUID)
+		extends SpecializedSimpleNode(c, NodeEvent.SimpleUpdateUID.apply)
+
+	/** The version of SimpleNode specialized for Color values */
+	private case class SimpleNodeColor(c: Color)(implicit s: AbstractSkeleton)
+		extends SpecializedSimpleNode(c, NodeEvent.SimpleUpdateColor.apply)
 
 	/** A generic version of SimpleNode using Pickler to encode and decode values */
 	private case class SimpleNodeGeneric[T: Pickler] (c: T)(implicit s: AbstractSkeleton) extends SimpleNode[T](c) {
@@ -122,6 +128,10 @@ object SimpleNode {
 		}
 
 		/** Unpickles a value of type T from an array of bytes. */
-		private def unpickle(buffer: Array[Byte]): T = Unpickle[T].fromBytes(ByteBuffer.wrap(buffer))
+		private def unpickle(buffer: Array[Byte]): T = {
+			val value = Unpickle[T].fromBytes(ByteBuffer.wrap(buffer))
+			println("received", value)
+			value
+		}
 	}
 }

@@ -4,6 +4,7 @@ logLevel := Level.Warn
 // Resolvers
 resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/"
 
+addSbtPlugin("io.get-coursier" % "sbt-coursier" % "1.0.0-M15")
 addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.1.9")
 
 // Play

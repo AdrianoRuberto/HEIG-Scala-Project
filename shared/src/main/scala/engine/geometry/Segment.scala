@@ -1,7 +1,9 @@
 package engine.geometry
 
 import java.lang.Math._
+import macros.pickle
 
+@pickle
 case class Segment(ax: Double, ay: Double, bx: Double, by: Double) extends Shape with ConvexPolygon {
 	lazy val boundingBox: Rectangle = Rectangle(ax min bx, ay min by, abs(bx - ax), abs(by - ay))
 

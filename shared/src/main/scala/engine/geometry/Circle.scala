@@ -1,5 +1,8 @@
 package engine.geometry
 
+import macros.pickle
+
+@pickle
 case class Circle(x: Double, y: Double, radius: Double) extends Shape {
 	lazy val boundingBox: Rectangle = Rectangle(x - radius, y - radius, radius * 2, radius * 2)
 

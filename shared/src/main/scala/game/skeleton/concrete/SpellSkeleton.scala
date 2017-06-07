@@ -11,5 +11,5 @@ class SpellSkeleton (uid: UID, remotes: Seq[RemoteManagerAgent])
 
 	val spell = SimpleNode(null: Spell)
 	val cooldown = new CooldownNode
-	val activated = SimpleNode(false)
+	val activated = SimpleNode(value = false)
 }

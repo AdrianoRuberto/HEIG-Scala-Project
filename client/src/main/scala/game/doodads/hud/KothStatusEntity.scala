@@ -1,4 +1,4 @@
-package game.doodads.interface
+package game.doodads.hud
 
 import engine.CanvasCtx
 import engine.entity.Entity
@@ -6,7 +6,6 @@ import engine.entity.feature.AbsolutePosition
 import engine.geometry.Rectangle
 import engine.utils.Layer
 import game.UID
-import game.skeleton.concrete.KothStatusSkeleton
 
 class KothStatusEntity (skeleton: KothStatusSkeleton) extends Entity with AbsolutePosition {
 	val layer: Layer = Layer.Interface

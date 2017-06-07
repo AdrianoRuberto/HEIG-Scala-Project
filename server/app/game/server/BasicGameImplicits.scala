@@ -9,6 +9,9 @@ import game.spells.Spell
 import scala.language.implicitConversions
 
 trait BasicGameImplicits { game: BasicGame =>
+	/** Implicit reference to self */
+	implicit val implicitSelfRef: BasicGame = this
+
 	/** Some quality of life operations on UIDs */
 	implicit final class UIDOps(private val uid: UID) {
 		@inline def ! (msg: Any): Unit = game.actorsFromUID.get(uid) match {
@@ -52,12 +55,12 @@ trait BasicGameImplicits { game: BasicGame =>
 		}
 
 		object camera {
-			def move(x: Double, y: Double): Unit = uid ! ServerMessage.SetCameraLocation(x, y)
-			def follow(uid: UID): Unit = uid ! ServerMessage.SetCameraFollow(uid)
-			def followSelf(): Unit = uid ! ServerMessage.SetCameraFollow(uid)
-			def detach(): Unit = uid ! ServerMessage.SetCameraFollow(UID.zero)
-			def setSmoothing(smoothing: Boolean): Unit = uid ! ServerMessage.SetCameraSmoothing(smoothing)
-			def setSpeed(pps: Double): Unit = uid ! ServerMessage.SetCameraSpeed(pps)
+			@inline def move(x: Double, y: Double): Unit = uid ! ServerMessage.SetCameraLocation(x, y)
+			@inline def follow(uid: UID): Unit = uid ! ServerMessage.SetCameraFollow(uid)
+			@inline def followSelf(): Unit = uid ! ServerMessage.SetCameraFollow(uid)
+			@inline def detach(): Unit = uid ! ServerMessage.SetCameraFollow(UID.zero)
+			@inline def setSmoothing(smoothing: Boolean): Unit = uid ! ServerMessage.SetCameraSmoothing(smoothing)
+			@inline def setSpeed(pps: Double): Unit = uid ! ServerMessage.SetCameraSpeed(pps)
 		}
 	}
 

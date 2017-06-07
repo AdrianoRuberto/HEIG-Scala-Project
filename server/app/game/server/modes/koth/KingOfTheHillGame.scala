@@ -8,6 +8,7 @@ import game.server.behaviors.StandardDeathBehavior
 import game.server.{BasicGame, GameTeam}
 import game.skeleton.Skeleton
 import game.spells.Spell
+import utils.Color
 
 /**
   * Take control of the objective and defend it against the enemy team
@@ -39,7 +40,7 @@ class KingOfTheHillGame (roster: Seq[GameTeam]) extends BasicGame(roster) with S
 	status.teamA.value = teamA
 	status.teamB.value = teamB
 
-	createGlobalDoodad(Doodad.Interface.Koth(status.uid))
+	createGlobalDoodad(Doodad.Hud.KothStatus(status.uid))
 
 	// Capture Area
 	private val captureArea = Rectangle(-145, 355, 290, 290)
@@ -111,15 +112,15 @@ class KingOfTheHillGame (roster: Seq[GameTeam]) extends BasicGame(roster) with S
 		if (captureValue == 100 && controlling != teamA) {
 			// Team A took the point
 			status.controlling.value = teamA
-			areaSkeleton.fillColor.value = "rgba(119, 119, 255, 0.1)"
-			areaSkeleton.strokeColor.value = "rgba(119, 119, 255, 0.8)"
+			areaSkeleton.fillColor.value = Color(119, 119, 255, 0.1)
+			areaSkeleton.strokeColor.value = Color(119, 119, 255, 0.8)
 			status.progressA.interpolateAtSpeed(100, ProgressPerSecond)
 			status.progressB.stop()
 		} else if (captureValue == -100 && controlling != teamB) {
 			// Team B took the point
 			status.controlling.value = teamB
-			areaSkeleton.fillColor.value = "rgba(255, 85, 85, 0.1)"
-			areaSkeleton.strokeColor.value = "rgba(255, 85, 85, 0.8)"
+			areaSkeleton.fillColor.value = Color(255, 85, 85, 0.1)
+			areaSkeleton.strokeColor.value = Color(255, 85, 85, 0.8)
 			status.progressB.interpolateAtSpeed(100, ProgressPerSecond)
 			status.progressA.stop()
 		}
@@ -135,7 +136,7 @@ class KingOfTheHillGame (roster: Seq[GameTeam]) extends BasicGame(roster) with S
 		engine.disableInputs()
 
 		val progress = createGlobalSkeleton(Skeleton.Progress)
-		createGlobalDoodad(Doodad.Interface.VictoryScreen(
+		createGlobalDoodad(Doodad.Hud.VictoryScreen(
 			if (team == teamA) "Blue team wins!" else "Red team wins!",
 			if (team == teamA) "rgb(119, 119, 255)" else "rgb(255, 85, 85)",
 			progress.uid))

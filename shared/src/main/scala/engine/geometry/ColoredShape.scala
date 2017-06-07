@@ -1,8 +1,9 @@
 package engine.geometry
 
+import macros.pickle
 import scala.language.implicitConversions
 
-case class ColoredShape (shape: Shape, color: String)
+@pickle case class ColoredShape (shape: Shape, color: String)
 
 object ColoredShape {
 	case class DefaultColor(color: String) extends AnyVal

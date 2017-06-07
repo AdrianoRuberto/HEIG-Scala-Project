@@ -15,7 +15,7 @@ trait StandardDeathBehavior extends BasicGame { behavior =>
 			.filter(!_._2.dead.value)
 			.filter(_._2.health.current <= 0)
 			.foreach { case (uid, player) =>
-				val deathScreen = createDoodad(Doodad.Interface.DeathScreen(respawnTimeForPlayer(uid)), uid)
+				val deathScreen = createDoodad(Doodad.Hud.DeathScreen(respawnTimeForPlayer(uid)), uid)
 				val position = respawnLocationForPlayer(uid)
 				val time = respawnTimeForPlayer(uid)
 

@@ -1,4 +1,4 @@
-package game.skeleton.concrete
+package game.doodads.hud
 
 import game.UID
 import game.skeleton.node.{InterpolatedNode, SimpleNode}

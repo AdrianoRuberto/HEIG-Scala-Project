@@ -3,6 +3,7 @@ package game.spells.effects
 import engine.geometry.Circle
 import game.UID
 import game.doodads.Doodad
+import utils.Color
 
 object BioticField extends SpellEffect {
 	def instantiate(ctx: SpellContext) = new SpellEffectInstance(this, ctx) {
@@ -20,8 +21,8 @@ object BioticField extends SpellEffect {
 		/** Visual doodad */
 		private val visual = game.createGlobalDoodad(Doodad.Area.StaticArea(
 			shape = area,
-			fillColor = "rgba(255, 200, 127, 0.1)",
-			strokeColor = "rgba(255, 200, 127, 0.8)"
+			fillColor = Color(255, 200, 127, 0.1),
+			strokeColor = Color(255, 200, 127, 0.8)
 		))
 
 		override def end(): Unit = {
