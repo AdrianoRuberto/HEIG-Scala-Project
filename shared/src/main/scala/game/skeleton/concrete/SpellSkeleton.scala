@@ -6,7 +6,7 @@ import game.skeleton.{AbstractSkeleton, RemoteManagerAgent, Skeleton}
 import game.spells.Spell
 
 class SpellSkeleton (uid: UID, remotes: Seq[RemoteManagerAgent])
-	extends AbstractSkeleton(Skeleton.Spell, remotes, uid) {
+	extends AbstractSkeleton(Skeleton.Spell, uid, remotes) {
 
 	val spell = SimpleNode(null: Spell)
 	val cooldown = new CooldownNode

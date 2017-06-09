@@ -11,6 +11,10 @@ import game.doodads.spell.SwordEntity
 import game.skeleton.AbstractSkeleton
 import scala.language.implicitConversions
 
+/**
+  * This object is responsible to create the entity associated with the given
+  * doodad constructor object.
+  */
 object DoodadFactory {
 	def create(doodad: Doodad): Entity = doodad match {
 		case Area.StaticArea(shape, fill, stroke, fillColor, strokeColor, strokeWidth) =>
@@ -26,5 +30,6 @@ object DoodadFactory {
 		case Debug.Point(skeleton) => new PointEntity(skeleton)
 	}
 
+	/** Implicitly resolves skeleton UIDs from the SkeletonManager in Game */
 	private implicit def resolveSkeleton[T <: AbstractSkeleton](uid: UID): T = Game.getSkeleton(uid)
 }

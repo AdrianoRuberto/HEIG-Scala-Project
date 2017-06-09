@@ -133,7 +133,7 @@ class KingOfTheHillGame (roster: Seq[GameTeam]) extends BasicGame(roster) with S
 	// Win handler
 	def win(team: UID): Unit = {
 		areaTicker.remove()
-		engine.disableInputs()
+		players.engine.disableInputs()
 
 		val progress = createGlobalSkeleton(Skeleton.Progress)
 		createGlobalDoodad(Doodad.Hud.VictoryScreen(

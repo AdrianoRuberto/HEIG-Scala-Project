@@ -6,7 +6,7 @@ import game.server.{BasicGame, GameTeam}
 class DummyGame (roster: Seq[GameTeam]) extends BasicGame(roster) {
 
 	loadMap(GameMap.Illios)
-	camera.followSelf()
+	players.camera.followSelf()
 	setDefaultTeamColors()
 
 	def start(): Unit = {

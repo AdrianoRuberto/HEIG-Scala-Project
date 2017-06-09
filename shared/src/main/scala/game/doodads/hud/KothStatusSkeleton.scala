@@ -5,7 +5,7 @@ import game.skeleton.node.{InterpolatedNode, SimpleNode}
 import game.skeleton.{AbstractSkeleton, RemoteManagerAgent, Skeleton}
 
 class KothStatusSkeleton (uid: UID, remotes: Seq[RemoteManagerAgent])
-	extends AbstractSkeleton(Skeleton.KothStatus, remotes, uid) {
+	extends AbstractSkeleton(Skeleton.KothStatus, uid, remotes) {
 
 	val teamA = SimpleNode(UID.zero)
 	val teamB = SimpleNode(UID.zero)
