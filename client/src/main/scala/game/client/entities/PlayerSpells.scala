@@ -30,6 +30,5 @@ class PlayerSpells (x: Double, y: Double,
 			ctx.fillText(key, 30, 65)
 			ctx.translate(-75, 0)
 		}
-
 	}
 }

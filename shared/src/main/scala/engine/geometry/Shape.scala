@@ -11,6 +11,4 @@ trait Shape {
 
 	def translate(dx: Double, dy: Double): Shape
 	def scale(k: Double): Shape
-
-	def colored(color: String): ColoredShape = ColoredShape(this, color)
 }

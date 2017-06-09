@@ -16,16 +16,18 @@ object Doodad {
 
 		/** A dynamic area display */
 		@pickle case class DynamicArea(skeleton: UID) extends Doodad
+
+		/** A simpler version of StaticArea used to wall drawing */
+		@pickle case class Wall(shape: Shape, color: Color) extends Doodad
 	}
 
 	object Debug {
-		@pickle case class Point(skeleton: UID) extends Doodad
 	}
 
 	object Hud {
 		@pickle case class KothStatus(skeleton: UID) extends Doodad
 		@pickle case class DeathScreen(duration: Double) extends Doodad
-		@pickle case class VictoryScreen(msg: String, color: String, skeleton: UID) extends Doodad
+		@pickle case class VictoryScreen(msg: String, color: String) extends Doodad
 	}
 
 	object Spell {

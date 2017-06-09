@@ -1,6 +1,6 @@
 package game.protocol
 
-import engine.geometry.ColoredShape
+import engine.geometry.Shape
 import game.doodads.Doodad
 import game.skeleton.ManagerEvent
 import game.{GameMode, TeamInfo, UID}
@@ -29,8 +29,8 @@ object ServerMessage {
 
 	// Entities
 	@pickle case class InstantiateCharacter(characterUID: UID, skeletonUID: UID) extends GameMessage
-	@pickle case class DrawShape(shapeUID: UID, shape: ColoredShape) extends GameMessage
-	@pickle case class EraseShape(shapeUID: UID) extends GameMessage
+	@pickle case class CreateWall(uid: UID, shape: Shape) extends GameMessage
+	@pickle case class RemoveWall(uid: UID) extends GameMessage
 	@pickle case class GainSpell(slot: Int, skeletonUID: UID) extends GameMessage
 	@pickle case class LoseSpell(slot: Int) extends GameMessage
 	@pickle case class CreateDoodad(uid: UID, doodad: Doodad) extends GameMessage

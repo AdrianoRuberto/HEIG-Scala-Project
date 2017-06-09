@@ -3,9 +3,8 @@ package game.server.modes.twistingnether
 import engine.geometry.{Rectangle, Vector2D}
 import game.UID
 import game.doodads.Doodad
-import game.maps.GameMap
 import game.server.behaviors.StandardDeathBehavior
-import game.server.{BasicGame, GameTeam}
+import game.server.{BasicGame, GameMap, GameTeam}
 import game.skeleton.Skeleton
 import game.spells.Spell
 import utils.Color
@@ -33,10 +32,9 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 	}
 
 	// Status
-	private val status = createDoodad(Doodad.Hud.KothStatus, Skeleton.KothStatus) { skeleton =>
-		skeleton.teamA.value = teamA
-		skeleton.teamB.value = teamB
-	}
+	private val status = createDynamicDoodad(Doodad.Hud.KothStatus, Skeleton.KothStatus)
+	status.teamA.value = teamA
+	status.teamB.value = teamB
 
 	// Capture Area
 	private val captureArea = Rectangle(-145, 355, 290, 290)
@@ -56,9 +54,8 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 	}
 
 	// Capture Area Doodad
-	private val area = createDoodad(Doodad.Area.DynamicArea, Skeleton.DynamicArea) { skeleton =>
-		skeleton.shape.value = captureArea
-	}
+	private val area = createDynamicDoodad(Doodad.Area.DynamicArea, Skeleton.DynamicArea)
+	area.shape.value = captureArea
 
 	// Capture progress
 	private var currentCapture = Int.MaxValue // MaxValue used as "no capture"
@@ -129,16 +126,14 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 		areaTicker.remove()
 		players.engine.disableInputs()
 
-		val progress = createSkeleton(Skeleton.Progress)
+		// Diplay victory screen
 		createDoodad(Doodad.Hud.VictoryScreen(
 			if (team == teamA) "Blue team wins!" else "Red team wins!",
-			if (team == teamA) "rgb(119, 119, 255)" else "rgb(255, 85, 85)",
-			progress.uid))
-		progress.begin(0, 100, 5000)
+			if (team == teamA) "rgb(119, 119, 255)" else "rgb(255, 85, 85)"
+		))
 
-		schedule(5000) {
-			terminate()
-		}
+		// Schedule termination 5 sec later
+		schedule(5000)(terminate())
 	}
 
 	def start(): Unit = ()

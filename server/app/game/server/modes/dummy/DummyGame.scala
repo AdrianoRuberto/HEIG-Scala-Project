@@ -1,7 +1,6 @@
 package game.server.modes.dummy
 
-import game.maps.GameMap
-import game.server.{BasicGame, GameTeam}
+import game.server.{BasicGame, GameMap, GameTeam}
 
 class DummyGame (roster: Seq[GameTeam]) extends BasicGame(roster) {
 

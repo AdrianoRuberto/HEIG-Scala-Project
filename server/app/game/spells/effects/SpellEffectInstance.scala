@@ -24,7 +24,7 @@ class SpellEffectInstance(effect: SpellEffect, val ctx: SpellContext) { self =>
 			else self.tick(dt)
 		}
 
-		def remove(): Unit = game.unregisterTicker(this)
+		def remove(): Unit = game.tickers -= this
 	}
 
 	def tick(dt: Double): Unit = ()
@@ -39,7 +39,9 @@ class SpellEffectInstance(effect: SpellEffect, val ctx: SpellContext) { self =>
 		if (cooldown > 0.0) skeleton.cooldown.start(cooldown)
 		skeleton.activated.value = false
 		ticker.remove()
-		effect.instances -= ctx.initiator
+		effect.instances.synchronized {
+			effect.instances -= ctx.initiator
+		}
 	}
 
 	@inline protected implicit final def uidToOps(uid: UID): ctx.game.UIDOps = new ctx.game.UIDOps(uid)

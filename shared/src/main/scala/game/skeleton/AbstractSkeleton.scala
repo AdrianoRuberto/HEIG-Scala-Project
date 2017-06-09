@@ -8,9 +8,11 @@ import java.util.concurrent.atomic.AtomicInteger
   * A skeleton is an data container that is kept in sync between
   * client and server automatically.
   */
-abstract class AbstractSkeleton(tpe: Skeleton[_ <: AbstractSkeleton],
-                                val uid: UID = UID.next,
-                                val remotes: Iterable[RemoteManagerAgent] = Seq.empty) {
+abstract class AbstractSkeleton(tpe: Skeleton[_ <: AbstractSkeleton]) {
+	// Should be provided by as case class arguments
+	val uid: UID
+	val remotes: Iterable[RemoteManagerAgent]
+
 	/** Implicit reference to this skeleton */
 	protected implicit val self: this.type = this
 

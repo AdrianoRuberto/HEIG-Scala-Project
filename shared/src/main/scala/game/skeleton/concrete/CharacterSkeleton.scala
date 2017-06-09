@@ -3,10 +3,10 @@ package game.skeleton.concrete
 import engine.geometry.Vector2D
 import game.UID
 import game.skeleton.node.{InterpolatedNode, ResourceNode, SimpleNode}
-import game.skeleton.{Skeleton, _}
+import game.skeleton.{AbstractSkeleton, RemoteManagerAgent, Skeleton}
 
-class CharacterSkeleton (uid: UID, remotes: Iterable[RemoteManagerAgent])
-	extends AbstractSkeleton(Skeleton.Character, uid, remotes) {
+case class CharacterSkeleton (uid: UID, remotes: Iterable[RemoteManagerAgent])
+	extends AbstractSkeleton(Skeleton.Character) {
 
 	val name = SimpleNode("Unknown")
 	val color = SimpleNode("#999")

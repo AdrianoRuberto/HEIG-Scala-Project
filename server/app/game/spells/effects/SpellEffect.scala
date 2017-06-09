@@ -31,8 +31,10 @@ abstract class SpellEffect {
 
 				// Create new instance
 				val instance = instantiate(ctx)
-				instances += (ctx.initiator -> instance)
-				ctx.game.registerTicker(instance.ticker)
+				instances.synchronized {
+					instances += (ctx.initiator -> instance)
+				}
+				ctx.game.tickers += instance.ticker
 			}
 		} else {
 			ctx.skeleton.activated.set(false, force = true)

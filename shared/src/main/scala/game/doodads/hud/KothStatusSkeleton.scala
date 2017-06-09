@@ -4,8 +4,8 @@ import game.UID
 import game.skeleton.node.{InterpolatedNode, SimpleNode}
 import game.skeleton.{AbstractSkeleton, RemoteManagerAgent, Skeleton}
 
-class KothStatusSkeleton (uid: UID, remotes: Iterable[RemoteManagerAgent])
-	extends AbstractSkeleton(Skeleton.KothStatus, uid, remotes) {
+case class KothStatusSkeleton (uid: UID, remotes: Iterable[RemoteManagerAgent])
+	extends AbstractSkeleton(Skeleton.KothStatus) {
 
 	val teamA = SimpleNode(UID.zero)
 	val teamB = SimpleNode(UID.zero)

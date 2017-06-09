@@ -12,10 +12,8 @@ import macros.pickle
 }
 
 object Skeleton {
-	@pickle case object Character extends Skeleton(new CharacterSkeleton(_, _))
-	@pickle case object DynamicArea extends Skeleton(new DynamicAreaSkeleton(_, _))
-	@pickle case object KothStatus extends Skeleton(new KothStatusSkeleton(_, _))
-	@pickle case object Point extends Skeleton(new PointSkeleton(_, _))
-	@pickle case object Progress extends Skeleton(new ProgressSkeleton(_, _))
-	@pickle case object Spell extends Skeleton(new SpellSkeleton(_, _))
+	@pickle case object Character extends Skeleton(CharacterSkeleton)
+	@pickle case object DynamicArea extends Skeleton(DynamicAreaSkeleton)
+	@pickle case object KothStatus extends Skeleton(KothStatusSkeleton)
+	@pickle case object Spell extends Skeleton(SpellSkeleton)
 }

@@ -72,7 +72,8 @@ lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared"))
 lazy val macros = (project in file("macros"))
 	.settings(
 		metaMacroSettings,
-		libraryDependencies += "org.scalameta" %% "scalameta" % "1.8.0"
+		libraryDependencies += "org.scalameta" %% "scalameta" % "1.8.0",
+		libraryDependencies += "org.scalameta" %% "contrib" % "1.8.0"
 	)
 
 lazy val sharedJvm = shared.jvm

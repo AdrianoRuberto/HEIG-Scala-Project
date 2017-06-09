@@ -3,11 +3,7 @@ package game.doodads
 import engine.entity.Entity
 import game.UID
 import game.client.Game
-import game.doodads.Doodad.{Area, Debug, Hud, Spell}
-import game.doodads.area.{DynamicAreaEntity, StaticAreaEntity}
-import game.doodads.debug.PointEntity
-import game.doodads.hud.{DeathScreenEntity, KothStatusEntity, VictoryScreenEntity}
-import game.doodads.spell.SwordEntity
+import game.doodads.Doodad._
 import game.skeleton.AbstractSkeleton
 import scala.language.implicitConversions
 
@@ -18,16 +14,15 @@ import scala.language.implicitConversions
 object DoodadFactory {
 	def create(doodad: Doodad): Entity = doodad match {
 		case Area.StaticArea(shape, fill, stroke, fillColor, strokeColor, strokeWidth) =>
-			new StaticAreaEntity(shape, fill, stroke, fillColor, strokeColor, strokeWidth)
-		case Area.DynamicArea(skeleton) => new DynamicAreaEntity(skeleton)
+			new area.StaticAreaEntity(shape, fill, stroke, fillColor, strokeColor, strokeWidth)
+		case Area.DynamicArea(skeleton) => new area.DynamicAreaEntity(skeleton)
+		case Area.Wall(shape, color) => new area.WallEntity(shape, color)
 
-		case Hud.KothStatus(skeleton) => new KothStatusEntity(skeleton)
-		case Hud.DeathScreen(duration) => new DeathScreenEntity(duration)
-		case Hud.VictoryScreen(msg, color, skeleton) => new VictoryScreenEntity(msg, color, skeleton)
+		case Hud.KothStatus(skeleton) => new hud.KothStatusEntity(skeleton)
+		case Hud.DeathScreen(duration) => new hud.DeathScreenEntity(duration)
+		case Hud.VictoryScreen(msg, color) => new hud.VictoryScreenEntity(msg, color)
 
-		case Spell.Sword(x, y, angle) => new SwordEntity(x, y, angle)
-
-		case Debug.Point(skeleton) => new PointEntity(skeleton)
+		case Spell.Sword(x, y, angle) => new spell.SwordEntity(x, y, angle)
 	}
 
 	/** Implicitly resolves skeleton UIDs from the SkeletonManager in Game */

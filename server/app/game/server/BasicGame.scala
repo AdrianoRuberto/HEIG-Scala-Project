@@ -1,10 +1,9 @@
 package game.server
 
 import akka.actor.ActorRef
-import engine.geometry.{ColoredShape, Shape, Vector2D}
+import engine.geometry.{Shape, Vector2D}
 import game.UID
 import game.doodads.Doodad
-import game.maps.GameMap
 import game.protocol.{ClientMessage, ServerMessage}
 import game.server.BasicGame.UIDGroup
 import game.server.actors.{Matchmaker, PlayerActor, Watcher}
@@ -15,7 +14,13 @@ import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.language.implicitConversions
 import scala.util.Random
+import utils.Color
 
+/**
+  * BasicGame is the base class for every game mode implementation.
+  *
+  * @param roster the roster of players for this game
+  */
 abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") with BasicGameImplicits {
 	import context._
 
@@ -64,20 +69,17 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 		(uid, Array.fill[Option[SpellSkeleton]](4)(None))
 	}.toMap
 
-	/** Registered tickers */
-	var doodads: Map[UID, Iterable[UID]] = Map.empty
-
 	/** Registered regions */
 	var regions: Set[Region] = Set.empty
 
 	/** Registered tickers */
 	var tickers: Set[Ticker] = Set.empty
 
-	/** Wall shapes */
-	var shapes: Map[UID, Shape] = Map.empty
-
 	/** Scheduled timers */
 	val tasks: mutable.PriorityQueue[ScheduledTask] = mutable.PriorityQueue.empty
+
+	/** Wall shapes */
+	var walls: Set[Shape] = Set.empty
 
 	context.system.scheduler.scheduleOnce(20.millis, self, BasicGame.Tick) // 50 Hz ticks
 	override final def postStop(): Unit = tickers.foreach(_.remove())
@@ -113,7 +115,7 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 			for ((spawn, team) <- map.spawns zip roster) spawnPlayers(spawn, team.players)
 		}
 
-		for (shape <- map.geometry) addShape(shape)
+		for (shape <- map.geometry) createWall(shape, map.color)
 	}
 
 	def setTeamColors(colors: String*): Unit = {
@@ -144,33 +146,56 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 		})
 	}
 
-	// Static Doodads
+	/**
+	  * Constructs a static Doodad.
+	  *
+	  * @param doodad  the doodad defining case class instance
+	  * @param remotes the list of players UIDs who should see the newly created doodad
+	  */
 	def createDoodad(doodad: Doodad, remotes: UIDGroup = players): DoodadInstance.Static = {
 		val uid = UID.next
-		doodads += (uid -> remotes.members)
 		remotes.members ! ServerMessage.CreateDoodad(uid, doodad)
-		DoodadInstance.Static(this, uid)
-	}
-
-	// Dynamic Doodad
-	def createDynamicDoodad[T <: AbstractSkeleton](doodad: UID => Doodad, skeleton: Skeleton[T], remotes: UIDGroup = players)
-	                                       (init: T => Unit = (_: T) => ()): DoodadInstance.Dynamic[T] = {
-		val skel = createSkeleton(skeleton, remotes)
-		init(skel)
-		createDoodad(doodad(skel.uid), remotes).withSkeleton(skel)
-	}
-
-	def removeDoodad(uid: UID): Unit = {
-		doodads.get(uid) match {
-			case Some(group) =>
-				group ! ServerMessage.RemoveDoodad(uid)
-				doodads -= uid
-			case None =>
-				warn(s"Attempted to remove unknown doodad: $uid")
+		new DoodadInstance.Static(uid) {
+			def remove(): Unit = remotes.members ! ServerMessage.RemoveDoodad(uid)
 		}
 	}
 
-	// Regions
+	/**
+	  * Constructs a new dynamic Doodad with its associated Skeleton.
+	  *
+	  * The doodad is given as its defining case class companion object. The
+	  * companion must extends the type `UID => Doodad`, which should be the case
+	  * if the associated case class has a single argument of type `UID` and no
+	  * companion object is explicitly defined.
+	  *
+	  * @param doodad   the doodad to create
+	  * @param skeleton the skeleton associated with the Doodad
+	  * @param remotes  the list of players UIDs who should see the newly created doodad
+	  * @tparam T the type of skeleton instance
+	  */
+	def createDynamicDoodad[T <: AbstractSkeleton](doodad: UID => Doodad,
+	                                               skeleton: Skeleton[T],
+	                                               remotes: UIDGroup = players): DoodadInstance.Dynamic[T] = {
+		val skeletonInstance = createSkeleton(skeleton, remotes)
+		createDoodad(doodad(skeletonInstance.uid), remotes).withSkeleton(skeletonInstance)
+	}
+
+	/**
+	  * Creates a new region on the game world and tracks player movement in and
+	  * out of it. The region will call the supplied `enters` and `exits` functions
+	  * whenever a player enters or leaves the region.
+	  *
+	  * If the `filter` predicate is given, only players for which the filters
+	  * returns true will be tracked. If no filter is given, every players will
+	  * be tracked.
+	  *
+	  * @param shape  the region shape
+	  * @param enters a function to call whenever a player enters the region
+	  * @param exits  a function to call whenever a player leaves the region
+	  * @param filter a predicated used to ignore some players from the region
+	  * @return a [[Region]] object that can be used to query the current state of
+	  *         the region or unregister it from the game engine.
+	  */
 	def createRegion(shape: Shape,
 	                 enters: UID => Unit = (_) => (),
 	                 exits: UID => Unit = (_) => (),
@@ -179,52 +204,73 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 			def playerEnters(uid: UID): Unit = enters(uid)
 			def playerExits(uid: UID): Unit = exits(uid)
 			def playerAccepted(uid: UID): Boolean = filter(uid)
-			def remove(): Unit = unregisterRegion(this)
+			def remove(): Unit = {
+				regions -= this
+				inside.foreach(playerExits)
+			}
 		}
-		registerRegion(region)
+		regions += region
 		region
 	}
 
 	def registerRegion(region: Region): Unit = regions += region
-	def unregisterRegion(region: Region): Unit = {
-		regions -= region
-		region.inside.foreach(region.playerExits)
-		region.inside = Set.empty
-	}
 
-	// Ticker
+	/**
+	  * Creates a new Ticker object that can be used to executes custom code
+	  * periodically during the game. The given function will be called every
+	  * game tick with the time delta (as milliseconds) since last tick as a
+	  * parameter.
+	  *
+	  * @param impl the tick action to executes
+	  * @return a [[Ticker]] object that can be used to remove the ticker
+	  */
 	def createTicker(impl: Double => Unit): Ticker = {
 		val ticker = new Ticker() {
 			def tick(dt: Double): Unit = impl(dt)
-			def remove(): Unit = unregisterTicker(this)
+			def remove(): Unit = tickers -= this
 		}
-		registerTicker(ticker)
+		tickers += ticker
 		ticker
 	}
 
-	def registerTicker(ticker: Ticker): Unit = tickers += ticker
-	def unregisterTicker(ticker: Ticker): Unit = tickers -= ticker
-
-	// Timers
+	/**
+	  * Schedules an action to be executed in `delay` milliseconds from now.
+	  *
+	  * Please note that actions are executed as part of the game tick loop,
+	  * their resolution is thus limited by the game tick frequency, which is
+	  * equals to 50 Hz, resulting in a minimum scheduler resolution of 20 ms.
+	  *
+	  * The scheduler will never execute a task before its scheduled time.
+	  * As a result, it is possible for actual execution to be delayed by
+	  * an additional 20 ms if due time occurs right after a game tick.
+	  *
+	  * @param delay  the time in ms from now at which the action should be executed
+	  * @param action the action to execute
+	  * @return a [[ScheduledTask]] object that can be used to cancel the task
+	  */
 	def schedule(delay: Double)(action: => Unit): ScheduledTask = {
-		val task = ScheduledTask(timestamp + delay, () => action)
+		val task = ScheduledTask(time + delay, () => action)
 		tasks += task
 		task
 	}
 
-	// Shapes
-	def addShape(coloredShape: ColoredShape): UID = {
-		val uid = UID.next
-		shapes += (uid -> coloredShape)
-		players ! ServerMessage.DrawShape(uid, coloredShape)
-		uid
+	/** Creates a new wall, along with its associated visual doodad */
+	def createWall(shape: Shape, color: Color): DoodadInstance.Static = {
+		walls += shape
+		val doodad = createDoodad(Doodad.Area.Wall(shape, color))
+		val uid = doodad.uid
+		players ! ServerMessage.CreateWall(uid, shape)
+		new DoodadInstance.Static(uid) {
+			/** Removes this doodad */
+			def remove(): Unit = {
+				walls -= shape
+				players ! ServerMessage.RemoveWall(uid)
+				doodad.remove()
+			}
+		}
 	}
 
-	def deleteShape(uid: UID): Unit = {
-		shapes -= uid
-		players ! ServerMessage.EraseShape(uid)
-	}
-
+	/** Query a given area of the game world for intersecting players */
 	def queryArea(area: Shape): Set[UID] = players.filter(player => area.contains(player.skeleton.position)).toSet
 
 	/** Terminates the game, stopping every related actors and closing sockets */
@@ -234,29 +280,42 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	// Internal API
 	// --------------------------------
 
-	// Ticks
+	/** Current game-time timestamp */
 	private var timestamp = 0.0
+
+	/** Timestamp of the last game tick */
 	private var lastTick = Double.NaN
 
+	/** Performs game tick */
 	private def tick(): Unit = {
+		// Schedule next tick
 		context.system.scheduler.scheduleOnce(20.millis, self, BasicGame.Tick)
+
+		// Update current time and compute delta since last tick
 		val now = System.nanoTime() / 1000000.0
 		val dt = if (lastTick.isNaN) 0.0 else now - lastTick
 		lastTick = now
 		timestamp += dt
+
+		// Execute scheduled tasks
 		while (tasks.nonEmpty && tasks.head.time <= timestamp) {
 			val task = tasks.dequeue()
 			if (!task.canceled) task.action()
 		}
+
+		// Updates regions status
 		for (region <- regions) {
 			val inside = queryArea(region.shape).filter(region.playerAccepted)
 			for (player <- inside diff region.inside) region.playerEnters(player)
 			for (player <- region.inside diff inside) region.playerExits(player)
 			region.inside = inside
 		}
+
+		// Invoke tickers
 		for (ticker <- tickers) ticker.tick(dt)
 	}
 
+	/** Current game time as milliseconds since game initialization */
 	def time: Double = timestamp
 
 	/** Computes players spawn around a point for a given team */
@@ -271,6 +330,7 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 		}
 	}
 
+	/** The player started moving */
 	def playerMoving(uid: UID, x: Double, y: Double, duration: Double, xs: Int, ys: Int): Unit = {
 		val skeleton = uid.skeleton
 		val latency = uid.latency
@@ -279,6 +339,7 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 		skeleton.y.commit(ys).interpolate(y, duration - latency)
 	}
 
+	/** The player stopped moving */
 	def playerStopped(uid: UID, x: Double, y: Double, xs: Int, ys: Int): Unit = {
 		val skeleton = uid.skeleton
 		skeleton.moving.value = false
@@ -286,6 +347,7 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 		skeleton.y.commit(ys).interpolate(y, 200)
 	}
 
+	/** Casts a spell, called when the player presses the key for the corresponding spell */
 	def castSpell(player: UID, slot: Int, point: Vector2D): Unit = player.spells(slot) match {
 		case Some(skeleton) =>
 			SpellEffect.forSpell(skeleton.spell.value).cast(SpellContext(this, skeleton, player, point))
@@ -293,6 +355,7 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 			warn(s"Player `${player.skeleton.name.value}` attempted to cast spell from empty slot")
 	}
 
+	/** Cancels an activated spell, called when the player releases the key for the corresponding spell */
 	def cancelSpell(player: UID, slot: Int): Unit = player.spells(slot) match {
 		case Some(skeleton) =>
 			SpellEffect.forSpell(skeleton.spell.value).cancel(SpellContext(this, skeleton, player, Vector2D.zero))
@@ -305,24 +368,15 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 }
 
 object BasicGame {
+	/** Object used as Tick message for the game main loop */
 	case object Tick
 
-	trait SkeletonInitializer[-T <: AbstractSkeleton] {
-		def initialize(skeleton: T): Unit
-	}
-
-	implicit def toSkeletonInitializer[T <: AbstractSkeleton](init: T => Unit): SkeletonInitializer[T] = {
-		new SkeletonInitializer[T] {
-			def initialize(skeleton: T): Unit = init(skeleton)
-		}
-	}
-
-	implicit object DummySkeletonInitializer extends SkeletonInitializer[AbstractSkeleton] {
-		def initialize(skeleton: AbstractSkeleton): Unit = ()
-	}
-
+	/** Wrappers around an iterable of UID used as a trigger for implicits conversions */
 	class UIDGroup (val members: Iterable[UID]) extends AnyVal
 
+	/** Implicitly converts from a single UID to a UIDGroup */
 	implicit def UIDGroupFromSingle(uid: UID): UIDGroup = new UIDGroup(Seq(uid))
+
+	/** Implicitly converts from an Iterable collection of UID to a UIDGroup */
 	implicit def UIDGroupFromIterable(uids: Iterable[UID]): UIDGroup = new UIDGroup(uids)
 }
