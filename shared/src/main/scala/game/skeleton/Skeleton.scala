@@ -6,9 +6,9 @@ import game.doodads.hud.KothStatusSkeleton
 import game.skeleton.concrete._
 import macros.pickle
 
-@pickle sealed abstract class Skeleton[+S <: AbstractSkeleton] (ctor: (UID, Seq[RemoteManagerAgent]) => S) {
+@pickle sealed abstract class Skeleton[+S <: AbstractSkeleton] (ctor: (UID, Iterable[RemoteManagerAgent]) => S) {
 	def instantiate(uid: UID): S = ctor(uid, Seq.empty)
-	def instantiate(remotes: Seq[RemoteManagerAgent]): S = ctor(UID.next, remotes)
+	def instantiate(remotes: Iterable[RemoteManagerAgent]): S = ctor(UID.next, remotes)
 }
 
 object Skeleton {

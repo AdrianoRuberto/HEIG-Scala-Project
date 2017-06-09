@@ -6,7 +6,7 @@ import game.skeleton.node.SimpleNode
 import game.skeleton.{AbstractSkeleton, RemoteManagerAgent, Skeleton}
 import utils.Color
 
-class DynamicAreaSkeleton (uid: UID, remotes: Seq[RemoteManagerAgent])
+class DynamicAreaSkeleton (uid: UID, remotes: Iterable[RemoteManagerAgent])
 	extends AbstractSkeleton(Skeleton.DynamicArea, uid, remotes) {
 
 	// Shape to display

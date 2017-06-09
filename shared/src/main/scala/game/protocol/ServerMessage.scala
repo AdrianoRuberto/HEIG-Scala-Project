@@ -34,7 +34,7 @@ object ServerMessage {
 	@pickle case class GainSpell(slot: Int, skeletonUID: UID) extends GameMessage
 	@pickle case class LoseSpell(slot: Int) extends GameMessage
 	@pickle case class CreateDoodad(uid: UID, doodad: Doodad) extends GameMessage
-	@pickle case class DestroyDoodad(uid: UID) extends GameMessage
+	@pickle case class RemoveDoodad(uid: UID) extends GameMessage
 
 	// Camera
 	@pickle case class SetCameraLocation(x: Double, y: Double) extends GameMessage

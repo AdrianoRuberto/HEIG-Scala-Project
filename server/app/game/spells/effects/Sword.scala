@@ -13,7 +13,7 @@ object Sword extends SpellEffect {
 
 		player.skeleton.facingDirection.value = α
 		player.skeleton.facingOverride.value = true
-		private val swordDoodad = ctx.game.createGlobalDoodad(Doodad.Spell.Sword(p.x, p.y, α))
+		private val swordDoodad = ctx.game.createDoodad(Doodad.Spell.Sword(p.x, p.y, α))
 
 		private val targets = game.players.filter(_ hostile initiator).filter { uid =>
 			val q = uid.skeleton.position
@@ -36,7 +36,7 @@ object Sword extends SpellEffect {
 		}
 
 		override def end(): Unit = {
-			game.destroyDoodad(swordDoodad)
+			swordDoodad.remove()
 			player.skeleton.facingOverride.value = false
 		}
 	}

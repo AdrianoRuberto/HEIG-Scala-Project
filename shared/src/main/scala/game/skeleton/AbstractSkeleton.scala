@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger
   */
 abstract class AbstractSkeleton(tpe: Skeleton[_ <: AbstractSkeleton],
                                 val uid: UID = UID.next,
-                                val remotes: Seq[RemoteManagerAgent] = Seq.empty) {
+                                val remotes: Iterable[RemoteManagerAgent] = Seq.empty) {
 	/** Implicit reference to this skeleton */
 	protected implicit val self: this.type = this
 

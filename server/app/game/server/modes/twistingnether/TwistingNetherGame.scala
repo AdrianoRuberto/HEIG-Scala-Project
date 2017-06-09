@@ -33,11 +33,10 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 	}
 
 	// Status
-	private val status = createGlobalSkeleton(Skeleton.KothStatus)
-	status.teamA.value = teamA
-	status.teamB.value = teamB
-
-	createGlobalDoodad(Doodad.Hud.KothStatus(status.uid))
+	private val status = createDoodad(Doodad.Hud.KothStatus, Skeleton.KothStatus) { skeleton =>
+		skeleton.teamA.value = teamA
+		skeleton.teamB.value = teamB
+	}
 
 	// Capture Area
 	private val captureArea = Rectangle(-145, 355, 290, 290)
@@ -57,11 +56,9 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 	}
 
 	// Capture Area Doodad
-	private val areaSkeleton = createGlobalSkeleton(Skeleton.DynamicArea)
-	areaSkeleton.shape.value = captureArea
-	areaSkeleton.strokeWidth.value = 2
-
-	createGlobalDoodad(Doodad.Area.DynamicArea(areaSkeleton.uid))
+	private val area = createDoodad(Doodad.Area.DynamicArea, Skeleton.DynamicArea) { skeleton =>
+		skeleton.shape.value = captureArea
+	}
 
 	// Capture progress
 	private var currentCapture = Int.MaxValue // MaxValue used as "no capture"
@@ -109,15 +106,15 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 		if (captureValue == 100 && controlling != teamA) {
 			// Team A took the point
 			status.controlling.value = teamA
-			areaSkeleton.fillColor.value = Color(119, 119, 255, 0.1)
-			areaSkeleton.strokeColor.value = Color(119, 119, 255, 0.8)
+			area.fillColor.value = Color(119, 119, 255, 0.1)
+			area.strokeColor.value = Color(119, 119, 255, 0.8)
 			status.progressA.interpolateAtSpeed(100, ProgressPerSecond)
 			status.progressB.stop()
 		} else if (captureValue == -100 && controlling != teamB) {
 			// Team B took the point
 			status.controlling.value = teamB
-			areaSkeleton.fillColor.value = Color(255, 85, 85, 0.1)
-			areaSkeleton.strokeColor.value = Color(255, 85, 85, 0.8)
+			area.fillColor.value = Color(255, 85, 85, 0.1)
+			area.strokeColor.value = Color(255, 85, 85, 0.8)
 			status.progressB.interpolateAtSpeed(100, ProgressPerSecond)
 			status.progressA.stop()
 		}
@@ -132,8 +129,8 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 		areaTicker.remove()
 		players.engine.disableInputs()
 
-		val progress = createGlobalSkeleton(Skeleton.Progress)
-		createGlobalDoodad(Doodad.Hud.VictoryScreen(
+		val progress = createSkeleton(Skeleton.Progress)
+		createDoodad(Doodad.Hud.VictoryScreen(
 			if (team == teamA) "Blue team wins!" else "Red team wins!",
 			if (team == teamA) "rgb(119, 119, 255)" else "rgb(255, 85, 85)",
 			progress.uid))

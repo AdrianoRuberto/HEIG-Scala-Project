@@ -4,13 +4,13 @@ import engine.geometry.Shape
 import game.UID
 import game.doodads.Doodad
 import game.doodads.area.DynamicAreaSkeleton
-import game.server.BasicGame
+import game.server.{BasicGame, DoodadInstance}
 import game.skeleton.Skeleton
 
 case class ControlPoint (shape: Shape)(implicit game: BasicGame) {
 	// Doodad
-	val skeleton: DynamicAreaSkeleton = game.createGlobalSkeleton(Skeleton.DynamicArea)
-	val doodad: UID = game.createGlobalDoodad(Doodad.Area.DynamicArea(skeleton.uid))
+	val skeleton: DynamicAreaSkeleton = game.createSkeleton(Skeleton.DynamicArea)
+	val doodad: DoodadInstance.Static = game.createDoodad(Doodad.Area.DynamicArea(skeleton.uid))
 
 	// Region management
 	game.createRegion(shape, enter, leave)

@@ -6,12 +6,14 @@ import game.UID
 import game.doodads.Doodad
 import game.maps.GameMap
 import game.protocol.{ClientMessage, ServerMessage}
+import game.server.BasicGame.UIDGroup
 import game.server.actors.{Matchmaker, PlayerActor, Watcher}
 import game.skeleton.concrete.{CharacterSkeleton, SpellSkeleton}
 import game.skeleton.{AbstractSkeleton, ManagerEvent, RemoteManagerAgent, Skeleton}
 import game.spells.effects.{SpellContext, SpellEffect}
 import scala.collection.mutable
 import scala.concurrent.duration._
+import scala.language.implicitConversions
 import scala.util.Random
 
 abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") with BasicGameImplicits {
@@ -48,7 +50,7 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 
 	/** The map of every character skeletons */
 	val skeletons: Map[UID, CharacterSkeleton] = playersFromUID.map { case (uid, player) =>
-		val skeleton = createGlobalSkeleton(Skeleton.Character)
+		val skeleton = createSkeleton(Skeleton.Character)
 		skeleton.name.value = player.info.name
 		players ! ServerMessage.InstantiateCharacter(player.info.uid, skeleton.uid)
 		(uid, skeleton)
@@ -63,7 +65,7 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	}.toMap
 
 	/** Registered tickers */
-	var doodads: Map[UID, Seq[UID]] = Map.empty
+	var doodads: Map[UID, Iterable[UID]] = Map.empty
 
 	/** Registered regions */
 	var regions: Set[Region] = Set.empty
@@ -129,8 +131,8 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	}
 
 	// Skeleton
-	def createSkeleton[T <: AbstractSkeleton](tpe: Skeleton[T], remotes: Seq[UID]): T = {
-		tpe.instantiate(remotes.map { remote =>
+	def createSkeleton[T <: AbstractSkeleton](tpe: Skeleton[T], remotes: UIDGroup = players): T = {
+		tpe.instantiate(remotes.members.map { remote =>
 			new RemoteManagerAgent {
 				def send(event: ManagerEvent): Unit = {
 					remote ! ServerMessage.SkeletonEvent(event)
@@ -142,24 +144,26 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 		})
 	}
 
-	def createSkeleton[T <: AbstractSkeleton](tpe: Skeleton[T], remote: UID): T = createSkeleton(tpe, Seq(remote))
-	def createGlobalSkeleton[T <: AbstractSkeleton](tpe: Skeleton[T]): T = createSkeleton(tpe, players)
-
-	// Doodads
-	def createDoodad(doodad: Doodad, remotes: Seq[UID]): UID = {
+	// Static Doodads
+	def createDoodad(doodad: Doodad, remotes: UIDGroup = players): DoodadInstance.Static = {
 		val uid = UID.next
-		doodads += (uid -> remotes)
-		remotes ! ServerMessage.CreateDoodad(uid, doodad)
-		uid
+		doodads += (uid -> remotes.members)
+		remotes.members ! ServerMessage.CreateDoodad(uid, doodad)
+		DoodadInstance.Static(this, uid)
 	}
 
-	def createDoodad(doodad: Doodad, remote: UID): UID = createDoodad(doodad, Seq(remote))
-	def createGlobalDoodad(doodad: Doodad): UID = createDoodad(doodad, players)
+	// Dynamic Doodad
+	def createDynamicDoodad[T <: AbstractSkeleton](doodad: UID => Doodad, skeleton: Skeleton[T], remotes: UIDGroup = players)
+	                                       (init: T => Unit = (_: T) => ()): DoodadInstance.Dynamic[T] = {
+		val skel = createSkeleton(skeleton, remotes)
+		init(skel)
+		createDoodad(doodad(skel.uid), remotes).withSkeleton(skel)
+	}
 
-	def destroyDoodad(uid: UID): Unit = {
+	def removeDoodad(uid: UID): Unit = {
 		doodads.get(uid) match {
 			case Some(group) =>
-				group ! ServerMessage.DestroyDoodad(uid)
+				group ! ServerMessage.RemoveDoodad(uid)
 				doodads -= uid
 			case None =>
 				warn(s"Attempted to remove unknown doodad: $uid")
@@ -302,4 +306,23 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 
 object BasicGame {
 	case object Tick
+
+	trait SkeletonInitializer[-T <: AbstractSkeleton] {
+		def initialize(skeleton: T): Unit
+	}
+
+	implicit def toSkeletonInitializer[T <: AbstractSkeleton](init: T => Unit): SkeletonInitializer[T] = {
+		new SkeletonInitializer[T] {
+			def initialize(skeleton: T): Unit = init(skeleton)
+		}
+	}
+
+	implicit object DummySkeletonInitializer extends SkeletonInitializer[AbstractSkeleton] {
+		def initialize(skeleton: AbstractSkeleton): Unit = ()
+	}
+
+	class UIDGroup (val members: Iterable[UID]) extends AnyVal
+
+	implicit def UIDGroupFromSingle(uid: UID): UIDGroup = new UIDGroup(Seq(uid))
+	implicit def UIDGroupFromIterable(uids: Iterable[UID]): UIDGroup = new UIDGroup(uids)
 }

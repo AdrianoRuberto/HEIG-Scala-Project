@@ -19,7 +19,7 @@ object BioticField extends SpellEffect {
 		private def exit(uid: UID): Unit = uid.skeleton.health.rate -= 40
 
 		/** Visual doodad */
-		private val visual = game.createGlobalDoodad(Doodad.Area.StaticArea(
+		private val visual = game.createDoodad(Doodad.Area.StaticArea(
 			shape = area,
 			fillColor = Color(255, 200, 127, 0.1),
 			strokeColor = Color(255, 200, 127, 0.8)
@@ -27,7 +27,7 @@ object BioticField extends SpellEffect {
 
 		override def end(): Unit = {
 			region.remove()
-			game.destroyDoodad(visual)
+			visual.remove()
 		}
 	}
 }

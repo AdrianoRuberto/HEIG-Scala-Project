@@ -31,7 +31,7 @@ trait StandardDeathBehavior extends BasicGame { behavior =>
 					player.health.rate = 0
 					player.health.energize(player.health.max)
 					player.dead.value = false
-					destroyDoodad(deathScreen)
+					deathScreen.remove()
 					uid.engine.enableInputs()
 					uid.camera.followSelf()
 					player.x.value = position.x

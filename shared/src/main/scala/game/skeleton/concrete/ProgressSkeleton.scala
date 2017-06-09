@@ -7,7 +7,7 @@ import game.skeleton.{AbstractSkeleton, RemoteManagerAgent, Skeleton}
 /**
   * A generic Skeleton encoding a progress bar
   */
-class ProgressSkeleton (uid: UID, remotes: Seq[RemoteManagerAgent])
+class ProgressSkeleton (uid: UID, remotes: Iterable[RemoteManagerAgent])
 	extends AbstractSkeleton(Skeleton.Progress, uid, remotes) {
 
 	val from = SimpleNode(0.0)

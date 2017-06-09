@@ -8,7 +8,7 @@ import game.skeleton.{AbstractSkeleton, RemoteManagerAgent, Skeleton}
 /**
   * A generic Skeleton encoding a point position
   */
-class PointSkeleton (uid: UID, remotes: Seq[RemoteManagerAgent])
+class PointSkeleton (uid: UID, remotes: Iterable[RemoteManagerAgent])
 	extends AbstractSkeleton(Skeleton.Point, uid, remotes) {
 
 	val color = SimpleNode("black")

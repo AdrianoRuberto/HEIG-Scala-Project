@@ -115,7 +115,7 @@ object Game {
 			engine.registerEntity(entity)
 			doodadEntities += (uid -> entity)
 
-		case DestroyDoodad(uid) =>
+		case RemoveDoodad(uid) =>
 			doodadEntities.get(uid) match {
 				case Some(entity) =>
 					entity.unregister()
