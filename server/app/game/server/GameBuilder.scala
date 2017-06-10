@@ -43,9 +43,9 @@ object GameBuilder {
 	}
 
 	def defaultSpots(count: Int, longest: FiniteDuration): Int = {
-		if (longest > 60.seconds) 2
-		else if (longest > 45.seconds) 4
-		else if (longest > 30.seconds) 6
+		if (longest > 60.seconds && count < 4) 2
+		else if (longest > 45.seconds && count < 6) 4
+		else if (longest > 30.seconds && count < 8) 6
 		else 8
 	}
 }
