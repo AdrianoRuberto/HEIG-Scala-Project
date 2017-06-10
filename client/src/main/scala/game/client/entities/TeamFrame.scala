@@ -22,7 +22,7 @@ class TeamFrame (x: Double, y: => Double, team: Seq[Character]) extends Entity w
 			ctx.fillRect(0, 0, 80, 15)
 
 			// Health bar
-			ctx.fillStyle = c.skeleton.color.value
+			ctx.fillStyle = c.skeleton.color.value.toString
 			ctx.fillRect(0, 0, 80 * c.skeleton.health.current, 15)
 
 			// Border

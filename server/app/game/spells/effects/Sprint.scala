@@ -1,5 +1,7 @@
 package game.spells.effects
 
+import game.spells.effects.base.{SpellContext, SpellEffect, SpellEffectInstance}
+
 object Sprint extends SpellEffect {
 	override def available(ctx: SpellContext): Boolean = {
 		ctx.skeleton.cooldown.ready && ctx.player.skeleton.energy.current > 1

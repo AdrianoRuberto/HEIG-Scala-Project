@@ -7,9 +7,9 @@ import game.doodads.Doodad
 import game.protocol.{ClientMessage, ServerMessage}
 import game.server.BasicGame.UIDGroup
 import game.server.actors.{Matchmaker, PlayerActor, Watcher}
-import game.skeleton.concrete.{CharacterSkeleton, SpellSkeleton}
+import game.skeleton.core.{CharacterSkeleton, SpellSkeleton}
 import game.skeleton.{AbstractSkeleton, ManagerEvent, RemoteManagerAgent, Skeleton}
-import game.spells.effects.{SpellContext, SpellEffect}
+import game.spells.effects.base.{SpellContext, SpellEffect}
 import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.language.implicitConversions
@@ -42,7 +42,7 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	}
 
 	/** Color mapping of teams */
-	var teamsColor: Map[UID, String] = Map.empty
+	var teamsColor: Map[UID, Color] = Map.empty
 
 	/** The sequence of every team's UID */
 	val teams: Seq[UID] = roster.map(_.info.uid)
@@ -99,40 +99,58 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 		case m => warn("Ignored unknown message:", m.toString)
 	}
 
-	def start(): Unit
+	/** Called when the game starts */
+	def start(): Unit = ()
 
+	/**
+	  * Check the hostility status between two players.
+	  * By default, two players are hostile if not in the same team.
+	  */
 	def hostile(a: UID, b: UID): Boolean = a != b && a.team != b.team
+
+	/**
+	  * Cheks the friendly status between two players.
+	  * By default, two players are friendly if they are in the same team.
+	  */
 	def friendly(a: UID, b: UID): Boolean = a == b || a.team == b.team
 
 	// --------------------------------
 	// Common Game API
 	// --------------------------------
 
-	/** Loads the given map, initializing geometries and spawning players */
+	/** Loads the given map, initializes geometry and spawns players */
 	def loadMap(map: GameMap): Unit = {
+		for (shape <- map.geometry) createWall(shape, map.color)
 		if (map.spawns.nonEmpty) {
 			require(map.spawns.size == roster.size, "Map must have as many spawns as there are teams in the game")
 			for ((spawn, team) <- map.spawns zip roster) spawnPlayers(spawn, team.players)
 		}
-
-		for (shape <- map.geometry) createWall(shape, map.color)
 	}
 
-	def setTeamColors(colors: String*): Unit = {
+	/** Defines colors for teams */
+	def setTeamColors(colors: Color*): Unit = {
 		for ((uid, color) <- teams zip colors; team = teamFromUID(uid)) {
 			teamsColor += (uid -> color)
 			for (player <- team.players) skeletons(player.info.uid).color.value = color
 		}
 	}
 
-	def setDefaultTeamColors(): Unit = setTeamColors("#77f", "#f55")
+	/** Sets default team colors */
+	def setDefaultTeamColors(): Unit = setTeamColors(Color("#77f"), Color("#f55"))
 
+	/** Sets default camera behavior */
 	def setDefaultCamera(): Unit = {
 		players.camera.followSelf()
 		players.camera.setSpeed(250)
 	}
 
-	// Skeleton
+	/**
+	  * Constructs a new Skeleton object
+	  *
+	  * @param tpe     the type of skeleton to create
+	  * @param remotes the list of players UIDs who should see the newly created doodad
+	  * @tparam T the type of skeleton created
+	  */
 	def createSkeleton[T <: AbstractSkeleton](tpe: Skeleton[T], remotes: UIDGroup = players): T = {
 		tpe.instantiate(remotes.members.map { remote =>
 			new RemoteManagerAgent {
@@ -280,11 +298,14 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	// Internal API
 	// --------------------------------
 
-	/** Current game-time timestamp */
-	private var timestamp = 0.0
+	/** Game start time */
+	private val startTime = System.nanoTime() / 1000000.0
 
 	/** Timestamp of the last game tick */
-	private var lastTick = Double.NaN
+	private var lastTick = startTime
+
+	/** Current game time */
+	private var currentTime: Double = 0.0
 
 	/** Performs game tick */
 	private def tick(): Unit = {
@@ -292,13 +313,12 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 		context.system.scheduler.scheduleOnce(20.millis, self, BasicGame.Tick)
 
 		// Update current time and compute delta since last tick
-		val now = System.nanoTime() / 1000000.0
-		val dt = if (lastTick.isNaN) 0.0 else now - lastTick
-		lastTick = now
-		timestamp += dt
+		currentTime = (System.nanoTime() / 1000000.0) - startTime
+		val dt = currentTime - lastTick
+		lastTick = currentTime
 
 		// Execute scheduled tasks
-		while (tasks.nonEmpty && tasks.head.time <= timestamp) {
+		while (tasks.nonEmpty && tasks.head.time <= currentTime) {
 			val task = tasks.dequeue()
 			if (!task.canceled) task.action()
 		}
@@ -316,7 +336,7 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	}
 
 	/** Current game time as milliseconds since game initialization */
-	def time: Double = timestamp
+	def time: Double = currentTime
 
 	/** Computes players spawn around a point for a given team */
 	def spawnPlayers(center: Vector2D, players: Seq[GamePlayer]): Unit = {
@@ -375,8 +395,8 @@ object BasicGame {
 	class UIDGroup (val members: Iterable[UID]) extends AnyVal
 
 	/** Implicitly converts from a single UID to a UIDGroup */
-	implicit def UIDGroupFromSingle(uid: UID): UIDGroup = new UIDGroup(Seq(uid))
+	@inline implicit def UIDGroupFromSingle(uid: UID): UIDGroup = new UIDGroup(Seq(uid))
 
 	/** Implicitly converts from an Iterable collection of UID to a UIDGroup */
-	implicit def UIDGroupFromIterable(uids: Iterable[UID]): UIDGroup = new UIDGroup(uids)
+	@inline implicit def UIDGroupFromIterable(uids: Iterable[UID]): UIDGroup = new UIDGroup(uids)
 }

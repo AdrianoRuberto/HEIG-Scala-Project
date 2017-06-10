@@ -26,6 +26,8 @@ case class Vector2D(x: Double, y: Double) { a =>
 
 	/** Distance operator, return the norm of the vector `(b - a)` */
 	def <-> (b: Vector2D): Double = (b - a).norm
+	def ^ (b: Vector2D): Double = acos((a scalarProject b) / norm)
+
 
 	def isZero: Boolean = a.x == 0.0 && a.y == 0.0
 	def notZero: Boolean = a.x != 0.0 || a.y != 0.0

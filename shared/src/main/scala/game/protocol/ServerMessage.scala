@@ -37,10 +37,11 @@ object ServerMessage {
 	@pickle case class RemoveDoodad(uid: UID) extends GameMessage
 
 	// Camera
-	@pickle case class SetCameraLocation(x: Double, y: Double) extends GameMessage
-	@pickle case class SetCameraFollow(characterUID: UID) extends GameMessage
-	@pickle case class SetCameraSmoothing(smoothing: Boolean) extends GameMessage
-	@pickle case class SetCameraSpeed(pps: Double) extends GameMessage
+	sealed trait CameraMessage extends GameMessage
+	@pickle case class SetCameraLocation(x: Double, y: Double) extends CameraMessage
+	@pickle case class SetCameraFollow(characterUID: UID) extends CameraMessage
+	@pickle case class SetCameraSmoothing(smoothing: Boolean) extends CameraMessage
+	@pickle case class SetCameraSpeed(pps: Double) extends CameraMessage
 
 	// Debug message
 	@pickle sealed trait Severity

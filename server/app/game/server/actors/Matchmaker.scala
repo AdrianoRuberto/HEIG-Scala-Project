@@ -15,8 +15,8 @@ import scala.concurrent.duration._
 import utils.NameGenerator
 
 class Matchmaker extends Actor {
-	import context._
 	import Matchmaker.dummyTimeout
+	import context._
 
 	private var queue = TreeSet.empty[QueuedPlayer](Ordering.by(_.since))
 	private var players = Map.empty[ActorRef, QueuedPlayer]
@@ -30,7 +30,7 @@ class Matchmaker extends Actor {
 		case Matchmaker.Register(player, true) =>
 			val builder = TwistingNetherBuilder
 			val watcher = Watcher.boundTo(sender)
-			for (players <- fill(builder, watcher, Seq(GamePlayer(sender, player)), builder.playerSpots(1))) {
+			for (players <- fill(builder, watcher, Seq(GamePlayer(sender, player)), builder.playerSpots(1, 1.hour))) {
 				build(builder, watcher, players)
 			}
 
@@ -79,22 +79,22 @@ class Matchmaker extends Actor {
 
 	@tailrec
 	private def tick(): Unit = {
-		// The queue is stable for 5 sec or more and the warmup time is expired
-		val stableQueue = queue.head.warmupTime.isOverdue() && queueStabilityIndex >= 5
+		// The queue is stable for 5 sec or more
+		val stableQueue = queueStabilityIndex >= 5
 		// The queue is lengthy, no point in waiting for more players
-		val lengthyQueue = queue.size > 20
+		val lengthyQueue = queue.size >= 10
 
 		if (stableQueue || lengthyQueue) {
 			val builder = GameBuilder.random
-			val spots = builder.playerSpots(queue.size)
-			if (queue.size >= spots || queue.head.meltingTime.isOverdue()) {
+			val spots = builder.playerSpots(queue.size, Deadline.now - queue.head.since)
+			if (queue.size >= spots) {
 				val humans = pick(spots)
 				val watcher = Watcher.boundTo(humans.map(_.actor))
 				for (players <- fill(builder, watcher, humans, spots)) {
 					build(builder, watcher, players)
 				}
 				maxQueueSize = queue.size
-				queueStabilityIndex -= 1
+				queueStabilityIndex = 0
 				if (queue.nonEmpty) tick()
 			}
 		}
@@ -149,10 +149,7 @@ object Matchmaker {
 	implicit val dummyTimeout: akka.util.Timeout = Timeout(10.seconds)
 
 	/** A queued player with some metadata */
-	case class QueuedPlayer(actor: ActorRef, player: PlayerInfo, since: Deadline) {
-		val warmupTime: Deadline = since + 5.seconds
-		val meltingTime: Deadline = since + 15.seconds
-	}
+	case class QueuedPlayer(actor: ActorRef, player: PlayerInfo, since: Deadline)
 
 	implicit class WatcherOps(private val w: ActorRef) extends AnyVal {
 		def instantiate(props: Props): Future[ActorRef] = {

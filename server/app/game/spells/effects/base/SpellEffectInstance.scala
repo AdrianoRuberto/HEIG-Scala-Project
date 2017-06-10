@@ -1,12 +1,13 @@
-package game.spells.effects
+package game.spells.effects.base
 
-import engine.geometry
+import engine.geometry.Vector2D
 import game.UID
 import game.server.{BasicGame, Ticker}
-import game.skeleton.concrete.SpellSkeleton
+import game.skeleton.core.SpellSkeleton
 import scala.language.implicitConversions
 
 class SpellEffectInstance(effect: SpellEffect, val ctx: SpellContext) { self =>
+	implicit val implicitCtx: SpellContext = ctx
 	private val timestamp = ctx.game.time
 
 	val duration: Double = 0.0
@@ -15,10 +16,10 @@ class SpellEffectInstance(effect: SpellEffect, val ctx: SpellContext) { self =>
 	val game: BasicGame = ctx.game
 	val player: ctx.game.UIDOps = ctx.player
 	val skeleton: SpellSkeleton = ctx.skeleton
-	val point: geometry.Vector2D = ctx.point
+	val point: Vector2D = ctx.point
 	val initiator: UID = ctx.initiator
 
-	private[effects] val ticker = new Ticker {
+	private[base] val ticker = new Ticker {
 		def tick(dt: Double): Unit = {
 			if (duration > 0.0 && (game.time - timestamp) >= duration) cancel()
 			else self.tick(dt)
@@ -43,6 +44,4 @@ class SpellEffectInstance(effect: SpellEffect, val ctx: SpellContext) { self =>
 			effect.instances -= ctx.initiator
 		}
 	}
-
-	@inline protected implicit final def uidToOps(uid: UID): ctx.game.UIDOps = new ctx.game.UIDOps(uid)
 }

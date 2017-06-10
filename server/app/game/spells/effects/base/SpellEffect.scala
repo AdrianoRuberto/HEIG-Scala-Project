@@ -1,11 +1,11 @@
-package game.spells.effects
+package game.spells.effects.base
 
 import game.UID
 import game.spells.Spell
-import scala.language.implicitConversions
+import game.spells.effects.{BioticField, Flagellation, Sprint, Sword}
 
 abstract class SpellEffect {
-	private[effects] var instances: Map[UID, SpellEffectInstance] = Map.empty
+	private[base] var instances: Map[UID, SpellEffectInstance] = Map.empty
 	def instantiate(ctx: SpellContext): SpellEffectInstance
 
 	def available(ctx: SpellContext): Boolean = {

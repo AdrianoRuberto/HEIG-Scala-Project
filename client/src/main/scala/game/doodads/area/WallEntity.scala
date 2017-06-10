@@ -14,6 +14,7 @@ class WallEntity (shape: Shape, color: Color) extends Entity {
 		ctx.fillStyle = color.toString
 		ctx.strokeStyle = color.toString
 		ctx.lineWidth = 2
+		ctx.lineJoin = "bevel"
 		ctx.beginPath()
 		drawShape(ctx, shape)
 		ctx.fill()

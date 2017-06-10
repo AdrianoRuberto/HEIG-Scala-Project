@@ -20,6 +20,7 @@ object DoodadFactory {
 
 		case Hud.KothStatus(skeleton) => new hud.KothStatusEntity(skeleton)
 		case Hud.DeathScreen(duration) => new hud.DeathScreenEntity(duration)
+		case Hud.Overtime(skeleton) => new hud.OvertimeEntity(skeleton)
 		case Hud.VictoryScreen(msg, color) => new hud.VictoryScreenEntity(msg, color)
 
 		case Spell.Sword(x, y, angle) => new spell.SwordEntity(x, y, angle)

@@ -1,4 +1,4 @@
-package game.spells.effects
+package game.spells.effects.base
 
 private[effects] trait SimpleEffect extends SpellEffect { parent =>
 	val duration: Double = 0.0

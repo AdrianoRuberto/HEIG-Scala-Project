@@ -4,7 +4,7 @@ import engine.entity.Entity
 import engine.entity.feature.AbsolutePosition
 import engine.geometry.Rectangle
 import engine.utils.Layer
-import game.skeleton.concrete.{CharacterSkeleton, SpellSkeleton}
+import game.skeleton.core.{CharacterSkeleton, SpellSkeleton}
 import game.spells.icons.SpellIcon
 
 class PlayerSpells (x: Double, y: Double,

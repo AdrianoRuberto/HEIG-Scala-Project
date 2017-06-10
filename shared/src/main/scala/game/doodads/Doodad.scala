@@ -27,6 +27,7 @@ object Doodad {
 	object Hud {
 		@pickle case class KothStatus(skeleton: UID) extends Doodad
 		@pickle case class DeathScreen(duration: Double) extends Doodad
+		@pickle case class Overtime(skeleton: UID) extends Doodad
 		@pickle case class VictoryScreen(msg: String, color: String) extends Doodad
 	}
 

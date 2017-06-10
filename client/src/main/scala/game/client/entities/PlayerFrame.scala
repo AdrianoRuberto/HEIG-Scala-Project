@@ -5,7 +5,7 @@ import engine.entity.Entity
 import engine.entity.feature.AbsolutePosition
 import engine.geometry.Rectangle
 import engine.utils.Layer
-import game.skeleton.concrete.CharacterSkeleton
+import game.skeleton.core.CharacterSkeleton
 
 class PlayerFrame (x: Double, y: Double, skeleton: CharacterSkeleton) extends Entity with AbsolutePosition {
 	val layer: Layer = Layer.Interface

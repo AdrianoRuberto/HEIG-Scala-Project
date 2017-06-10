@@ -1,5 +1,6 @@
 package engine.geometry
 
+import java.lang.Math._
 import macros.pickle
 
 @pickle
@@ -24,7 +25,16 @@ final case class Triangle(ax: Double, ay: Double,
 	lazy val AC: Vector2D = C - A
 	lazy val BC: Vector2D = C - B
 
-	def contains(point: Vector2D): Boolean = ???
+	def contains(point: Vector2D): Boolean = {
+		val a = A - point
+		val b = B - point
+		val c = C - point
+		val α = a ^ b
+		val β = b ^ c
+		val γ = c ^ a
+		abs(α + β + γ - PI) <= 0.01
+	}
+
 	def contains(shape: Shape): Boolean = ???
 
 	def intersect(shape: Shape): Boolean = shape match {
@@ -33,7 +43,7 @@ final case class Triangle(ax: Double, ay: Double,
 	}
 
 	def translate(dx: Double, dy: Double): Triangle = Triangle(ax + dx, ay + dy, bx + dx, by + dy, cx + dx, cy + dy)
-	def scale(k: Double): Triangle = Triangle(ax * k, ay * k, bx * k, by * k, cx *k, cy *k)
+	def scale(k: Double): Triangle = Triangle(ax * k, ay * k, bx * k, by * k, cx * k, cy * k)
 }
 
 object Triangle {

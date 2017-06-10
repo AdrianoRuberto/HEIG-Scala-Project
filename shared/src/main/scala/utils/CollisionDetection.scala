@@ -1,30 +1,29 @@
-package engine.utils
+package utils
 
 import engine.geometry._
 import java.lang.Math._
 
 object CollisionDetection {
-
 	def collide(x: Double, y: Double, dx: Double, dy: Double, walls: Iterable[Shape]): Vector2D = {
 		val path = Segment(x, y, dx, dy)
-		val candidates = walls.filter(_.boundingBox intersect path.boundingBox)
-		val intersections = candidates.flatMap(collide(path, _))
+		val candidates = walls.filter(w => !(w contains path.A)).filter(w => w.boundingBox intersect path.boundingBox)
+		val intersections = candidates.flatMap(intersect(path))
 
-		if (intersections.nonEmpty) {
-			val point = intersections.minBy(_ <-> path.A)
-			point - path.AB.normalized
-		} else Vector2D(dx, dy)
+		if (intersections.isEmpty) Vector2D(dx, dy)
+		else intersections.minBy(_ <-> path.A) - path.AB.normalized
 	}
 
-	private def collide(path: Segment, wall: Shape): List[Vector2D] = wall match {
-		case c: Circle =>
+	private def intersect(path: Segment)(wall: Shape): List[Vector2D] = wall match {
+		case c: Circle => // TODO: fixme
 			val centerRej = -((c.center - path.A) reject path.AB)
 			val squaredRadius = c.radius * c.radius
 			val squaredNorm = centerRej dot centerRej
-			if (squaredNorm <= squaredRadius) {
+
+			if (squaredNorm > squaredRadius) Nil
+			else {
 				val u = path.AB.normalized * sqrt(squaredRadius - squaredNorm)
 				List(c.center + centerRej + u, c.center + centerRej - u)
-			} else Nil
+			}
 
 		case s: Segment =>
 			val t = ((s.A - path.A) cross s.AB) / (path.AB cross s.AB)
@@ -37,13 +36,12 @@ object CollisionDetection {
 				Segment(x + width, y, x + width, y + height),
 				Segment(x, y + height, x + width, y + height),
 				Segment(x, y, x, y + height))
-			sides.flatMap(collide(path, _))
+			sides.flatMap(intersect(path))
 
 		case t: Triangle =>
 			val sides = List(Segment(t.A, t.B), Segment(t.A, t.C), Segment(t.B, t.C))
-			sides.flatMap(collide(path, _))
+			sides.flatMap(intersect(path))
 
 		case _ => Nil
 	}
-
 }

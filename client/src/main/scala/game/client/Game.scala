@@ -7,7 +7,7 @@ import game.client.entities.{Character, DebugStats, Player, PlayerFrame, PlayerS
 import game.doodads.DoodadFactory
 import game.protocol.ServerMessage._
 import game.protocol.{ClientMessage, ServerMessage}
-import game.skeleton.concrete.{CharacterSkeleton, SpellSkeleton}
+import game.skeleton.core.{CharacterSkeleton, SpellSkeleton}
 import game.skeleton.{AbstractSkeleton, SkeletonManager}
 import game.{TeamInfo, UID}
 import org.scalajs.dom

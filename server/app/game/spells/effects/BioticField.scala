@@ -3,6 +3,7 @@ package game.spells.effects
 import engine.geometry.Circle
 import game.UID
 import game.doodads.Doodad
+import game.spells.effects.base.{SpellContext, SpellEffect, SpellEffectInstance}
 import utils.Color
 
 object BioticField extends SpellEffect {

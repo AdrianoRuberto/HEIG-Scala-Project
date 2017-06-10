@@ -31,8 +31,8 @@ object DoodadInstance {
 		  */
 		def withSkeleton[T <: AbstractSkeleton](skeleton: T): Dynamic[T] = new Dynamic[T](uid, skeleton) {
 			def remove(): Unit = {
-				skeleton.collect()
 				Static.this.remove()
+				skeleton.collect()
 			}
 		}
 	}

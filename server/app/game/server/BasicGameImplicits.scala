@@ -6,9 +6,10 @@ import game.UID
 import game.protocol.ServerMessage
 import game.server.BasicGameImplicits.{CameraApi, EngineApi, UIDApi}
 import game.skeleton.Skeleton
-import game.skeleton.concrete.{CharacterSkeleton, SpellSkeleton}
+import game.skeleton.core.{CharacterSkeleton, SpellSkeleton}
 import game.spells.Spell
 import scala.language.implicitConversions
+import utils.Color
 
 trait BasicGameImplicits { game: BasicGame =>
 	/** Implicit reference to self */
@@ -33,7 +34,7 @@ trait BasicGameImplicits { game: BasicGame =>
 		def actor: ActorRef = game.playersFromUID(uid).actor
 		def team: UID = game.teamForPlayer(uid)
 
-		def color: String = {
+		def color: Color = {
 			skeletons.get(uid).map(_.color.value).orElse(teamsColor.get(uid)) match {
 				case Some(c) => c
 				case None => throw new IllegalArgumentException(s"Cannot determine color for UID: $uid")

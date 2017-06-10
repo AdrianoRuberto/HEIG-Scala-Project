@@ -5,7 +5,7 @@ import engine.entity.Entity
 import engine.entity.feature.Updatable
 import engine.geometry.Rectangle
 import engine.utils.Layer
-import game.skeleton.concrete.CharacterSkeleton
+import game.skeleton.core.CharacterSkeleton
 
 class Character(val skeleton: CharacterSkeleton, sublayer: Int = 0) extends Entity with Updatable {
 	children += new Nameplate(this)
@@ -51,7 +51,7 @@ class Character(val skeleton: CharacterSkeleton, sublayer: Int = 0) extends Enti
 		ctx.fillStyle = "#eee"
 		ctx.fillRect(0, 0, 30, 30)
 
-		ctx.fillStyle = skeleton.color.value
+		ctx.fillStyle = skeleton.color.value.toString
 		ctx.fillRect(0, 30, 30, - 30 * skeleton.health.percent)
 
 		ctx.strokeStyle = "black"

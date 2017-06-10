@@ -10,7 +10,7 @@ import game.spells.Spell
 import utils.Color
 
 class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with StandardDeathBehavior {
-	private val map = GameMap.Illios
+	private val map = GameMap.Nepal
 
 	loadMap(map)
 	setDefaultTeamColors()
@@ -22,6 +22,7 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 	// Game constants
 	private final val CapturePerSecond = 20.0
 	private final val ProgressPerSecond = 1.0
+	private final val OvertimeGrace = 3000.0
 
 	// Base spells
 	for (player <- players) {
@@ -37,7 +38,7 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 	status.teamB.value = teamB
 
 	// Capture Area
-	private val captureArea = Rectangle(-145, 355, 290, 290)
+	private val captureArea = Rectangle(-170, -150, 340, 320)
 	createRegion(captureArea, enterArea, leaveArea)
 
 	private var playerFromAOnPoint = 0
@@ -66,6 +67,13 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 
 	private var lastAOnPoint = 0.0
 	private var lastBOnPoint = 0.0
+	private var overtimeStatus = 0
+	private var overtimeCreated = false
+
+	private lazy val overtime = {
+		overtimeCreated = true
+		createDynamicDoodad(Doodad.Hud.Overtime, Skeleton.Overtime)
+	}
 
 	// Area implementation
 	private val areaTicker = createTicker { dt =>
@@ -105,20 +113,55 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 			status.controlling.value = teamA
 			area.fillColor.value = Color(119, 119, 255, 0.1)
 			area.strokeColor.value = Color(119, 119, 255, 0.8)
-			status.progressA.interpolateAtSpeed(100, ProgressPerSecond)
+			status.progressA.interpolateAtSpeed(99.9, ProgressPerSecond)
 			status.progressB.stop()
 		} else if (captureValue == -100 && controlling != teamB) {
 			// Team B took the point
 			status.controlling.value = teamB
 			area.fillColor.value = Color(255, 85, 85, 0.1)
 			area.strokeColor.value = Color(255, 85, 85, 0.8)
-			status.progressB.interpolateAtSpeed(100, ProgressPerSecond)
+			status.progressB.interpolateAtSpeed(99.9, ProgressPerSecond)
 			status.progressA.stop()
 		}
 
 		// Win condition
-		if (status.progressA.current >= 100) win(teamA)
-		else if (status.progressB.current >= 100) win(teamB)
+		val controllingNow = status.controlling.value
+		if (status.progressA.current >= 99.9 && controllingNow == teamA) {
+			if (playerFromBOnPoint == 0 && time - lastBOnPoint > OvertimeGrace) {
+				status.progressA.value = 100
+				win(teamA)
+			} else {
+				overtime.enabled.value = true
+				if (playerFromBOnPoint == 0) {
+					if (overtimeStatus != 1) {
+						overtime.left.interpolate(0, lastBOnPoint + OvertimeGrace - time)
+						overtimeStatus = 1
+					}
+				} else if (overtimeStatus != 2) {
+					overtime.left.value = 100
+					overtimeStatus = 2
+				}
+			}
+		} else if (status.progressB.current >= 99.9 && controllingNow == teamB) {
+			if (playerFromAOnPoint == 0 && time - lastAOnPoint > OvertimeGrace) {
+				status.progressB.value = 100
+				win(teamB)
+			} else {
+				overtime.enabled.value = true
+				if (playerFromAOnPoint == 0) {
+					if (overtimeStatus != 1) {
+						overtime.left.interpolate(0, lastAOnPoint + OvertimeGrace - time)
+						overtimeStatus = 1
+					}
+				} else if (overtimeStatus != 2) {
+					overtime.left.value = 100
+					overtimeStatus = 2
+				}
+			}
+		} else {
+			overtimeStatus = 0
+			if (overtimeCreated) overtime.enabled.value = false
+		}
 	}
 
 	// Win handler
@@ -126,7 +169,7 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 		areaTicker.remove()
 		players.engine.disableInputs()
 
-		// Diplay victory screen
+		// Display victory screen
 		createDoodad(Doodad.Hud.VictoryScreen(
 			if (team == teamA) "Blue team wins!" else "Red team wins!",
 			if (team == teamA) "rgb(119, 119, 255)" else "rgb(255, 85, 85)"
@@ -135,8 +178,6 @@ class TwistingNetherGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 		// Schedule termination 5 sec later
 		schedule(5000)(terminate())
 	}
-
-	def start(): Unit = ()
 
 	// DEBUG
 	/*private var points = Map.empty[UID, PointSkeleton]

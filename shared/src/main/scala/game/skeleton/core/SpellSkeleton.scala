@@ -1,4 +1,4 @@
-package game.skeleton.concrete
+package game.skeleton.core
 
 import game.UID
 import game.skeleton.node.{CooldownNode, SimpleNode}

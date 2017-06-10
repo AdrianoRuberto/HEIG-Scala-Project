@@ -1,6 +1,7 @@
 package game.spells.effects
 
 import game.doodads.Doodad
+import game.spells.effects.base.{SpellContext, SpellEffect, SpellEffectInstance}
 import java.lang.Math._
 
 object Sword extends SpellEffect {

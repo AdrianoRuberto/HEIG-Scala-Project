@@ -6,7 +6,7 @@ import game.server.GameBuilder
 
 object TwistingNetherBuilder extends GameBuilder.Standard(
 	mode = GameMode.TwistingNether,
-	spots = _ => 2,
+	spots = GameBuilder.defaultSpots,
 	game = teams => Props(new TwistingNetherGame(teams)),
 	bot = name => Props(new TwistingNetherBot(name)),
 	warmupTime = _ => 4
