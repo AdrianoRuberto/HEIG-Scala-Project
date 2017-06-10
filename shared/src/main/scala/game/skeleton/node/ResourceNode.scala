@@ -11,7 +11,7 @@ class ResourceNode (private var maxValue: Double, private var regenRate: Double 
 	def percent: Double = current / max
 
 	def value: Double = res.value
-	def value_= (newValue: Double) = {
+	def value_= (newValue: Double): Unit = {
 		res.value = newValue
 		if (rate != 0) setupInterpolation()
 	}

@@ -9,7 +9,7 @@ class TwistingNetherBot(name: String) extends BasicBot(name: String) {
 	var status: KothStatusSkeleton = null
 
 	override def tick(dt: Double): Unit = {
-		log(status.capture.current)
+		//log(status.capture.current)
 	}
 
 	var dest: Vector2D = Vector2D(0, 500)
