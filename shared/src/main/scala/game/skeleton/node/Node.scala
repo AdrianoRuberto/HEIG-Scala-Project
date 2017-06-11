@@ -28,12 +28,12 @@ abstract class Node[E <: NodeEvent](implicit val skeleton: AbstractSkeleton) {
 	@inline protected final def shouldSend: Boolean = skeleton.remotes.nonEmpty
 
 	/** Transmits an event to the client-side version of this node. */
-	@inline protected final def send(event: E): Unit = {
+	@inline protected final def send(event: E): Unit = if (!skeleton.collected) {
 		for (remote <- skeleton.remotes) remote send ManagerEvent.NotifyNode(skeleton.uid, nid, currentSerial, event)
 	}
 
 	/** Transmits an event to the client-side version of this node with latency awareness. */
-	@inline protected final def sendLatencyAware(f: Double => E): Unit = {
+	@inline protected final def sendLatencyAware(f: Double => E): Unit = if (!skeleton.collected) {
 		for (remote <- skeleton.remotes) {
 			remote sendLatencyAware (latency => ManagerEvent.NotifyNode(skeleton.uid, nid, currentSerial, f(latency)))
 		}

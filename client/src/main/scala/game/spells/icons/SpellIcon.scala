@@ -6,13 +6,10 @@ import game.spells.Spell
 import game.spells.icons.SpellIcon._
 
 trait SpellIcon {
-	final def draw(ctx: CanvasCtx, player: CharacterSkeleton, skeleton: SpellSkeleton): Unit = {
-		val activated = skeleton.activated.value
-		val ready = skeleton.cooldown.ready
-		val available = skeleton.spell.value.cost.forall(player.energy.current >= _)
-
-		ctx.translate(2, 2)
-		if (!activated) {
+	final def draw(ctx: CanvasCtx, activated: Boolean = false, available: Boolean = true, ready: Boolean = true,
+	               progress: Double = 0.0, shadow: Boolean = true): Unit = {
+		if (shadow) ctx.translate(2, 2)
+		if (!activated && shadow) {
 			ctx.beginPath()
 			ctx.fillStyle = "rgba(17, 17, 17, 0.2)"
 			drawButton(ctx)
@@ -31,7 +28,7 @@ trait SpellIcon {
 			ctx.save()
 			ctx.clip()
 			ctx.fillStyle = "rgba(17, 17, 17, 0.5)"
-			ctx.fillRect(0, 0, 60, 60 * (1 - skeleton.cooldown.progress))
+			ctx.fillRect(0, 0, 60, 60 * (1 - progress))
 			ctx.restore()
 		}
 		ctx.strokeStyle = "rgba(17, 17, 17, 0.3)"
@@ -43,6 +40,16 @@ trait SpellIcon {
 		ctx.fill()
 
 		if (activated) ctx.translate(-2, -2)
+	}
+
+	final def draw(ctx: CanvasCtx, player: CharacterSkeleton, skeleton: SpellSkeleton): Unit = {
+		draw(
+			ctx,
+			activated = skeleton.activated.value,
+			available = skeleton.spell.value.cost.forall(player.energy.current >= _),
+			ready = skeleton.cooldown.ready,
+			progress = skeleton.cooldown.progress
+		)
 	}
 
 	private def drawButton(ctx: CanvasCtx): Unit = {
@@ -65,6 +72,7 @@ object SpellIcon {
 	final val buttonRadius = 10
 
 	def forSpell(spell: Spell): SpellIcon = spell match {
+		case Spell.DropTheFlag => DropTheFlag
 		case Spell.Sprint => Sprint
 		case Spell.Sword => Sword
 		case Spell.BioticField => BioticField

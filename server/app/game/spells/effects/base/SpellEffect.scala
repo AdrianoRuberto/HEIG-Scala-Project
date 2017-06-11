@@ -2,7 +2,7 @@ package game.spells.effects.base
 
 import game.UID
 import game.spells.Spell
-import game.spells.effects.{BioticField, Flagellation, Sprint, Sword}
+import game.spells.effects._
 
 abstract class SpellEffect {
 	private[base] var instances: Map[UID, SpellEffectInstance] = Map.empty
@@ -44,10 +44,13 @@ abstract class SpellEffect {
 	final def cancel(ctx: SpellContext): Unit = {
 		for (instance <- instances.get(ctx.initiator)) instance.cancel()
 	}
+
+	def removeInstance(uid: UID): Unit = instances -= uid
 }
 
 object SpellEffect {
 	def forSpell(spell: Spell): SpellEffect = spell match {
+		case Spell.DropTheFlag => DropTheFlag
 		case Spell.Sprint => Sprint
 		case Spell.Sword => Sword
 		case Spell.BioticField => BioticField

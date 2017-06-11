@@ -13,6 +13,8 @@ abstract class AbstractSkeleton(tpe: Skeleton[_ <: AbstractSkeleton]) {
 	val uid: UID
 	val remotes: Iterable[RemoteManagerAgent]
 
+	private[skeleton] var collected = false
+
 	/** Implicit reference to this skeleton */
 	protected implicit val self: this.type = this
 
@@ -38,6 +40,7 @@ abstract class AbstractSkeleton(tpe: Skeleton[_ <: AbstractSkeleton]) {
 	}
 
 	def collect(): Unit = {
+		collected = true
 		for (remote <- remotes) remote send ManagerEvent.CollectSkeleton(uid)
 	}
 }

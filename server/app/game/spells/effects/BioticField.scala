@@ -16,8 +16,8 @@ object BioticField extends SpellEffect {
 
 		/** Trigger region */
 		private val region = game.createRegion(area, enter, exit, filter = _ friendly initiator)
-		private def enter(uid: UID): Unit = uid.skeleton.health.rate += 40
-		private def exit(uid: UID): Unit = uid.skeleton.health.rate -= 40
+		private def enter(uid: UID): Unit = uid.skeleton.health.rate += 25
+		private def exit(uid: UID): Unit = uid.skeleton.health.rate -= 25
 
 		/** Visual doodad */
 		private val visual = game.createDoodad(Doodad.Area.StaticArea(

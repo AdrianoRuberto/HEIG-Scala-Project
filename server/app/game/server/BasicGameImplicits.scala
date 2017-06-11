@@ -8,6 +8,7 @@ import game.server.BasicGameImplicits.{CameraApi, EngineApi, UIDApi}
 import game.skeleton.Skeleton
 import game.skeleton.core.{CharacterSkeleton, SpellSkeleton}
 import game.spells.Spell
+import game.spells.effects.base.SpellEffect
 import scala.language.implicitConversions
 import utils.Color
 
@@ -53,9 +54,12 @@ trait BasicGameImplicits { game: BasicGame =>
 		}
 
 		def loseSpell(slot: Int): Unit = {
-			for (skeleton <- spells(slot)) skeleton.collect()
-			spells(slot) = None
 			uid ! ServerMessage.LoseSpell(slot)
+			for (skeleton <- spells(slot)) {
+				SpellEffect.forSpell(skeleton.spell.value).removeInstance(skeleton.uid)
+				skeleton.collect()
+			}
+			spells(slot) = None
 		}
 
 		object engine extends EngineApi {

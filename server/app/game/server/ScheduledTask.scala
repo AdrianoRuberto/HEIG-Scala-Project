@@ -19,5 +19,5 @@ case class ScheduledTask (time: Double, action: () => Unit) {
 
 object ScheduledTask {
 	/** Ordering of [[ScheduledTask]] based on their scheduled time of execution */
-	implicit val ordering: Ordering[ScheduledTask] = Ordering.by(_.time)
+	implicit val ordering: Ordering[ScheduledTask] = Ordering.by(-_.time)
 }

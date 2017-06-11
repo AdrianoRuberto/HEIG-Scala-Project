@@ -2,44 +2,44 @@ package game.skeleton.node
 
 import game.skeleton.AbstractSkeleton
 
-class ResourceNode (private var maxValue: Double, private var regenRate: Double = 0.0)
+class ResourceNode (private var initialMax: Double, private var initialRegen: Double = 0.0)
                    (implicit skeleton: AbstractSkeleton) {
-	protected val res = InterpolatedNode(maxValue)
-	protected var rateInterpolated = false
 
-	def current: Double = res.current
-	def percent: Double = current / max
+	private val maxAmount = SimpleNode(initialMax)
+	private val regenRate = SimpleNode(initialRegen)
+	private val currentAmount = InterpolatedNode(initialMax)
+	private var rateInterpolated = false
 
-	def value: Double = res.value
-	def value_= (newValue: Double): Unit = {
-		res.value = newValue
-		if (rate != 0) setupInterpolation()
-	}
-
-	def max: Double = maxValue
-
+	def max: Double = maxAmount.value
 	def max_= (newMax: Double): Unit = {
-		val base = if (rateInterpolated) res.current else res.value
-		maxValue = newMax
-		res.value = base / max * newMax
+		val ratio = value / max
+		maxAmount.value = newMax
+		currentAmount.value = ratio * max
 		setupInterpolation()
 	}
 
-	def rate: Double = regenRate
+	def value: Double = if (rateInterpolated) current else currentAmount.value
+	def value_= (newValue: Double): Unit = {
+		currentAmount.value = newValue
+		setupInterpolation()
+	}
 
-	def rate_= (newRate: Double): Unit = {
-		regenRate = newRate
+	def current: Double = currentAmount.current
+	def percent: Double = current / max
+
+	def rate: Double = regenRate.value
+	def rate_= (rate: Double): Unit = {
+		regenRate.value = rate
 		setupInterpolation()
 	}
 
 	def consume(amount: Double): Unit = {
-		val base = if (rateInterpolated) res.current else res.value
-		val updated = (base - amount) min maxValue max 0.0
+		val updated = 0.0 max (value - amount) min maxAmount.value
 		if (rate != 0) {
-			res.value = updated
+			currentAmount.value = updated
 			setupInterpolation()
 		} else {
-			res.interpolate(updated, 200)
+			currentAmount.interpolate(updated, 200)
 			rateInterpolated = false
 		}
 	}
@@ -49,22 +49,22 @@ class ResourceNode (private var maxValue: Double, private var regenRate: Double 
 	@inline final def += (amount: Double): Unit = energize(amount)
 	@inline final def -= (amount: Double): Unit = consume(amount)
 
-	protected def setupInterpolation(): Unit = {
-		if (regenRate > 0) {
-			res.interpolateAtSpeed(maxValue, regenRate)
+	private def setupInterpolation(): Unit = {
+		if (rate > 0) {
+			currentAmount.interpolateAtSpeed(max, rate)
 			rateInterpolated = true
-		} else if (regenRate < 0) {
-			res.interpolateAtSpeed(0.0, regenRate)
+		} else if (rate < 0) {
+			currentAmount.interpolateAtSpeed(0.0, rate)
 			rateInterpolated = true
 		} else {
-			res.stop()
+			currentAmount.stop()
 			rateInterpolated = false
 		}
 	}
 }
 
 object ResourceNode {
-	def apply(maxValue: Double, regenRate: Double = 0.0)(implicit skeleton: AbstractSkeleton): ResourceNode = {
-		new ResourceNode(maxValue, regenRate)
+	def apply(initialMax: Double, initialRegen: Double = 0.0)(implicit skeleton: AbstractSkeleton): ResourceNode = {
+		new ResourceNode(initialMax, initialRegen)
 	}
 }

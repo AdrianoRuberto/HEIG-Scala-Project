@@ -2,7 +2,7 @@ package game.skeleton
 
 import game.UID
 import game.doodads.area.DynamicAreaSkeleton
-import game.doodads.hud.{KothStatusSkeleton, OvertimeSkeleton}
+import game.doodads.hud.{CtfStatusSkeleton, KothStatusSkeleton, OvertimeSkeleton}
 import game.skeleton.core._
 import macros.pickle
 
@@ -13,6 +13,7 @@ import macros.pickle
 
 object Skeleton {
 	@pickle case object Character extends Skeleton(CharacterSkeleton)
+	@pickle case object CtfStatus extends Skeleton(CtfStatusSkeleton)
 	@pickle case object DynamicArea extends Skeleton(DynamicAreaSkeleton)
 	@pickle case object KothStatus extends Skeleton(KothStatusSkeleton)
 	@pickle case object Overtime extends Skeleton(OvertimeSkeleton)

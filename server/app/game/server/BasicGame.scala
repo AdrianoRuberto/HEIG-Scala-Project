@@ -294,6 +294,9 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	/** Terminates the game, stopping every related actors and closing sockets */
 	def terminate(): Unit = context.parent ! Watcher.Terminate
 
+	/** Terminates after `delay` milliseconds */
+	def terminate(delay: Double): Unit = schedule(delay)(terminate())
+
 	// --------------------------------
 	// Internal API
 	// --------------------------------

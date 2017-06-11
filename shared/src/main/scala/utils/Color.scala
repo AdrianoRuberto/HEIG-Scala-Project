@@ -13,6 +13,9 @@ final class Color private (val red: Int, val green: Int, val blue: Int, val alph
 		val b = blue & 0xFF
 		a | r | g | b
 	}
+
+	@inline def copy(red: Int = this.red, green: Int = this.green, blue: Int = this.blue,
+	                 alpha: Double = this.alpha): Color = Color(red, green, blue, alpha)
 }
 
 object Color {
@@ -41,4 +44,6 @@ object Color {
 	}
 
 	implicit val ColorPickler: Pickler[Color] = transformPickler((v: Int) => Color(v))(_.value)
+
+	val black = Color(0, 0, 0)
 }

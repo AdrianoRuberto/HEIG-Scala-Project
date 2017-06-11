@@ -1,6 +1,6 @@
 package game.doodads
 
-import engine.geometry.Shape
+import engine.geometry.{Shape, Vector2D}
 import game.UID
 import macros.pickle
 import utils.Color
@@ -25,6 +25,7 @@ object Doodad {
 	}
 
 	object Hud {
+		@pickle case class CtfStatus(skeleton: UID) extends Doodad
 		@pickle case class KothStatus(skeleton: UID) extends Doodad
 		@pickle case class DeathScreen(duration: Double) extends Doodad
 		@pickle case class Overtime(skeleton: UID) extends Doodad
@@ -33,5 +34,6 @@ object Doodad {
 
 	object Spell {
 		@pickle case class Sword(x: Double, y: Double, angle: Double) extends Doodad
+		@pickle case class Flag(location: Vector2D, holder: Option[UID], color: Color) extends Doodad
 	}
 }
