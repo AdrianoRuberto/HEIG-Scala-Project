@@ -1,7 +1,5 @@
 package engine.geometry
 
-import boopickle.Default._
-
 trait Shape {
 	def boundingBox: Rectangle
 
@@ -13,15 +11,4 @@ trait Shape {
 
 	def translate(dx: Double, dy: Double): Shape
 	def scale(k: Double): Shape
-
-	def colored(color: String): ColoredShape = ColoredShape(this, color)
-}
-
-object Shape {
-	implicit val pickler: Pickler[Shape] =
-		compositePickler[Shape]
-			.addConcreteType[Segment]
-			.addConcreteType[Triangle]
-			.addConcreteType[Rectangle]
-			.addConcreteType[Circle]
 }

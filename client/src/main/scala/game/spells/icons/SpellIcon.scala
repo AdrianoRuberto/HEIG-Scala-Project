@@ -1,7 +1,7 @@
 package game.spells.icons
 
 import engine.CanvasCtx
-import game.skeleton.concrete.{CharacterSkeleton, SpellSkeleton}
+import game.skeleton.core.{CharacterSkeleton, SpellSkeleton}
 import game.spells.Spell
 import game.spells.icons.SpellIcon._
 

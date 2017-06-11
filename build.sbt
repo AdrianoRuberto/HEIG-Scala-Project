@@ -1,8 +1,8 @@
-name := """HEIG-Scala-Project"""
+name := """underwatch"""
 version := "1.0-SNAPSHOT"
-crossPaths := false
 
-val scalaV = "2.11.11"
+scalaVersion in ThisBuild := "2.11.11"
+crossPaths in ThisBuild := false
 
 lazy val scalaOpts = Seq(
 	//"-Xlog-implicits",
@@ -14,9 +14,17 @@ lazy val scalaOpts = Seq(
 	"-language:higherKinds"
 )
 
+lazy val metaMacroSettings: Seq[Def.Setting[_]] = Seq(
+	resolvers += Resolver.sonatypeRepo("releases"),
+	resolvers += Resolver.bintrayRepo("scalameta", "maven"),
+	addCompilerPlugin("org.scalameta" % "paradise" % "3.0.0-M9" cross CrossVersion.full),
+	scalacOptions += "-Xplugin-require:macroparadise",
+	scalacOptions in (Compile, console) := Seq()
+)
+
 lazy val server = (project in file("server"))
 	.settings(
-		scalaVersion := scalaV,
+		metaMacroSettings,
 		scalacOptions ++= scalaOpts,
 		scalaJSProjects := Seq(client),
 		pipelineStages in Assets := Seq(scalaJSPipeline),
@@ -33,34 +41,40 @@ lazy val server = (project in file("server"))
 		includeFilter in gzip := "*.css" || "*.js"
 	)
 	.enablePlugins(PlayScala)
-	.dependsOn(sharedJvm)
+	.dependsOn(sharedJvm, macros)
 
 lazy val client = (project in file("client"))
 	.settings(
-		scalaVersion := scalaV,
+		metaMacroSettings,
 		scalacOptions ++= scalaOpts,
 		scalaJSUseMainModuleInitializer := true,
-		crossPaths := false,
 		libraryDependencies ++= Seq(
 			"org.scala-js" %%% "scalajs-dom" % "0.9.2",
 			"me.chrons" %%% "boopickle" % "1.2.5"
 		)
 	)
 	.enablePlugins(ScalaJSPlugin, ScalaJSWeb)
-	.dependsOn(sharedJs)
+	.dependsOn(sharedJs, macros)
 
 lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared"))
 	.settings(
-		scalaVersion := scalaV,
+		name := "shared",
+		metaMacroSettings,
 		scalacOptions ++= scalaOpts,
-		crossPaths := false,
 		libraryDependencies ++= Seq(
 			"me.chrons" %%% "boopickle" % "1.2.5"
 		)
 	)
-	.jvmSettings()
-	.jsSettings()
 	.jsConfigure(_ enablePlugins ScalaJSWeb)
+	.jsConfigure(_ dependsOn macros)
+	.jvmConfigure(_ dependsOn macros)
+
+lazy val macros = (project in file("macros"))
+	.settings(
+		metaMacroSettings,
+		libraryDependencies += "org.scalameta" %% "scalameta" % "1.8.0",
+		libraryDependencies += "org.scalameta" %% "contrib" % "1.8.0"
+	)
 
 lazy val sharedJvm = shared.jvm
 lazy val sharedJs = shared.js

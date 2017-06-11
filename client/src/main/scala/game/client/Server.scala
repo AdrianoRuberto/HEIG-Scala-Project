@@ -1,6 +1,7 @@
 package game.client
 
-import boopickle.DefaultBasic._
+import boopickle.DefaultBasic.{Pickle, Unpickle}
+import boopickle._
 import game.protocol.ServerMessage.Severity
 import game.protocol.{ClientMessage, ServerMessage, SystemMessage}
 import java.nio.ByteBuffer
@@ -27,6 +28,7 @@ object Server {
 		socket.on(Event.Error)(socketClosed)
 		socket.on(Event.Message) { event =>
 			val buffer = TypedArrayBuffer.wrap(event.data.asInstanceOf[ArrayBuffer])
+			implicit val unpickleState = (bb: ByteBuffer) => new UnpickleState(new DecoderSize(bb), false, false)
 			val message = Unpickle[ServerMessage].fromBytes(buffer)
 			if (latencyEmulation) js.timers.setTimeout(100)(handleMessage(message))
 			else handleMessage(message)
@@ -44,6 +46,7 @@ object Server {
 	def ! (message: ClientMessage): Unit = {
 		//require(socket != null, "Attempted to send message to server while not connected")
 		if (verbose && !message.isInstanceOf[SystemMessage]) dom.console.log(">>", message.toString)
+		implicit def pickleState = new PickleState(new EncoderSize, false, false)
 		val buffer = Pickle.intoBytes(message).toArrayBuffer
 		if (latencyEmulation) js.timers.setTimeout(100)(socket.send(buffer))
 		else socket.send(buffer)

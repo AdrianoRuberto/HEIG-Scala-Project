@@ -1,9 +1,5 @@
 package game
 
-import boopickle.DefaultBasic._
+import macros.pickle
 
-case class TeamInfo(uid: UID, name: String, players: Seq[PlayerInfo])
-
-object TeamInfo {
-	implicit val pickler: Pickler[TeamInfo] = PicklerGenerator.generatePickler[TeamInfo]
-}
+@pickle case class TeamInfo(uid: UID, name: String, players: Seq[PlayerInfo])

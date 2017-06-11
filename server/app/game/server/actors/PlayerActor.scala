@@ -3,7 +3,8 @@ package game.server.actors
 import akka.actor.{Actor, ActorRef}
 import akka.dispatch.{ControlMessage, RequiresMessageQueue, UnboundedControlAwareMailbox}
 import akka.stream.scaladsl.SourceQueue
-import boopickle.DefaultBasic._
+import boopickle.DefaultBasic.{Pickle, Unpickle}
+import boopickle._
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
 import com.google.inject.name.Named
@@ -16,7 +17,7 @@ import utils.Debug
 
 class PlayerActor @Inject() (@Assisted queue: SourceQueue[Array[Byte]], @Assisted queueSize: Int)
                             (@Named("matchmaker") mm: ActorRef)
-		extends Actor with RequiresMessageQueue[UnboundedControlAwareMailbox] {
+	extends Actor with RequiresMessageQueue[UnboundedControlAwareMailbox] {
 	import context._
 
 	/** The game actor */
@@ -46,9 +47,11 @@ class PlayerActor @Inject() (@Assisted queue: SourceQueue[Array[Byte]], @Assiste
 
 		def send(msg: ServerMessage): Unit = {
 			pending += 1
+			implicit def pickleState = new PickleState(new EncoderSize, false, false)
 			val bytes = Pickle.intoBytes(msg)
 			val array = new Array[Byte](bytes.remaining)
 			bytes.get(array)
+			BufferPool.release(bytes)
 			// Offer data to the output queue and wait for confirmation
 			for (_ <- queue.offer(array)) self ! PlayerActor.OfferAck
 		}
@@ -80,6 +83,7 @@ class PlayerActor @Inject() (@Assisted queue: SourceQueue[Array[Byte]], @Assiste
 	}
 
 	private def handleMessage(buffer: Array[Byte]): Unit = {
+		implicit val unpickleState = (bb: ByteBuffer) => new UnpickleState(new DecoderSize(bb), false, false)
 		Unpickle[ClientMessage].fromBytes(ByteBuffer.wrap(buffer)) match {
 			case ClientMessage.Ping(payload) =>
 				pingReceive(payload)

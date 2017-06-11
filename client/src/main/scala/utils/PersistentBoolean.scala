@@ -19,5 +19,5 @@ class PersistentBoolean private (name: String, default: Boolean) {
 
 object PersistentBoolean {
 	def apply(name: String, default: Boolean): PersistentBoolean = new PersistentBoolean(name, default)
-	implicit def toBoolean(pb: PersistentBoolean): Boolean = pb.value
+	@inline implicit def toBoolean(pb: PersistentBoolean): Boolean = pb.value
 }

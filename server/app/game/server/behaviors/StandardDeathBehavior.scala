@@ -15,11 +15,12 @@ trait StandardDeathBehavior extends BasicGame { behavior =>
 			.filter(!_._2.dead.value)
 			.filter(_._2.health.current <= 0)
 			.foreach { case (uid, player) =>
-				val deathScreen = createDoodad(Doodad.Interface.DeathScreen(respawnTimeForPlayer(uid)), uid)
+				val deathScreen = createDoodad(Doodad.Hud.DeathScreen(respawnTimeForPlayer(uid)), uid)
 				val position = respawnLocationForPlayer(uid)
 				val time = respawnTimeForPlayer(uid)
 
 				player.dead.value = true
+				player.health.value = 1
 				player.health.rate = player.health.max / time * 1000
 				uid.engine.disableInputs()
 				uid.camera.move(position.x, position.y)
@@ -31,7 +32,7 @@ trait StandardDeathBehavior extends BasicGame { behavior =>
 					player.health.rate = 0
 					player.health.energize(player.health.max)
 					player.dead.value = false
-					destroyDoodad(deathScreen)
+					deathScreen.remove()
 					uid.engine.enableInputs()
 					uid.camera.followSelf()
 					player.x.value = position.x

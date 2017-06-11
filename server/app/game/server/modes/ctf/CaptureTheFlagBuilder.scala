@@ -8,7 +8,7 @@ import game.server.modes.twistingnether.TwistingNetherGame
 
 object CaptureTheFlagBuilder extends GameBuilder.Standard(
 	mode = GameMode.CaptureTheFlag,
-	spots = _ => 8,
+	spots = GameBuilder.defaultSpots,
 	game = teams => Props(new TwistingNetherGame(teams)),
 	bot = name => Props(new DummyBot(name))
 )

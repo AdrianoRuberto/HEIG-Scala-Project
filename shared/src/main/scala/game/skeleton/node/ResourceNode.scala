@@ -2,13 +2,19 @@ package game.skeleton.node
 
 import game.skeleton.AbstractSkeleton
 
-case class ResourceNode (private var maxValue: Double, private var regenRate: Double = 0.0)
-                        (implicit skeleton: AbstractSkeleton) {
-	private val res = InterpolatedNode(maxValue)
-	private var rateInterpolated = false
+class ResourceNode (private var maxValue: Double, private var regenRate: Double = 0.0)
+                   (implicit skeleton: AbstractSkeleton) {
+	protected val res = InterpolatedNode(maxValue)
+	protected var rateInterpolated = false
 
 	def current: Double = res.current
 	def percent: Double = current / max
+
+	def value: Double = res.value
+	def value_= (newValue: Double): Unit = {
+		res.value = newValue
+		if (rate != 0) setupInterpolation()
+	}
 
 	def max: Double = maxValue
 
@@ -43,7 +49,7 @@ case class ResourceNode (private var maxValue: Double, private var regenRate: Do
 	@inline final def += (amount: Double): Unit = energize(amount)
 	@inline final def -= (amount: Double): Unit = consume(amount)
 
-	private def setupInterpolation(): Unit = {
+	protected def setupInterpolation(): Unit = {
 		if (regenRate > 0) {
 			res.interpolateAtSpeed(maxValue, regenRate)
 			rateInterpolated = true
@@ -54,5 +60,11 @@ case class ResourceNode (private var maxValue: Double, private var regenRate: Do
 			res.stop()
 			rateInterpolated = false
 		}
+	}
+}
+
+object ResourceNode {
+	def apply(maxValue: Double, regenRate: Double = 0.0)(implicit skeleton: AbstractSkeleton): ResourceNode = {
+		new ResourceNode(maxValue, regenRate)
 	}
 }

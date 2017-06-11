@@ -1,11 +1,11 @@
 package game.client.entities
 
 import engine.geometry.{Shape, Vector2D}
-import engine.utils.CollisionDetection
 import game.client.{Game, Server}
 import game.protocol.ClientMessage
-import game.skeleton.concrete.CharacterSkeleton
+import game.skeleton.core.CharacterSkeleton
 import org.scalajs.dom
+import utils.CollisionDetection
 
 class Player (skeleton: CharacterSkeleton, walls: => Iterable[Shape]) extends Character(skeleton, 1) {
 	private var moving = false

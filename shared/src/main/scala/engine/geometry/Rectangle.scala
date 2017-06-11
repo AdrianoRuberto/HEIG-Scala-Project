@@ -1,6 +1,9 @@
 package engine.geometry
 
-final case class Rectangle (x: Double, y: Double, width: Double, height: Double) extends Shape with ConvexPolygon {
+import macros.pickle
+
+@pickle
+case class Rectangle (x: Double, y: Double, width: Double, height: Double) extends Shape with ConvexPolygon {
 	@inline def boundingBox: Rectangle = this
 
 	lazy val A: Vector2D = Vector2D(x, y)

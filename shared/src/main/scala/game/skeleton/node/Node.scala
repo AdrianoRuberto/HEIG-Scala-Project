@@ -1,6 +1,6 @@
 package game.skeleton.node
 
-import game.skeleton.{AbstractSkeleton, ManagerEvent}
+import game.skeleton.{AbstractSkeleton, ManagerEvent, NodeId}
 
 /**
   * A node is a container for some data inside a skeleton.

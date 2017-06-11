@@ -1,62 +1,55 @@
 package game.protocol
 
-import boopickle.Default._
-import engine.geometry.{ColoredShape, Shape}
+import engine.geometry.Shape
 import game.doodads.Doodad
-import game.skeleton.node.NodeId
-import game.skeleton.{ManagerEvent, SkeletonType}
+import game.skeleton.ManagerEvent
 import game.{GameMode, TeamInfo, UID}
+import macros.pickle
 
-sealed trait ServerMessage
+@pickle sealed trait ServerMessage
 
 object ServerMessage {
 	// Core messages
-	case object ServerError extends ServerMessage
-	case object GameEnd extends ServerMessage
-	case class Ping(latency: Double, payload: Long) extends ServerMessage with SystemMessage
-	case class Bundle(messages: Seq[ServerMessage]) extends ServerMessage with SystemMessage
+	@pickle case object ServerError extends ServerMessage
+	@pickle case object GameEnd extends ServerMessage
+	@pickle case class Ping(latency: Double, payload: Long) extends ServerMessage with SystemMessage
+	@pickle case class Bundle(messages: Seq[ServerMessage]) extends ServerMessage with SystemMessage
 
 	// Lobby messages
 	sealed trait LobbyMessage extends ServerMessage
-	case class QueueUpdate(count: Int) extends LobbyMessage
-	case class GameFound(mode: GameMode, team: Seq[TeamInfo], me: UID, warmup: Int) extends LobbyMessage
+	@pickle case class QueueUpdate(count: Int) extends LobbyMessage
+	@pickle case class GameFound(mode: GameMode, team: Seq[TeamInfo], me: UID, warmup: Int) extends LobbyMessage
 
 	// Game messages
 	sealed trait GameMessage extends ServerMessage
-	case object GameStart extends GameMessage
-	case class SkeletonEvent(event: ManagerEvent) extends GameMessage
-	case object EnableInputs extends GameMessage
-	case object DisableInputs extends GameMessage
+	@pickle case object GameStart extends GameMessage
+	@pickle case class SkeletonEvent(event: ManagerEvent) extends GameMessage
+	@pickle case object EnableInputs extends GameMessage
+	@pickle case object DisableInputs extends GameMessage
 
 	// Entities
-	case class InstantiateCharacter(characterUID: UID, skeletonUID: UID) extends GameMessage
-	case class DrawShape(shapeUID: UID, shape: ColoredShape) extends GameMessage
-	case class EraseShape(shapeUID: UID) extends GameMessage
-	case class GainSpell(slot: Int, skeletonUID: UID) extends GameMessage
-	case class LoseSpell(slot: Int) extends GameMessage
-	case class CreateDoodad(uid: UID, doodad: Doodad) extends GameMessage
-	case class DestroyDoodad(uid: UID) extends GameMessage
+	@pickle case class InstantiateCharacter(characterUID: UID, skeletonUID: UID) extends GameMessage
+	@pickle case class CreateWall(uid: UID, shape: Shape) extends GameMessage
+	@pickle case class RemoveWall(uid: UID) extends GameMessage
+	@pickle case class GainSpell(slot: Int, skeletonUID: UID) extends GameMessage
+	@pickle case class LoseSpell(slot: Int) extends GameMessage
+	@pickle case class CreateDoodad(uid: UID, doodad: Doodad) extends GameMessage
+	@pickle case class RemoveDoodad(uid: UID) extends GameMessage
 
 	// Camera
-	case class SetCameraLocation(x: Double, y: Double) extends GameMessage
-	case class SetCameraFollow(characterUID: UID) extends GameMessage
-	case class SetCameraSmoothing(smoothing: Boolean) extends GameMessage
-	case class SetCameraSpeed(pps: Double) extends GameMessage
+	sealed trait CameraMessage extends GameMessage
+	@pickle case class SetCameraLocation(x: Double, y: Double) extends CameraMessage
+	@pickle case class SetCameraFollow(characterUID: UID) extends CameraMessage
+	@pickle case class SetCameraSmoothing(smoothing: Boolean) extends CameraMessage
+	@pickle case class SetCameraSpeed(pps: Double) extends CameraMessage
 
 	// Debug message
-	sealed trait Severity
+	@pickle sealed trait Severity
 	object Severity {
-		case object Verbose extends Severity
-		case object Info extends Severity
-		case object Warn extends Severity
-		case object Error extends Severity
-		implicit val pickler: Pickler[Severity] = generatePickler[Severity]
+		@pickle case object Verbose extends Severity
+		@pickle case object Info extends Severity
+		@pickle case object Warn extends Severity
+		@pickle case object Error extends Severity
 	}
-	case class Debug(severity: Severity, args: Seq[String]) extends ServerMessage with SystemMessage
-
-	private implicit val UIDPickler = UID.pickler
-	private implicit val NodeIdPickler = NodeId.pickler
-	private implicit val ShapePickler =  Shape.pickler
-	private implicit val SkeletonTypePickler = generatePickler[SkeletonType[_]]
-	implicit val pickler: Pickler[ServerMessage] = generatePickler[ServerMessage]
+	@pickle case class Debug(severity: Severity, args: Seq[String]) extends ServerMessage with SystemMessage
 }

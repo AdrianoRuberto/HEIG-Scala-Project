@@ -80,7 +80,7 @@ class InterpolatedNode (private var targetValue: Double)
 	}
 
 	/** Interrupts the interpolation */
-	def stop(): Unit = interpolate(currentValue, 0)
+	def stop(): Unit = interpolate(current, 0)
 
 	/** Receives a event from the server-side instance of this node */
 	def receive(event: NodeEvent.InterpolatedEvent): Unit = event match {
