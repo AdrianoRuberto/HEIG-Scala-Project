@@ -62,7 +62,7 @@ class Keyboard private[engine] (engine: Engine) {
 		states += (code -> state)
 
 		// Dispatch key press if engine is running and not locked
-		if (engine.isRunning && !engine.isLocked) {
+		if (engine.isRunning && (!engine.isLocked || !state)) {
 			var codes = List(code)
 			if (shift) codes = codes ::: codes.map("shift-" + _)
 			if (ctrl) codes = codes ::: codes.map("ctrl-" + _)
