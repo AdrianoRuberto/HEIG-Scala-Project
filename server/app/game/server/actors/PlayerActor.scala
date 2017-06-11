@@ -27,7 +27,7 @@ class PlayerActor @Inject() (@Assisted queue: SourceQueue[Array[Byte]], @Assiste
 	private var buffer: mutable.Buffer[ServerMessage] = mutable.Buffer.empty
 
 	/** Whether there is a queue offer pending */
-	private var pending: Int = 0
+	private var pending: Boolean = false
 
 	/** Latency of this client */
 	private var latency: Double = 0.0
@@ -41,12 +41,12 @@ class PlayerActor @Inject() (@Assisted queue: SourceQueue[Array[Byte]], @Assiste
 	/** Fake actor for handling outgoing messages */
 	private object out {
 		def ! (msg: ServerMessage): Unit = {
-			if (pending < queueSize) send(msg)
+			if (!pending) send(msg)
 			else buffer += msg
 		}
 
 		def send(msg: ServerMessage): Unit = {
-			pending += 1
+			pending = true
 			implicit def pickleState = new PickleState(new EncoderSize, false, false)
 			val bytes = Pickle.intoBytes(msg)
 			val array = new Array[Byte](bytes.remaining)
@@ -57,7 +57,7 @@ class PlayerActor @Inject() (@Assisted queue: SourceQueue[Array[Byte]], @Assiste
 		}
 
 		def ack(): Unit = {
-			pending -= 1
+			pending = false
 			buffer.size match {
 				case 0 => // Buffer is empty! Yeah!
 				case 1 =>

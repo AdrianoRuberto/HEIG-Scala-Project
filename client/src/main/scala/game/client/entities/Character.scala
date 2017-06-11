@@ -43,7 +43,7 @@ class Character(val skeleton: CharacterSkeleton, sublayer: Int = 0) extends Enti
 		}
 	}
 
-	def draw(ctx: CanvasCtx): Unit = {
+	def draw(ctx: CanvasCtx): Unit = if (!skeleton.dead.value) {
 		ctx.translate(15, 15)
 		ctx.rotate(facing - Math.PI / 2)
 		ctx.translate(-15, -15)

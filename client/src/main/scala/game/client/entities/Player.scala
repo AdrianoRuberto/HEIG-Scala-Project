@@ -1,7 +1,7 @@
 package game.client.entities
 
 import engine.geometry.{Shape, Vector2D}
-import game.client.{Game, Server}
+import game.client.Server
 import game.protocol.ClientMessage
 import game.skeleton.core.CharacterSkeleton
 import org.scalajs.dom
@@ -16,17 +16,15 @@ class Player (skeleton: CharacterSkeleton, walls: => Iterable[Shape]) extends Ch
 	private var keyH = 0
 	private var keyV = 0
 
-	private var mouseState = false
-
 	override protected def attached(): Unit = {
-		engine.keyboard.registerKey("w", () => keyV -= 1, () => keyV += 1)
-		engine.keyboard.registerKey("a", () => keyH -= 1, () => keyH += 1)
-		engine.keyboard.registerKey("s", () => keyV += 1, () => keyV -= 1)
-		engine.keyboard.registerKey("d", () => keyH += 1, () => keyH -= 1)
+		engine.inputs.registerKey("w", () => keyV -= 1, () => keyV += 1)
+		engine.inputs.registerKey("a", () => keyH -= 1, () => keyH += 1)
+		engine.inputs.registerKey("s", () => keyV += 1, () => keyV -= 1)
+		engine.inputs.registerKey("d", () => keyH += 1, () => keyH -= 1)
 	}
 
 	override protected def detached(): Unit = {
-		engine.keyboard.unregisterKeys("w", "a", "s", "d")
+		engine.inputs.unregisterKeys("w", "a", "s", "d")
 	}
 
 	override def update(dt: Double): Unit = {
@@ -59,13 +57,6 @@ class Player (skeleton: CharacterSkeleton, walls: => Iterable[Shape]) extends Ch
 			}
 		} else if (moving) {
 			stop()
-		}
-
-		val state = engine.mouse.left
-		if (state != mouseState) {
-			if (state) Game.spellKeyDown(0)()
-			else Game.spellKeyUp(0)()
-			mouseState = state
 		}
 
 		super.update(dt)

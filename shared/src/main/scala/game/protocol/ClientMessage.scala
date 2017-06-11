@@ -13,5 +13,5 @@ object ClientMessage {
 	@pickle case class Moving(x: Double, y: Double, duration: Double, xs: Int, ys: Int) extends GameMessage
 	@pickle case class Stopped(x: Double, y: Double, xs: Int, ys: Int) extends GameMessage
 	@pickle case class SpellCast(slot: Int, point: Vector2D) extends GameMessage
-	@pickle case class SpellCancel(slot: Int) extends GameMessage
+	@pickle case class SpellCancel(slot: Int, point: Vector2D) extends GameMessage
 }

@@ -95,7 +95,7 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 		case ClientMessage.Moving(x, y, duration, xs, ys) => playerMoving(senderUID, x, y, duration, xs, ys)
 		case ClientMessage.Stopped(x, y, xs, ys) => playerStopped(senderUID, x, y, xs, ys)
 		case ClientMessage.SpellCast(slot, point) => castSpell(senderUID, slot, point)
-		case ClientMessage.SpellCancel(slot) => cancelSpell(senderUID, slot)
+		case ClientMessage.SpellCancel(slot, point) => cancelSpell(senderUID, slot, point)
 		case m => warn("Ignored unknown message:", m.toString)
 	}
 
@@ -356,18 +356,28 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	/** The player started moving */
 	def playerMoving(uid: UID, x: Double, y: Double, duration: Double, xs: Int, ys: Int): Unit = {
 		val skeleton = uid.skeleton
-		val latency = uid.latency
-		skeleton.moving.value = true
-		skeleton.x.commit(xs).interpolate(x, duration - latency)
-		skeleton.y.commit(ys).interpolate(y, duration - latency)
+		skeleton.x.commit(xs)
+		skeleton.y.commit(ys)
+		if (!uid.skeleton.dead.value) {
+			val latency = uid.latency
+			skeleton.x.interpolate(x, duration - latency)
+			skeleton.y.interpolate(y, duration - latency)
+			skeleton.moving.value = true
+		} else {
+			uid.skeleton.moving.value = false
+		}
 	}
 
 	/** The player stopped moving */
 	def playerStopped(uid: UID, x: Double, y: Double, xs: Int, ys: Int): Unit = {
 		val skeleton = uid.skeleton
 		skeleton.moving.value = false
-		skeleton.x.commit(xs).interpolate(x, 200)
-		skeleton.y.commit(ys).interpolate(y, 200)
+		skeleton.x.commit(xs)
+		skeleton.y.commit(ys)
+		if (!uid.skeleton.dead.value) {
+			skeleton.x.interpolate(x, 200)
+			skeleton.y.interpolate(y, 200)
+		}
 	}
 
 	/** Casts a spell, called when the player presses the key for the corresponding spell */
@@ -379,9 +389,9 @@ abstract class BasicGame(val roster: Seq[GameTeam]) extends BasicActor("Game") w
 	}
 
 	/** Cancels an activated spell, called when the player releases the key for the corresponding spell */
-	def cancelSpell(player: UID, slot: Int): Unit = player.spells(slot) match {
+	def cancelSpell(player: UID, slot: Int, point: Vector2D): Unit = player.spells(slot) match {
 		case Some(skeleton) =>
-			SpellEffect.forSpell(skeleton.spell.value).cancel(SpellContext(this, skeleton, player, Vector2D.zero))
+			SpellEffect.forSpell(skeleton.spell.value).cancel(SpellContext(this, skeleton, player, point))
 		case None =>
 			warn(s"Player `${player.skeleton.name.value}` attempted to cancel spell from empty slot")
 	}

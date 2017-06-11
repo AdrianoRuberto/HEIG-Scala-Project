@@ -49,7 +49,7 @@ class DebugStats(x: Double, y: Double) extends Entity with AbsolutePosition with
 		val statCAM = s"Cam: $camX, $camY".padTo(20, ' ')
 
 		// Mouse
-		val statMOUSE = s"Mouse: ${engine.mouse.x.floor}, ${engine.mouse.y.floor}".padTo(20, ' ')
+		val statMOUSE = s"Mouse: ${engine.inputs.mouseX.floor}, ${engine.inputs.mouseY.floor}".padTo(20, ' ')
 
 		// Whole text
 		text = s"$statFPS $statCPU $statDRW $statLAT $statCAM $statMOUSE"

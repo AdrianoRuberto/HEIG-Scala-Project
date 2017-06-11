@@ -1,13 +1,15 @@
 package engine
 
-import engine.Keyboard.Monitor
+import engine.Inputs.Monitor
+import engine.entity.Entity
+import engine.geometry.Vector2D
 import org.scalajs.dom
 import scala.scalajs.js
 
-class Keyboard private[engine] (engine: Engine) {
-	var shift: Boolean = false
-	var ctrl: Boolean = false
-	var alt: Boolean = false
+class Inputs private[engine] (engine: Engine) {
+	private var shift: Boolean = false
+	private var ctrl: Boolean = false
+	private var alt: Boolean = false
 
 	private var states = Map.empty[String, Boolean]
 
@@ -18,6 +20,28 @@ class Keyboard private[engine] (engine: Engine) {
 		)
 	)
 
+	private var rawX: Double = 0
+	private var rawY: Double = 0
+
+	def mouseX: Double = (rawX + engine.camera.left + 0.5).floor
+	def mouseY: Double = (rawY + engine.camera.top + 0.5).floor
+
+	def mousePosition: Vector2D = Vector2D(mouseX, mouseY)
+
+	object relative {
+		def mouseX(implicit to: Entity): Double = {
+			val box = to.boundingBox
+			Inputs.this.mouseX - (box.left + box.width / 2 + 0.5).floor
+		}
+
+		def mouseY(implicit to: Entity): Double = {
+			val box = to.boundingBox
+			Inputs.this.mouseY - (box.top + box.height / 2 + 0.5).floor
+		}
+
+		def mousePosition(implicit to: Entity): Vector2D = Vector2D(mouseX, mouseY)
+	}
+
 	def key(name: String): Boolean = states.getOrElse(name, false)
 
 	def down(name: String)(implicit monitor: Monitor): Boolean = monitorQuery(name, expected = true)
@@ -27,7 +51,7 @@ class Keyboard private[engine] (engine: Engine) {
 		states.get(name) match {
 			case None => false
 			case Some(state) =>
-				var (t, a, b) = monitor.states.getOrElse(name, Keyboard.defaultMonitorState)
+				var (t, a, b) = monitor.states.getOrElse(name, Inputs.defaultMonitorState)
 				if (t != engine.time) {
 					t = engine.time
 					a = b
@@ -53,7 +77,24 @@ class Keyboard private[engine] (engine: Engine) {
 
 	def unregisterKeys(keys: String*): Unit = for (key <- keys) handlers -= key
 
-	private[engine] def handler(event: dom.KeyboardEvent): Unit = if (!event.repeat) {
+	private[engine] def mouseHandler(event: dom.MouseEvent): Unit = {
+		val rect = engine.canvas.getClientRects()(0)
+		rawX = event.clientX - rect.left
+		rawY = event.clientY - rect.top
+
+		if (event.`type` != "mousemove") {
+			val state = event.`type` == "mousedown"
+			val code = s"m${event.button+1}"
+			if (engine.isRunning && (!engine.isLocked || !state) && states.getOrElse(code, false) != state) {
+				states += (code -> state)
+				if (attemptDispatch(code, state)) {
+					event.preventDefault()
+				}
+			}
+		}
+	}
+
+	private[engine] def keyboardHandler(event: dom.KeyboardEvent): Unit = if (!event.repeat) {
 		val code = getKeyCode(event)
 		shift = event.shiftKey
 		ctrl = event.ctrlKey
@@ -84,16 +125,16 @@ class Keyboard private[engine] (engine: Engine) {
 		}.toLowerCase
 	}
 
-	private def attemptDispatch(code: String, state: Boolean): Boolean = handlers.get(code) match {
+	private[engine] def attemptDispatch(code: String, state: Boolean): Boolean = handlers.get(code) match {
 		case Some((Some(handler), _)) if state => handler(); true
 		case Some((_, Some(handler))) if !state => handler(); true
 		case _ => false
 	}
 }
 
-object Keyboard {
+object Inputs {
 	class Monitor {
-		private[Keyboard] var states: Map[String, (Double, Boolean, Boolean)] = Map.empty
+		private[Inputs] var states: Map[String, (Double, Boolean, Boolean)] = Map.empty
 	}
 	private val defaultMonitorState = (0.0, false, false)
 }

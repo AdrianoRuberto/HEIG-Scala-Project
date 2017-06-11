@@ -37,23 +37,26 @@ object Game {
 		dom.window.on(Event.Resize) { _ => resizeCanvas() }
 		resizeCanvas()
 		engine.setup()
-		engine.keyboard.registerKey("alt-s")(toggleDebugStats())
-		engine.keyboard.registerKey("e", spellKeyDown(1), spellKeyUp(1))
-		engine.keyboard.registerKey("q", spellKeyDown(2), spellKeyUp(2))
-		engine.keyboard.registerKey("shift", spellKeyDown(3), spellKeyUp(3))
+		engine.inputs.registerKey("alt-s")(toggleDebugStats())
+		engine.inputs.registerKey("m1", spellKeyDown(0), spellKeyUp(0))
+		engine.inputs.registerKey("space", spellKeyDown(0), spellKeyUp(0))
+		engine.inputs.registerKey("e", spellKeyDown(1), spellKeyUp(1))
+		engine.inputs.registerKey("q", spellKeyDown(2), spellKeyUp(2))
+		engine.inputs.registerKey("shift", spellKeyDown(3), spellKeyUp(3))
 	}
 
-	private[client] def spellKeyDown(slot: Int)(): Unit = spells(slot) match {
+	private def spellKeyDown(slot: Int)(): Unit = spells(slot) match {
 		case Some(skeleton) =>
 			if (skeleton.cooldown.ready && (player == null || skeleton.spell.value.cost.forall(player.energy.current >= _))) {
 				skeleton.activated.value = true
-				Server ! ClientMessage.SpellCast(slot, engine.mouse.point)
+				Server ! ClientMessage.SpellCast(slot, engine.inputs.mousePosition)
 			}
 		case _ => // Ignore
 	}
 
-	private[client] def spellKeyUp(slot: Int)(): Unit = spells(slot) match {
-		case Some(skeleton) => if (skeleton.activated.value) Server ! ClientMessage.SpellCancel(slot)
+	private def spellKeyUp(slot: Int)(): Unit = spells(slot) match {
+		case Some(skeleton) =>
+			if (skeleton.activated.value) Server ! ClientMessage.SpellCancel(slot, engine.inputs.mousePosition)
 		case _ => // Ignore
 	}
 
