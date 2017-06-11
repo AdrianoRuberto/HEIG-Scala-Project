@@ -31,6 +31,7 @@ final class Mouse private[engine] (engine: Engine) {
 	}
 
 	private[engine] def handler(event: dom.MouseEvent): Unit = {
+		dom.console.log(event)
 		val rect = engine.canvas.getClientRects()(0)
 		rawX = event.clientX - rect.left
 		rawY = event.clientY - rect.top

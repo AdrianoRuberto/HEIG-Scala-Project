@@ -87,7 +87,7 @@ class Matchmaker extends Actor {
 		if (stableQueue || lengthyQueue) {
 			val builder = GameBuilder.random
 			val spots = builder.playerSpots(queue.size, Deadline.now - queue.head.since)
-			if (queue.size >= spots) {
+			if (queue.size >= spots && queue.view.take(spots).forall(qp => Deadline.now - qp.since > 5.seconds)) {
 				val humans = pick(spots)
 				val watcher = Watcher.boundTo(humans.map(_.actor))
 				for (players <- fill(builder, watcher, humans, spots)) {

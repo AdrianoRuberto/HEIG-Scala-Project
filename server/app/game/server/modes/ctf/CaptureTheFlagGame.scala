@@ -20,6 +20,7 @@ class CaptureTheFlagGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 	setDefaultCamera()
 
 	private final val GameDuration = 5 * 60 // seconds
+	private final val FlagSlowness = 1.40
 	private final val pointA = Vector2D(-2000, 0)
 	private final val pointB = Vector2D(2000, 0)
 
@@ -105,12 +106,12 @@ class CaptureTheFlagGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 	private def areaFilter(team: UID)(player: UID): Boolean = {
 		// Taking flag
 		val playerIsOpponent = player.team != team
-		val ourFlagIsAtBase = (if (team == teamA) flagAHolder else flagBHolder) == UID.zero
+		val ourFlagIsAtBase = if (team == teamA) status.controllingA.value else status.controllingB.value
 		val takeFlag = playerIsOpponent && ourFlagIsAtBase
 
 		// Dropping flag
 		val playerIsOtherTeamHolder = (if (team == teamA) flagBHolder else flagAHolder) == player
-		val ourFlagIsControlled = (if (team == teamA) flagAHolder else flagBHolder) == UID.zero
+		val ourFlagIsControlled = if (team == teamA) status.controllingA.value else status.controllingB.value
 		val dropFlag = playerIsOtherTeamHolder && ourFlagIsControlled
 
 		// Any of the two
@@ -140,7 +141,7 @@ class CaptureTheFlagGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 
 	private def pickupFlag(player: UID): Unit = {
 		player gainSpell (1, Spell.DropTheFlag)
-		player.skeleton.speed.value /= 1.25
+		player.skeleton.speed.value /= FlagSlowness
 		setTeamFlagHolder(if (player.team == teamA) teamB else teamA, player)
 	}
 
@@ -173,7 +174,7 @@ class CaptureTheFlagGame (roster: Seq[GameTeam]) extends BasicGame(roster) with 
 
 	def dropFlag(player: UID, scoring: Boolean = false): Unit = if (player == flagBHolder || player == flagAHolder) {
 		player loseSpell 1
-		player.skeleton.speed.value *= 1.25
+		player.skeleton.speed.value *= FlagSlowness
 
 		if (!scoring) {
 			val location = player.skeleton.position
