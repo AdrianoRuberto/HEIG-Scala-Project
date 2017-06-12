@@ -4,28 +4,27 @@ version := "1.0-SNAPSHOT"
 scalaVersion in ThisBuild := "2.11.11"
 crossPaths in ThisBuild := false
 
-lazy val scalaOpts = Seq(
-	//"-Xlog-implicits",
-	"-feature",
-	"-deprecation",
-	"-Xfatal-warnings",
-	"-unchecked",
-	"-language:reflectiveCalls",
-	"-language:higherKinds"
-)
-
-lazy val metaMacroSettings: Seq[Def.Setting[_]] = Seq(
+lazy val commonSettings: Seq[Def.Setting[_]] = Seq(
 	resolvers += Resolver.sonatypeRepo("releases"),
 	resolvers += Resolver.bintrayRepo("scalameta", "maven"),
 	addCompilerPlugin("org.scalameta" % "paradise" % "3.0.0-M9" cross CrossVersion.full),
 	scalacOptions += "-Xplugin-require:macroparadise",
-	scalacOptions in (Compile, console) := Seq()
+	scalacOptions in (Compile, console) := Seq(),
+	scalacOptions ++= Seq(
+		//"-Xlog-implicits",
+		"-feature",
+		"-deprecation",
+		"-Xfatal-warnings",
+		"-unchecked",
+		"-language:reflectiveCalls",
+		"-language:higherKinds",
+		"-Xplugin-require:macroparadise"
+	),
 )
 
 lazy val server = (project in file("server"))
 	.settings(
-		metaMacroSettings,
-		scalacOptions ++= scalaOpts,
+		commonSettings,
 		scalaJSProjects := Seq(client),
 		pipelineStages in Assets := Seq(scalaJSPipeline),
 		pipelineStages := Seq(digest, gzip),
@@ -45,8 +44,7 @@ lazy val server = (project in file("server"))
 
 lazy val client = (project in file("client"))
 	.settings(
-		metaMacroSettings,
-		scalacOptions ++= scalaOpts,
+		commonSettings,
 		scalaJSUseMainModuleInitializer := true,
 		libraryDependencies ++= Seq(
 			"org.scala-js" %%% "scalajs-dom" % "0.9.2",
@@ -59,8 +57,7 @@ lazy val client = (project in file("client"))
 lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared"))
 	.settings(
 		name := "shared",
-		metaMacroSettings,
-		scalacOptions ++= scalaOpts,
+		commonSettings,
 		libraryDependencies ++= Seq(
 			"me.chrons" %%% "boopickle" % "1.2.5"
 		)
@@ -71,7 +68,7 @@ lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared"))
 
 lazy val macros = (project in file("macros"))
 	.settings(
-		metaMacroSettings,
+		commonSettings,
 		libraryDependencies += "org.scalameta" %% "scalameta" % "1.8.0",
 		libraryDependencies += "org.scalameta" %% "contrib" % "1.8.0"
 	)
