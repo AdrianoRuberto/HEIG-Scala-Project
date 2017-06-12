@@ -1,5 +1,5 @@
 name := """underwatch"""
-version := "1.0-SNAPSHOT"
+version := "latest"
 
 scalaVersion in ThisBuild := "2.11.11"
 crossPaths in ThisBuild := false
@@ -41,7 +41,7 @@ lazy val server = (project in file("server"))
 		),
 		includeFilter in gzip := "*.css" || "*.js"
 	)
-	.enablePlugins(PlayScala, DebianPlugin)
+	.enablePlugins(PlayScala, DockerPlugin)
 	.dependsOn(sharedJvm, macros)
 
 lazy val client = (project in file("client"))
