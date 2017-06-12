@@ -19,7 +19,7 @@ lazy val commonSettings: Seq[Def.Setting[_]] = Seq(
 		"-language:reflectiveCalls",
 		"-language:higherKinds",
 		"-Xplugin-require:macroparadise"
-	),
+	)
 )
 
 lazy val server = (project in file("server"))
