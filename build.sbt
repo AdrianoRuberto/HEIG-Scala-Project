@@ -19,7 +19,9 @@ lazy val commonSettings: Seq[Def.Setting[_]] = Seq(
 		"-language:reflectiveCalls",
 		"-language:higherKinds",
 		"-Xplugin-require:macroparadise"
-	)
+	),
+	sources in(Compile, doc) := Seq.empty,
+	publishArtifact in(Compile, packageDoc) := false
 )
 
 lazy val server = (project in file("server"))
@@ -39,7 +41,7 @@ lazy val server = (project in file("server"))
 		),
 		includeFilter in gzip := "*.css" || "*.js"
 	)
-	.enablePlugins(PlayScala)
+	.enablePlugins(PlayScala, DebianPlugin)
 	.dependsOn(sharedJvm, macros)
 
 lazy val client = (project in file("client"))
